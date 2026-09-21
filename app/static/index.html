@@ -6,19 +6,29 @@
 <title>Climb Intake</title>
 <style>
 :root{
-  --teal:#006172; --teal-dark:#03323a; --cyan:#a2f1f8;
-  --bg:#f9f9f5; --card:#fff; --sunken:#f2f2ea;
-  --line:#e3e3d7; --line-2:#cdcdc0;
-  --text:#18211f; --dim:#5d6a6b; --faint:#949c9c;
-  --primary:#006172; --on-primary:#fff; --danger:#92351e; --warn:#9a5a10; --ok:#38714a;
+  /* Climb brand tokens, lifted verbatim from climb.ai's stylesheet */
+  --climb-teal:#03323a; --climb-teal-mid:#006172; --climb-teal-soft:#8dbfc9;
+  --climb-coral:#f27557; --climb-coral-mid:#b75238; --climb-coral-deep:#92351e; --climb-coral-darkest:#531405;
+  --climb-cyan:#a2f1f8; --climb-mint:#c6f0cd; --climb-sage:#87a48c;
+  --climb-paper:#f9f9f5; --climb-paper-line:#d3d3ca; --climb-ink:#121d1f;
+
+  --teal:var(--climb-teal); --teal-dark:var(--climb-teal); --cyan:var(--climb-cyan);
+  --bg:var(--climb-paper); --card:#fff; --sunken:#f2f2ea;
+  --line:#e4e4d8; --line-2:var(--climb-paper-line);
+  --text:var(--climb-ink); --dim:#5d6a6b; --faint:#949c9c;
+  --primary:var(--climb-coral); --on-primary:#3a1004;
+  --danger:var(--climb-coral-deep); --danger-wash:#fdeee9;
+  --warn:var(--climb-coral-mid); --ok:#38714a;
   --mono:"SF Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0c1416; --card:#13201f; --sunken:#101a1b;
-  --line:#243436; --line-2:#364c4e;
-  --text:#eaf0ef; --dim:#9bacac; --faint:#6e8081;
-  --primary:#a2f1f8; --on-primary:#04282f; --danger:#f27557; --warn:#dda454; --ok:#71c68c;
+  --bg:#08191c; --card:#0d2328; --sunken:#0a1d21;
+  --line:#16343a; --line-2:#255059;
+  --text:#e8f1f1; --dim:#9db3b5; --faint:#6f8a8d;
+  --primary:var(--climb-coral); --on-primary:#3a1004;
+  --danger:#f78e73; --danger-wash:#2c1712;
+  --warn:#d98a6c; --ok:var(--climb-mint);
 }}
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -27,15 +37,14 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 var(--sans);
 button{font:inherit;font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;border-radius:7px}
 button:disabled{opacity:.4;cursor:default}
 
-header{flex:none;background:var(--teal);color:#fff;padding:12px 20px;
+header{flex:none;background:var(--climb-teal);color:#fff;padding:12px 20px;
   display:flex;align-items:center;justify-content:space-between;gap:16px}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) header{background:var(--teal-dark)}}
 .brand{display:flex;align-items:center;gap:11px}
 .brand b{font-size:15px;font-weight:650;display:block}
 .brand small{font-size:12px;color:var(--cyan);opacity:.9;display:block;margin-top:1px}
 .mode{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
-  padding:4px 10px;border-radius:999px;background:var(--cyan);color:var(--teal-dark);white-space:nowrap}
-.mode.off{background:#f2c66b;color:#4a3208}
+  padding:4px 10px;border-radius:999px;background:var(--climb-coral);color:#3a1004;white-space:nowrap}
+.mode.off{background:var(--climb-cyan);color:var(--climb-teal)}
 
 .composer{flex:none;padding:12px 20px;background:var(--card);border-bottom:1px solid var(--line);
   display:flex;gap:10px}
@@ -49,8 +58,7 @@ header{flex:none;background:var(--teal);color:#fff;padding:12px 20px;
 .status{flex:none;height:0;overflow:hidden;transition:height .15s;background:var(--sunken)}
 .status.on{height:33px;border-bottom:1px solid var(--line)}
 .status div{padding:7px 20px;font-size:12.5px;color:var(--dim);display:flex;align-items:center;gap:9px}
-.status.err{background:#fcefe8;color:#7a2f15}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .status.err{background:#2b1912;color:#efbca8}}
+.status.err{background:var(--danger-wash);color:var(--climb-coral-darkest)}
 .spin{width:12px;height:12px;border:2px solid var(--line-2);border-top-color:var(--primary);
   border-radius:50%;animation:sp .7s linear infinite;flex:none}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -62,6 +70,7 @@ header{flex:none;background:var(--teal);color:#fff;padding:12px 20px;
 .bar{position:sticky;top:0;z-index:4;background:var(--sunken);border-bottom:1px solid var(--line);padding:11px 13px}
 .bar h2{margin:0 0 9px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);font-weight:700}
 .seg{display:flex;border:1px solid var(--line-2);border-radius:7px;overflow:hidden;margin-bottom:8px}
+.sortseg button{font-size:11.5px;padding:5px 4px}
 .seg button{flex:1;border:0;border-radius:0;background:transparent;color:var(--dim);padding:6px 4px;font-size:12px}
 .seg button.on{background:var(--primary);color:var(--on-primary)}
 .seg button+button{border-left:1px solid var(--line-2)}
@@ -77,6 +86,7 @@ input[type=file]{display:none}
 .row:hover{border-color:var(--line-2)}
 .row.sel{border-color:var(--primary);border-left-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
 .row.high{border-left-color:var(--warn)} .row.critical{border-left-color:var(--danger)}
+.row.esc{background:var(--danger-wash);border-color:#f0d3c8}
 .row .m{display:flex;gap:6px;align-items:center;font-size:10.5px;margin-bottom:4px;color:var(--faint);
   text-transform:uppercase;letter-spacing:.04em;font-weight:700}
 .row .m .c{color:var(--dim)}
@@ -125,15 +135,21 @@ input[type=file]{display:none}
 details{margin-top:8px}
 summary{cursor:pointer;color:var(--dim);font-size:12px;font-weight:650}
 summary:hover{color:var(--primary)}
-pre{background:var(--teal-dark);color:#d6ecef;border-radius:8px;padding:12px;overflow:auto;
+pre{background:var(--climb-teal);color:#d6ecef;border-radius:8px;padding:12px;overflow:auto;
   font:11px/1.5 var(--mono);max-height:320px;margin:8px 0 0}
 .empty{padding:56px 30px;max-width:460px;color:var(--dim)}
 .empty h3{margin:0 0 12px;font-size:17px;color:var(--text);font-weight:650}
 .empty p{font-size:14px;line-height:1.65;margin:0 0 12px}
 .empty ol{font-size:14px;line-height:1.9;padding-left:22px;margin:0}
 .kbd{font:11px var(--mono);background:var(--sunken);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
-@media (max-width:880px){body{overflow:auto}.split{grid-template-columns:1fr;overflow:visible}
-  .pane{overflow:visible}.left{border-right:0;border-bottom:1px solid var(--line)}}
+@media (max-width:880px){
+  body{overflow:auto}
+  .split{grid-template-columns:1fr;overflow:visible}
+  .pane{overflow:visible}
+  /* Keep the list short so the explanation is reachable without scrolling past every ticket. */
+  .left{border-right:0;border-bottom:1px solid var(--line);max-height:46vh;overflow-y:auto}
+  .detail{padding:20px 18px 50px}
+}
 </style>
 </head>
 <body>
@@ -160,10 +176,14 @@ pre{background:var(--teal-dark);color:#d6ecef;border-radius:8px;padding:12px;ove
   <div class="pane left">
     <div class="bar">
       <h2 id="barcount">Tickets</h2>
-      <p style="margin:-4px 0 9px;font-size:11px;color:var(--faint);line-height:1.4">Sorted by what needs attention first</p>
+      <p style="margin:-4px 0 9px;font-size:11px;color:var(--faint);line-height:1.4" id="sorthint">Newest run at the top</p>
       <div class="seg">
         <button id="f-all" class="on">All</button>
         <button id="f-esc">Needs a human</button>
+      </div>
+      <div class="seg sortseg">
+        <button id="s-new" class="on">Most recent</button>
+        <button id="s-pri">Most urgent</button>
       </div>
       <div class="tools">
         <button class="tool" id="samples">10 samples</button>
@@ -182,7 +202,7 @@ pre{background:var(--teal-dark);color:#d6ecef;border-radius:8px;padding:12px;ove
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const cap=s=>{s=String(s).replace(/_/g,' ');return s[0].toUpperCase()+s.slice(1)};
-let rows=[], escOnly=false, selected=null;
+let rows=[], escOnly=false, selected=null, sortBy='newest';
 
 /* plain-English vocabulary — the UI never shows raw enum names */
 const CATEGORY={billing:'A billing question',bug:'Something is broken',security:'A security problem',
@@ -214,7 +234,9 @@ function triage(a,b){
   if(RANK[y.urgency]!==RANK[x.urgency]) return RANK[y.urgency]-RANK[x.urgency];
   return (b.created_at||'').localeCompare(a.created_at||'');
 }
-const filtered=()=>(escOnly?rows.filter(d=>d.extraction.escalate):rows).slice().sort(triage);
+const newest=(a,b)=>(b.created_at||'').localeCompare(a.created_at||'');
+const filtered=()=>(escOnly?rows.filter(d=>d.extraction.escalate):rows)
+  .slice().sort(sortBy==='newest'?newest:triage);
 
 function renderRows(){
   const v=filtered(), n=rows.filter(d=>d.extraction.escalate).length;
@@ -226,7 +248,7 @@ function renderRows(){
   }
   $('#rows').innerHTML=v.map(d=>{const x=d.extraction;
     const uc=x.urgency==='critical'?'cr':x.urgency==='high'?'h':'';
-    return `<div class="row ${x.urgency} ${selected===d.id?'sel':''}" data-id="${d.id}">
+    return `<div class="row ${x.urgency} ${x.escalate?'esc':''} ${selected===d.id?'sel':''}" data-id="${d.id}">
       <div class="m"><span class="c">${esc(cap(x.category))}</span>
         <span class="${uc}">${esc(x.urgency)}</span>
         ${x.escalate?'<span class="f">Needs a human</span>':''}</div>
@@ -249,6 +271,7 @@ async function select(id,push=true){
   selected=id; renderRows();
   if(push){const u=new URL(location);u.searchParams.set('t',id);history.replaceState(null,'',u)}
   document.querySelector('.row.sel')?.scrollIntoView({block:'nearest'});
+  const narrow=window.matchMedia('(max-width:880px)').matches;
   const d=await api('/tickets/'+id), x=d.extraction, L=d.llm_extraction;
   const moved=k=>L&&JSON.stringify(L[k])!==JSON.stringify(x[k]);
 
@@ -302,6 +325,7 @@ async function select(id,push=true){
        <div class="card"><code>${esc(d.error)}</code></div></div>`:''}
     <details><summary>Full audit record</summary><pre>${esc(JSON.stringify(d,null,2))}</pre></details>`;
   $('.pane:last-child').scrollTop=0;
+  if(narrow) $('#detail').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 async function reload(reselect=false){
@@ -354,6 +378,10 @@ $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;
 $('#clear').onclick=()=>{if(!confirm('Delete every decision?'))return;
   run(async()=>{await api('/tickets',{method:'DELETE'});selected=null;await reload(true);
     status('Cleared.',{hold:2500})})};
+$('#s-new').onclick=()=>{sortBy='newest';$('#s-new').classList.add('on');$('#s-pri').classList.remove('on');
+  $('#sorthint').textContent='Newest run at the top';renderRows()};
+$('#s-pri').onclick=()=>{sortBy='priority';$('#s-pri').classList.add('on');$('#s-new').classList.remove('on');
+  $('#sorthint').textContent='Escalations first, then by urgency';renderRows()};
 $('#f-all').onclick=()=>{escOnly=false;$('#f-all').classList.add('on');$('#f-esc').classList.remove('on');reload(true)};
 $('#f-esc').onclick=()=>{escOnly=true;$('#f-esc').classList.add('on');$('#f-all').classList.remove('on');reload(true)};
 

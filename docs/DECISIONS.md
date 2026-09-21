@@ -204,6 +204,24 @@ as the outcome is the kind of thing that erodes trust in an audit log. Pinned by
 **Related risk this exposes:** keyword compliance detection false-positives on marketing copy. The
 spam classifier is what saves it here, which means the ordering of those two rules is load-bearing.
 
+### D23. Brand palette taken from climb.ai's own CSS tokens, not from eyeballing the page
+**First attempt was wrong.** Counting hex codes in the rendered HTML made `#006172` look dominant
+(656 occurrences, mostly inline SVG strokes), so the UI came out all teal with orange used only as an
+error colour. The named tokens in the stylesheet tell a different story:
+
+| Token | Value | Role |
+|---|---|---|
+| `--color-climb-teal` | `#03323a` | the dark blue-green of the brand chrome |
+| `--color-climb-teal-mid` | `#006172` | a mid tone, not the primary |
+| `--color-climb-coral` | `#f27557` | the orange used for calls to action |
+| `--color-climb-paper` | `#f9f9f5` | page background |
+| `--color-climb-ink` | `#121d1f` | body text |
+
+**Now:** dark teal chrome, coral primary actions, deep coral (`#92351e`) plus a pale wash for
+escalated rows so escalation reads as a surface rather than just coloured text.
+**Lesson worth repeating in review:** frequency in the markup is not hierarchy. The design system's
+own variable names were the source of truth, and they were one fetch away.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

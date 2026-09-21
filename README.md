@@ -158,6 +158,12 @@ one instance; Cloud Tasks or Pub/Sub in front of `/tickets` so intake is async a
 Message Batches API for backfills. AWS equivalent is App Runner + Secrets Manager + ECR with the same
 three resources.
 
+## Interface notes
+
+The web view is a triage workspace: a list on the left sorted newest-first (toggle to urgency order),
+and the full explanation on the right. Each decision is linkable at `/?t=<decision id>`. Colours come
+from climb.ai's published CSS tokens; the typefaces there are licensed, so this uses a system stack.
+
 ## Layout
 
 ```
