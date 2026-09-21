@@ -156,6 +156,9 @@ review queue makes the uncertainty visible and gives labelers a stream of hard c
 needs an exclusive lock; a thread-pool burst on a fresh DB file raced through the "not initialised"
 check and one thread got `database is locked`. The load test missed it because `/health` had already
 initialised the file before the burst. Caught by the per-test fresh DB in `tests/test_api.py`, fixed
-with a process-level init lock, pinned by `tests/test_audit_concurrency.py` (16 threads x 64 writes
-on a cold file). Lesson for the panel: the measurement that motivated the change did not cover the
-change's own failure mode.
+with a process-level init lock. The race is not reproducible on demand (0 of 15 runs of the old code
+failed the new concurrency test), so the fix is argued by construction: init runs on one connection
+under a lock before any other thread opens the file. `tests/test_audit_concurrency.py` (5 cold files
+x 16 threads x 64 writes) pins the scenario. Two lessons for the panel: the measurement that motivated
+the change did not cover the change's own failure mode, and "the test fails without the fix" is a
+claim to verify, not assume. I checked, it didn't, and the docstring says so.
