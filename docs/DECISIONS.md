@@ -149,6 +149,47 @@ Cloud Run runs the image, not the laptop's VM manager.
 the honest version of that claim names what it was verified under. An unverified claim is the thing
 my decision log exists to prevent.
 
+### D19. Removed the executive-mention urgency floor after watching it fire
+**Observed:** running the 32-ticket demo set live, two tickets — a CEO thank-you note and a request
+to schedule a roadmap call — came back from the model as `low` urgency, correctly. The
+`executive.mention` rule then lifted both to `medium` because it carried an urgency floor.
+**Changed:** that rule now forces the escalation flag and adds nothing else. Security and legal keep
+their floors, because those topics are time-sensitive by nature; an executive mention is about
+*visibility*, and the escalation queue already delivers that.
+**Why it matters for the design:** the guardrail layer is allowed to overrule the model, so every
+floor it carries has to earn its place. This one was overwriting a judgment the model makes better.
+Pinned by `test_executive_mention_escalates_without_inflating_urgency`.
+
+### D20. Measured: the model earns its place, and the guardrail still has the last word
+First live run of the gold set (gpt-5, 30 tickets) against the rules-only baseline:
+
+| | rules only | model + rules |
+|---|---|---|
+| Escalation recall | 100% | 100% |
+| False escalations | 0 | 0 |
+| Category accuracy | 100% | 100% |
+| Urgency exact | 77% | 80% |
+| Urgency within tolerance | 97% | 100% |
+| p50 / p95 latency | ~0 ms / 5 ms | 11.4 s / 13.9 s |
+
+The two columns agree on every escalation. They differ on 12 rows, and on the 8 where gold is
+unambiguous the model is right and the keyword heuristic is wrong — it reads a prompt-injection
+attempt as spam rather than billing, separates a rate-limit request into `feature_request`, and
+calls a "no rush" archive request `low`. The model's errors all trend *more* urgent, which is the
+safe direction for an intake router.
+**The cost:** ~11 s per ticket versus microseconds, and ~$0.02 per 30 tickets. Prompt caching covered
+30,720 of 34,029 input tokens (90%), measured from `usage.cache_read_input_tokens` in the audit log
+rather than assumed.
+**What this buys the argument:** the two-layer design isn't a hedge, it's two components doing
+different jobs — the model for inference, the rules for the floor under recall. Either alone is worse.
+
+### D21. A false positive the regexes did not cause
+On the demo set the model escalated a failing-pipeline ticket as `executive_mention`, reasoning from
+"board readout Thursday". No rule fired; this was the model's own call. It is defensible (board-level
+visibility) and it is the tolerated direction, but it is worth saying out loud in review: **the model
+is the more liberal escalator here, not the regexes.** If false-positive volume ever became a
+problem, the lever is the prompt's escalation definition, not the guardrail.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

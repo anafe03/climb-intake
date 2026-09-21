@@ -66,3 +66,21 @@ def test_low_confidence_routing_skipped_when_escalated():
     from app.routing import route
     assert route(Category.other, Urgency.low, escalate=False, confidence=0.3) == ("human-review", None)
     assert route(Category.other, Urgency.low, escalate=True, confidence=0.3) == ("general-support", "human-escalation-desk")
+
+
+def test_executive_mention_escalates_without_inflating_urgency():
+    """An exec mention must reach a human, but must not overwrite a correct low-urgency call."""
+    out, hits, overrides = apply_escalation_rules(
+        "Our CEO loves the new reporting view, just wanted to pass along thanks!",
+        _base(urgency=Urgency.low),
+    )
+    assert out.escalate and EscalationReason.executive_mention in out.escalation_reasons
+    assert out.urgency == Urgency.low
+    assert not any("lifted urgency" in o for o in overrides)
+
+
+def test_security_and_legal_keep_their_urgency_floors():
+    sec, _, _ = apply_escalation_rules("Old credentials were not revoked for a terminated employee.", _base(urgency=Urgency.low))
+    assert sec.urgency == Urgency.high
+    legal, _, _ = apply_escalation_rules("Our attorney will review this for breach.", _base(urgency=Urgency.low))
+    assert legal.urgency == Urgency.high

@@ -60,8 +60,15 @@ positive traps, positive exec mention, phishing, IDOR, GDPR, outage, non-English
 Each row lists which fields are ambiguous so scoring doesn't punish defensible alternatives.
 Escalation recall is never ambiguous for must-escalate rows.
 
-**What are the numbers?** See `docs/EVAL-rules.md` and `docs/EVAL-llm.md`. `scripts/compare_evals.py`
-diffs them row by row.
+**What are the numbers?** Both modes hit 100% escalation recall with zero false escalations. The
+model wins on urgency (80% exact, 100% within tolerance vs 77% / 97%) and on the 8 unambiguous rows
+where the two disagree. It costs ~11 s per ticket instead of microseconds. Prompt caching covered 90%
+of input tokens, measured not assumed. Full tables in `docs/EVAL-llm.md` and `docs/EVAL-rules.md`.
+
+**Where is the model worse than your regexes?** Nowhere on the gold set — but on the demo set it
+escalated a pipeline failure as an executive mention off the phrase "board readout Thursday", with no
+rule involved. The model is the more liberal escalator, not the guardrail. Worth knowing which
+component to tune if false positives ever became the problem.
 
 **What would you do with more time?** Larger gold set from real tickets with two labelers and
 inter-rater agreement; a held-out split so prompt tuning can't overfit; a confidence threshold that

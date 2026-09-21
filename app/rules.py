@@ -71,7 +71,12 @@ ESCALATION_RULES: list[EscalationRule] = [
         "executive.mention",
         EscalationReason.executive_mention,
         _rx(r"\b(CEO|CFO|CTO|COO|CIO|CISO|CRO|CMO|founder|co-founder|VP\b|vice president|president|chief [a-z]+ officer|executive team|leadership team|board of directors|the board|general counsel)\b"),
-        Urgency.medium,  # attention, not speed: a CEO compliment is not urgent
+        # No urgency lift. The escalation flag already routes this to a human; forcing urgency up
+        # only overwrites a judgment the model makes better. Observed live: for a CEO thank-you note
+        # and a roadmap-call request, the model correctly said "low" and this floor pushed both to
+        # "medium" for no operational gain. Security and legal keep their floors because those are
+        # time-sensitive by nature; an executive mention is about visibility, not speed.
+        Urgency.low,
     ),
 ]
 
@@ -122,7 +127,14 @@ def apply_escalation_rules(text: str, extraction: Extraction) -> tuple[Extractio
 # Rules-only classifier (degraded mode). Keep it honest: it is a heuristic.
 # ---------------------------------------------------------------------------
 
-SPAM_SIGNALS = _rx(r"\b(free credits?|discord|crypto|bitcoin|mining|lol|lmao|my uncle|seo|backlinks?|5-star|guaranteed|click here|unsubscribe|casino|giveaway)\b")
+# Off-platform contact handles, solicitation boilerplate, and get-rich noise. Two or more hits
+# classify as spam. Single hits are deliberately not enough: a real customer can say "lol".
+SPAM_SIGNALS = _rx(
+    r"\b(free credits?|discord|telegram|whatsapp|crypto|bitcoin|mining|lol|lmao|my (uncle|cousin)|"
+    r"seo|backlinks?|5-star|guaranteed|click here|unsubscribe|casino|giveaway|hmu|dm me|"
+    r"lead lists?|b2b leads?|contact lists?|cold (email|outreach)|wanna partner|"
+    r"first \d+ free|reply [A-Z]{3,} to)\b"
+)
 BILLING = _rx(r"\b(invoice|charged?|billed?|billing|refund|payment|plan|pricing|subscription|renewal|renew|seats?|credit card|card on file|overcharg\w*|double.?bill\w*|cobr\w+|factura|suscripci[oó]n|reembols\w*|pago)\b")
 BUG = _rx(r"\b(error|500|bug|broken|throwing|crash\w*|not working|doesn'?t work|resets?|fails?|failing|down\b|outage|button|toggle|export\b|dashboard|checkout|latency|429|timeout|slow)\b")
 ONBOARDING = _rx(r"\b(onboard\w*|implementation|kickoff|set ?up|go.?live|migration)\b")

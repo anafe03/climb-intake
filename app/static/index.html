@@ -6,138 +6,361 @@
 <title>Climb Intake</title>
 <style>
   :root{
-    --bg:#0f1218;--panel:#161b24;--panel2:#1c2330;--line:#252d3b;--text:#e6e9ef;--muted:#8b95a7;
-    --accent:#5b8def;--ok:#3ecf8e;--warn:#f5b642;--bad:#ff5c5c;--crit:#ff3b6b;--chip:#232b3a;
-    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
-    --sans:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    /* Palette sampled from climb.ai */
+    --teal:#006172; --teal-deep:#0c3a41; --teal-dark:#03323a; --cyan:#a2f1f8; --cyan-pale:#c3faff;
+    --rust:#92351e; --rust-bright:#f27557; --sage:#8dbfc9; --moss:#87a48c;
+    --cream:#f9f9f5; --cream-2:#eeeee4; --cream-3:#d3d3ca;
+
+    --bg:var(--cream); --surface:#ffffff; --surface-2:var(--cream-2);
+    --line:#ddddd2; --line-strong:#c4c4b8;
+    --text:#1b2426; --text-dim:#5d6b6e; --text-faint:#8a9699;
+    --primary:var(--teal); --primary-ink:#ffffff;
+    --danger:var(--rust); --warn:#b06a12; --ok:#3f7d52;
+
+    --mono:"SF Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --r:10px; --shadow:0 1px 2px rgba(12,58,65,.06), 0 4px 16px rgba(12,58,65,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0b1416; --surface:#122024; --surface-2:#182b30;
+      --line:#23393f; --line-strong:#2f4a52;
+      --text:#e8f0f1; --text-dim:#9db3b7; --text-faint:#71898e;
+      --primary:var(--cyan); --primary-ink:#04282f; --danger:var(--rust-bright);
+      --warn:#e0a54a; --ok:#6fc98a;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 4px 18px rgba(0,0,0,.28);
+    }
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.45}
-  header{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid var(--line);background:var(--panel)}
-  header h1{font-size:16px;margin:0;font-weight:600;letter-spacing:.2px}
-  header h1 span{color:var(--muted);font-weight:400;margin-left:8px}
-  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;background:var(--chip);color:var(--muted)}
-  .pill.llm{color:var(--ok);background:rgba(62,207,142,.12)}
-  .pill.rules{color:var(--warn);background:rgba(245,182,66,.14)}
-  main{display:grid;grid-template-columns:380px 1fr;gap:18px;padding:18px 22px;max-width:1500px;margin:0 auto}
-  @media (max-width:980px){main{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
-  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0 0 12px;font-weight:600}
-  textarea{width:100%;min-height:140px;resize:vertical;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;font-family:var(--sans);font-size:14px}
-  textarea:focus{outline:none;border-color:var(--accent)}
-  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
-  button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:13px}
-  button.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
-  button.danger{background:transparent;border:1px solid var(--line);color:var(--muted)}
-  button:disabled{opacity:.5;cursor:default}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:14px 24px;background:var(--teal);color:#fff;border-bottom:1px solid var(--teal-deep)}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) header{background:var(--teal-dark)}}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .brand svg{flex:none}
+  .brand h1{font-size:17px;margin:0;font-weight:650;letter-spacing:-.01em;white-space:nowrap}
+  .brand p{margin:1px 0 0;font-size:12px;color:var(--cyan);opacity:.95}
+  .hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;
+    font-size:11px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;
+    background:rgba(255,255,255,.14);color:#fff}
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+  .pill.live{background:var(--cyan);color:var(--teal-dark)}
+  .pill.degraded{background:#f0c46a;color:#4a3208}
+  .hdr-meta{font-size:12px;color:var(--cyan);font-family:var(--mono);opacity:.9}
+
+  main{display:grid;grid-template-columns:minmax(320px,380px) 1fr;gap:20px;padding:20px 24px 60px;
+    max-width:1560px;margin:0 auto;align-items:start}
+  @media (max-width:1020px){main{grid-template-columns:1fr;padding:16px}}
+  .stack{display:flex;flex-direction:column;gap:20px;min-width:0}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:18px;box-shadow:var(--shadow)}
+  .card > h2{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-dim);
+    margin:0 0 14px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .card > h2 .n{color:var(--text-faint);font-weight:600;letter-spacing:0;text-transform:none}
+
+  textarea{width:100%;min-height:124px;resize:vertical;background:var(--bg);color:var(--text);
+    border:1px solid var(--line-strong);border-radius:8px;padding:11px 12px;
+    font-family:var(--sans);font-size:14px;line-height:1.5}
+  textarea:focus{outline:2px solid var(--primary);outline-offset:-1px;border-color:transparent}
+  textarea::placeholder{color:var(--text-faint)}
+
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px;align-items:center}
+  button{font-family:inherit;font-size:13px;font-weight:600;border-radius:8px;padding:8px 14px;
+    border:1px solid transparent;cursor:pointer;transition:filter .12s,background .12s}
+  button:hover:not(:disabled){filter:brightness(1.08)}
+  button:disabled{opacity:.45;cursor:default}
+  .btn-primary{background:var(--primary);color:var(--primary-ink)}
+  .btn-ghost{background:transparent;border-color:var(--line-strong);color:var(--text)}
+  .btn-quiet{background:transparent;border-color:transparent;color:var(--text-faint);padding:6px 9px;font-size:12px}
+  .btn-quiet:hover:not(:disabled){color:var(--text);background:var(--surface-2)}
   input[type=file]{display:none}
-  .queues{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
-  .q{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer}
-  .q:hover,.q.active{border-color:var(--accent)}
-  .q b{display:block;font-size:20px;font-weight:600}
-  .q small{color:var(--muted);font-family:var(--mono);font-size:11px}
-  .q.esc b{color:var(--crit)}
-  table{width:100%;border-collapse:collapse}
-  th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);font-weight:600}
-  td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  .hint{color:var(--text-faint);font-size:12px;margin:11px 0 0;line-height:1.45}
+
+  .queues{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:9px}
+  .q{position:relative;background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--sage);
+    border-radius:8px;padding:9px 11px;cursor:pointer;text-align:left;transition:border-color .12s,background .12s}
+  .q:hover{background:var(--surface-2)}
+  .q.active{border-color:var(--primary);border-left-color:var(--primary);background:var(--surface-2)}
+  .q .cnt{display:block;font-size:21px;font-weight:650;line-height:1.15;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .q .nm{display:block;font-size:10.5px;color:var(--text-dim);font-family:var(--mono);margin-top:2px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .q.esc{border-left-color:var(--danger)} .q.esc .cnt{color:var(--danger)}
+  .q.oncall{border-left-color:var(--warn)}
+  .q.review{border-left-color:var(--moss)}
+  .q.zero .cnt{color:var(--text-faint);font-weight:500}
+
+  .tbl-wrap{overflow-x:auto;margin:0 -18px -18px;padding:0 0 2px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-dim);
+    text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);font-weight:700;white-space:nowrap;
+    position:sticky;top:0;background:var(--surface)}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
   tr.t{cursor:pointer}
-  tr.t:hover td{background:var(--panel2)}
-  tr.t.sel td{background:rgba(91,141,239,.10)}
-  .snip{max-width:520px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
-  .tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;background:var(--chip);color:var(--text);font-family:var(--mono)}
-  .u-low{color:var(--muted)}.u-medium{color:var(--text)}.u-high{color:var(--warn)}.u-critical{color:var(--crit)}
-  .esc-yes{color:var(--crit);font-weight:700}.esc-no{color:var(--muted)}
-  .stack{display:flex;flex-direction:column;gap:18px}
-  #detail .kv{display:grid;grid-template-columns:120px 1fr;gap:6px 12px;margin:10px 0}
-  #detail .kv div:nth-child(odd){color:var(--muted)}
-  #detail p{margin:8px 0}
-  .rat{background:var(--panel2);border-left:3px solid var(--accent);padding:10px 12px;border-radius:6px;white-space:pre-wrap}
-  .rule{font-family:var(--mono);font-size:12px;background:var(--panel2);border-radius:6px;padding:8px 10px;margin:6px 0}
+  tr.t:hover td{background:var(--surface-2)}
+  tr.t.sel td{background:color-mix(in srgb, var(--primary) 9%, transparent);
+    box-shadow:inset 3px 0 0 var(--primary)}
+  .snip{max-width:480px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .xid{font-family:var(--mono);font-size:11px;color:var(--text-faint);margin-right:7px}
+  .tag{display:inline-block;padding:2.5px 8px;border-radius:5px;font-size:11px;font-weight:650;
+    font-family:var(--mono);background:var(--surface-2);color:var(--text-dim);white-space:nowrap}
+  .u{font-weight:650;font-size:12px;letter-spacing:.02em}
+  .u-low{color:var(--text-faint);font-weight:500}
+  .u-medium{color:var(--text-dim)}
+  .u-high{color:var(--warn)}
+  .u-critical{color:var(--danger)}
+  .esc-yes{color:var(--danger);font-weight:750;font-size:11px;letter-spacing:.06em}
+  .esc-no{color:var(--text-faint)}
+  .qname{font-family:var(--mono);font-size:11.5px;color:var(--text-dim);white-space:nowrap}
+  .qname .plus{color:var(--danger);font-weight:650}
+
+  .kv{display:grid;grid-template-columns:104px 1fr;gap:9px 14px;margin:14px 0}
+  .kv dt{color:var(--text-dim);font-size:12px;font-weight:600}
+  .kv dd{margin:0}
+  .quote{background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--primary);
+    padding:12px 14px;border-radius:0 8px 8px 0;white-space:pre-wrap;line-height:1.55}
+  .rationale{background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--sage);
+    padding:12px 14px;border-radius:0 8px 8px 0;line-height:1.55}
+  .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);
+    font-weight:700;margin:18px 0 7px}
+  .rule{font-family:var(--mono);font-size:11.5px;background:var(--bg);border:1px solid var(--line);
+    border-radius:7px;padding:9px 11px;margin:6px 0;line-height:1.55;word-break:break-word}
   .rule.fired{border-left:3px solid var(--warn)}
-  .muted{color:var(--muted)}
-  pre{background:#0b0e13;border:1px solid var(--line);border-radius:8px;padding:10px;overflow:auto;font-size:12px;max-height:420px}
-  details summary{cursor:pointer;color:var(--muted);margin-top:12px}
-  .empty{color:var(--muted);padding:26px;text-align:center}
-  .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--muted);border-top-color:var(--accent);border-radius:50%;animation:s .8s linear infinite;vertical-align:middle;margin-left:6px}
-  @keyframes s{to{transform:rotate(360deg)}}
-  .flag{color:var(--muted);font-size:12px}
+  .rule b{color:var(--text)}
+  .said{color:var(--text-faint);font-style:italic;font-size:12px}
+  .empty{color:var(--text-faint);padding:38px 20px;text-align:center;font-size:13px}
+  details{margin-top:12px}
+  summary{cursor:pointer;color:var(--text-dim);font-size:12px;font-weight:600;padding:4px 0}
+  summary:hover{color:var(--primary)}
+  pre{background:var(--teal-dark);color:#dbeef1;border-radius:8px;padding:12px;overflow:auto;
+    font-size:11.5px;line-height:1.5;max-height:400px;font-family:var(--mono);margin:8px 0 0}
+  .spin{display:inline-block;width:13px;height:13px;border:2px solid var(--line-strong);
+    border-top-color:var(--primary);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .banner{display:none;margin:0 24px 0;padding:10px 14px;border-radius:8px;font-size:13px;
+    background:#fdf0e8;border:1px solid #e8c3b2;color:#7a2d13}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .banner{background:#2e1a14;border-color:#5a3226;color:#f0b9a4}}
+  .banner.show{display:block}
+  footer{text-align:center;color:var(--text-faint);font-size:11.5px;padding:0 24px 28px}
 </style>
 </head>
 <body>
 <header>
-  <h1>Climb Intake <span>ticket extraction &amp; routing</span></h1>
-  <div><span id="mode" class="pill">…</span> <span id="model" class="flag"></span></div>
+  <div class="brand">
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <path d="M2 21.5 L10 6.5 L14.6 15 L17.2 10.5 L24 21.5 Z" fill="#a2f1f8"/>
+      <path d="M10 6.5 L6.1 13.8 L8.4 12.6 L10.4 14.1 L12.3 12.2 L10 6.5 Z" fill="#ffffff"/>
+    </svg>
+    <div>
+      <h1>Climb Intake</h1>
+      <p>Ticket extraction &amp; routing</p>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <span id="mode" class="pill"><span class="dot"></span><span id="modetext">checking</span></span>
+    <span id="model" class="hdr-meta"></span>
+  </div>
 </header>
+<div id="banner" class="banner"></div>
 <main>
   <div class="stack">
     <section class="card">
       <h2>Submit a ticket</h2>
-      <textarea id="text" placeholder="Paste a freeform customer request…"></textarea>
+      <textarea id="text" placeholder="Paste a freeform customer request, exactly as it arrived…"></textarea>
       <div class="row">
-        <button id="submit">Classify &amp; route</button>
-        <button class="ghost" id="samples">Load 10 Climb samples</button>
-        <label><button class="ghost" onclick="document.getElementById('file').click()">Upload batch…</button></label>
-        <input type="file" id="file" accept=".json,.jsonl,.txt">
+        <button class="btn-primary" id="submit">Classify &amp; route</button>
         <span id="busy"></span>
       </div>
-      <p class="flag" style="margin:10px 0 0">Batch upload accepts .json (array of strings or {"text":…}), .jsonl, or .txt with blank lines between tickets.</p>
+      <p class="hint">⌘↵ to submit. Nothing is pre-labelled: category, urgency, and escalation are inferred from the text alone.</p>
     </section>
+
     <section class="card">
-      <h2>Queues</h2>
+      <h2>Load a batch</h2>
+      <div class="row" style="margin-top:0">
+        <button class="btn-ghost" id="samples">10 Climb samples</button>
+        <button class="btn-ghost" id="demo">32-ticket demo set</button>
+        <button class="btn-ghost" onclick="document.getElementById('file').click()">Upload file…</button>
+        <input type="file" id="file" accept=".json,.jsonl,.csv,.txt">
+      </div>
+      <p class="hint">Uploads accept <code>.json</code>, <code>.jsonl</code>, <code>.csv</code> (a <code>text</code> column), or <code>.txt</code> with blank lines between tickets. Re-loading a batch is idempotent.</p>
+    </section>
+
+    <section class="card">
+      <h2>Downstream queues <span class="n" id="qtotal"></span></h2>
       <div id="queues" class="queues"></div>
-      <div class="row"><button class="danger" id="clearq">Clear filter</button><button class="danger" id="clearall">Clear audit log</button></div>
+      <div class="row">
+        <button class="btn-quiet" id="clearq">Clear filter</button>
+        <button class="btn-quiet" id="clearall">Reset audit log</button>
+      </div>
     </section>
   </div>
+
   <div class="stack">
     <section class="card">
-      <h2>Decisions <span id="count" class="muted"></span></h2>
-      <div id="list"></div>
+      <h2>Decisions <span class="n" id="count"></span></h2>
+      <div class="tbl-wrap"><div id="list"></div></div>
     </section>
-    <section class="card" id="detail"><h2>Why</h2><div class="empty">Select a ticket to see how it was classified and why.</div></section>
+    <section class="card" id="detail">
+      <h2>How this was classified, and why</h2>
+      <div class="empty">Select a ticket above.</div>
+    </section>
   </div>
 </main>
+<footer>Take-home build by Austin Nafe. Palette sampled from climb.ai; not an official Climb product.</footer>
+
 <script>
 const $=s=>document.querySelector(s);
 let filter=null, selected=null;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cap=s=>String(s).replace(/_/g,' ');
 
-async function api(path,opts={}){const r=await fetch(path,opts);if(!r.ok){throw new Error(await r.text())}return r.headers.get('content-type')?.includes('json')?r.json():r.text();}
-function busy(on){$('#busy').innerHTML=on?'<span class="spin"></span>':'';document.querySelectorAll('button').forEach(b=>b.disabled=on);}
+async function api(path,opts={}){
+  const r=await fetch(path,opts);
+  if(!r.ok) throw new Error((await r.text()).slice(0,300));
+  return r.headers.get('content-type')?.includes('json')?r.json():r.text();
+}
+function busy(on){
+  $('#busy').innerHTML=on?'<span class="spin"></span>':'';
+  document.querySelectorAll('button').forEach(b=>b.disabled=on);
+}
+function banner(msg){
+  const b=$('#banner');
+  if(!msg){b.classList.remove('show');return;}
+  b.textContent=msg; b.classList.add('show');
+}
 
-async function loadHealth(){const h=await api('/health');const m=$('#mode');m.textContent=h.mode==='llm'?'Claude + rules':'rules only';m.className='pill '+(h.mode==='llm'?'llm':'rules');$('#model').textContent=h.mode==='llm'?`${h.provider} · ${h.model}`:'no API key: degraded mode';}
-async function loadQueues(){const q=await api('/queues');$('#queues').innerHTML=q.queues.map(x=>`<div class="q ${x.name.includes('escalation')?'esc':''} ${filter===x.name?'active':''}" data-q="${x.name}"><b>${x.count}</b><small>${x.name}</small></div>`).join('');document.querySelectorAll('.q').forEach(el=>el.onclick=()=>{filter=el.dataset.q;refresh();});}
-async function loadList(){const rows=await api('/tickets?limit=200'+(filter?'&queue='+encodeURIComponent(filter):''));$('#count').textContent=rows.length?`(${rows.length}${filter?' in '+filter:''})`:'';
- if(!rows.length){$('#list').innerHTML='<div class="empty">No tickets yet. Submit one or load the samples.</div>';return;}
- $('#list').innerHTML=`<table><thead><tr><th>Ticket</th><th>Customer</th><th>Category</th><th>Urgency</th><th>Escalate</th><th>Queue</th></tr></thead><tbody>${rows.map(d=>{const x=d.extraction;return `<tr class="t ${selected===d.id?'sel':''}" data-id="${d.id}"><td><div class="snip" title="${esc(d.ticket.text)}">${d.ticket.external_id?`<span class="muted">#${esc(d.ticket.external_id)}</span> `:''}${esc(d.ticket.text)}</div></td><td>${esc(x.customer.name||'—')}</td><td><span class="tag">${x.category}</span></td><td class="u-${x.urgency}">${x.urgency}</td><td class="${x.escalate?'esc-yes':'esc-no'}">${x.escalate?'YES':'no'}</td><td class="muted" style="font-family:var(--mono);font-size:12px">${d.queue}${d.escalation_queue?'<br>+ '+d.escalation_queue:''}</td></tr>`}).join('')}</tbody></table>`;
- document.querySelectorAll('tr.t').forEach(tr=>tr.onclick=()=>{selected=tr.dataset.id;showDetail(selected);loadList();});}
-async function showDetail(id){const d=await api('/tickets/'+id);const x=d.extraction;const L=d.llm_extraction;
- const diff=(k,fmt=v=>v)=>L&&JSON.stringify(L[k])!==JSON.stringify(x[k])?` <span class="muted">(model said ${esc(fmt(L[k]))})</span>`:'';
- $('#detail').innerHTML=`<h2>Why <span class="muted">· ${d.id} · ${d.mode}${d.model?' · '+d.model:''} · ${d.latency_ms} ms</span></h2>
- <div class="rat">${esc(d.ticket.text)}</div>
- <div class="kv">
-  <div>Customer</div><div>${esc(x.customer.name||'unknown')}${x.customer.contact_name?' · '+esc(x.customer.contact_name):''}${x.customer.identifiers.length?' · <span class="muted">'+x.customer.identifiers.map(esc).join(', ')+'</span>':''}</div>
-  <div>Category</div><div><span class="tag">${x.category}</span> <span class="muted">confidence ${x.category_confidence.toFixed(2)}</span></div>
-  <div>Urgency</div><div class="u-${x.urgency}"><b>${x.urgency}</b>${diff('urgency')}${x.urgency_signals.length?' <span class="muted">← '+x.urgency_signals.map(esc).join(' · ')+'</span>':''}</div>
-  <div>Escalate</div><div class="${x.escalate?'esc-yes':'esc-no'}">${x.escalate?'YES':'no'}${diff('escalate')} <span class="muted">${x.escalation_reasons.join(', ')}</span></div>
-  <div>Routed to</div><div style="font-family:var(--mono)">${d.queue}${d.escalation_queue?' <span class="esc-yes">+ '+d.escalation_queue+'</span>':''}</div>
- </div>
- <p class="muted">Summary</p><p>${esc(x.summary)}</p>
- <p class="muted">${d.mode==='llm'?'Model rationale':'Rationale'}</p><div class="rat">${esc(x.rationale)}</div>
- <p class="muted">Guardrail rules</p>${d.rule_hits.length?d.rule_hits.map(h=>`<div class="rule fired"><b>${h.rule}</b> matched “${esc(h.matched)}” → ${esc(h.effect)}</div>`).join(''):'<div class="rule">none fired</div>'}
- ${d.overrides.length?`<p class="muted">Overrides applied to the model's answer</p>${d.overrides.map(o=>`<div class="rule fired">${esc(o)}</div>`).join('')}`:''}
- ${d.error?`<p class="muted">Error</p><div class="rule">${esc(d.error)}</div>`:''}
- <details><summary>Raw decision JSON (audit record)</summary><pre>${esc(JSON.stringify(d,null,2))}</pre></details>
- <details><summary>Plain-text explain endpoint</summary><pre id="explain">loading…</pre></details>`;
- $('#detail details:last-child').addEventListener('toggle',async e=>{if(e.target.open){$('#explain').textContent=await api('/tickets/'+id+'/explain');}},{once:true});}
-async function refresh(){await Promise.all([loadQueues(),loadList()]);}
+async function loadHealth(){
+  const h=await api('/health');
+  const m=$('#mode');
+  const live=h.mode==='llm';
+  m.className='pill '+(live?'live':'degraded');
+  $('#modetext').textContent=live?'model + rules':'rules only';
+  $('#model').textContent=live?`${h.provider} · ${h.model}`:'no API key — degraded mode';
+}
 
-$('#submit').onclick=async()=>{const t=$('#text').value.trim();if(!t)return;busy(true);try{const d=await api('/tickets',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:t,source:'ui'})});selected=d.id;$('#text').value='';await refresh();showDetail(d.id);}catch(e){alert(e.message)}finally{busy(false)}};
-$('#samples').onclick=async()=>{busy(true);try{await api('/tickets/load-samples',{method:'POST'});await refresh();}catch(e){alert(e.message)}finally{busy(false)}};
-$('#file').onchange=async e=>{const f=e.target.files[0];if(!f)return;const fd=new FormData();fd.append('file',f);busy(true);try{await api('/tickets/upload',{method:'POST',body:fd});await refresh();}catch(err){alert(err.message)}finally{busy(false);e.target.value='';}};
+function queueClass(n){
+  if(n.includes('escalation')) return 'esc';
+  if(n.includes('oncall')) return 'oncall';
+  if(n.includes('review')) return 'review';
+  return '';
+}
+async function loadQueues(){
+  const q=await api('/queues');
+  $('#qtotal').textContent=q.total?`· ${q.total} total`:'';
+  $('#queues').innerHTML=q.queues.map(x=>
+    `<button class="q ${queueClass(x.name)} ${x.count?'':'zero'} ${filter===x.name?'active':''}" data-q="${esc(x.name)}">
+       <span class="cnt">${x.count}</span><span class="nm" title="${esc(x.name)}">${esc(x.name)}</span>
+     </button>`).join('');
+  document.querySelectorAll('.q').forEach(el=>el.onclick=()=>{
+    filter = filter===el.dataset.q ? null : el.dataset.q; refresh();
+  });
+}
+
+async function loadList(){
+  const rows=await api('/tickets?limit=200'+(filter?'&queue='+encodeURIComponent(filter):''));
+  $('#count').textContent=rows.length?`· ${rows.length}${filter?' in '+filter:''}`:'';
+  if(!rows.length){
+    $('#list').innerHTML='<div class="empty">No tickets yet — submit one, or load a batch from the left.</div>';
+    return;
+  }
+  $('#list').innerHTML=`<table><thead><tr>
+      <th>Ticket</th><th>Customer</th><th>Category</th><th>Urgency</th><th>Escalate</th><th>Routed to</th>
+    </tr></thead><tbody>${rows.map(d=>{
+      const x=d.extraction;
+      return `<tr class="t ${selected===d.id?'sel':''}" data-id="${d.id}">
+        <td><div class="snip" title="${esc(d.ticket.text)}">${d.ticket.external_id?`<span class="xid">${esc(d.ticket.external_id)}</span>`:''}${esc(d.ticket.text)}</div></td>
+        <td>${x.customer.name?esc(x.customer.name):'<span class="said">—</span>'}</td>
+        <td><span class="tag">${cap(x.category)}</span></td>
+        <td class="u u-${x.urgency}">${x.urgency}</td>
+        <td class="${x.escalate?'esc-yes':'esc-no'}">${x.escalate?'YES':'—'}</td>
+        <td class="qname">${esc(d.queue)}${d.escalation_queue?`<br><span class="plus">+ ${esc(d.escalation_queue)}</span>`:''}</td>
+      </tr>`;}).join('')}</tbody></table>`;
+  document.querySelectorAll('tr.t').forEach(tr=>tr.onclick=()=>{
+    selected=tr.dataset.id; showDetail(selected); loadList();
+  });
+}
+
+async function showDetail(id){
+  const d=await api('/tickets/'+id), x=d.extraction, L=d.llm_extraction;
+  const differs=(k)=>L&&JSON.stringify(L[k])!==JSON.stringify(x[k]);
+  const said=(k,v)=>differs(k)?` <span class="said">model said ${esc(v(L[k]))}</span>`:'';
+  $('#detail').innerHTML=`
+    <h2>How this was classified, and why
+      <span class="n">· ${esc(d.id)} · ${esc(d.mode)}${d.model?' · '+esc(d.model):''} · ${d.latency_ms} ms</span></h2>
+    <div class="quote">${esc(d.ticket.text)}</div>
+    <dl class="kv">
+      <dt>Customer</dt><dd>${x.customer.name?esc(x.customer.name):'<span class="said">not stated in the ticket</span>'}${x.customer.contact_name?' · '+esc(x.customer.contact_name):''}
+        ${x.customer.identifiers.length?'<div class="said">'+x.customer.identifiers.map(esc).join(' · ')+'</div>':''}</dd>
+      <dt>Category</dt><dd><span class="tag">${cap(x.category)}</span> <span class="said">confidence ${x.category_confidence.toFixed(2)}</span>${said('category',v=>cap(v))}</dd>
+      <dt>Urgency</dt><dd><span class="u u-${x.urgency}">${x.urgency}</span>${said('urgency',v=>v)}
+        ${x.urgency_signals.length?'<div class="said">inferred from: '+x.urgency_signals.map(esc).join(' · ')+'</div>':''}</dd>
+      <dt>Escalate</dt><dd><span class="${x.escalate?'esc-yes':'esc-no'}">${x.escalate?'YES':'no'}</span>${said('escalate',v=>v?'yes':'no')}
+        ${x.escalation_reasons.length?'<div class="said">'+x.escalation_reasons.map(r=>cap(r)).join(' · ')+'</div>':''}</dd>
+      <dt>Routed to</dt><dd class="qname">${esc(d.queue)}${d.escalation_queue?` <span class="plus">+ ${esc(d.escalation_queue)}</span>`:''}</dd>
+    </dl>
+    <div class="lbl">Summary</div><div>${esc(x.summary)}</div>
+    <div class="lbl">${d.mode==='llm'?'Model rationale':'Rationale'}</div>
+    <div class="rationale">${esc(x.rationale)}</div>
+    <div class="lbl">Guardrail rules</div>
+    ${d.rule_hits.length
+      ? d.rule_hits.map(h=>`<div class="rule fired"><b>${esc(h.rule)}</b> matched “${esc(h.matched)}” → ${esc(h.effect)}</div>`).join('')
+      : '<div class="rule">No escalation rule matched this text.</div>'}
+    ${d.overrides.length?`<div class="lbl">Overrides applied to the model's answer</div>
+      ${d.overrides.map(o=>`<div class="rule fired">${esc(o)}</div>`).join('')}`:''}
+    ${d.error?`<div class="lbl">Classifier error — fell back to rules</div><div class="rule">${esc(d.error)}</div>`:''}
+    <details><summary>Audit record (raw JSON)</summary><pre>${esc(JSON.stringify(d,null,2))}</pre></details>
+    <details id="expd"><summary>Plain-text explain endpoint</summary><pre id="explain">loading…</pre></details>`;
+  $('#expd').addEventListener('toggle',async e=>{
+    if(e.target.open) $('#explain').textContent=await api('/tickets/'+id+'/explain');
+  },{once:true});
+}
+
+async function refresh(){ await Promise.all([loadQueues(),loadList()]); }
+
+async function run(fn){
+  busy(true); banner('');
+  try{ await fn(); }catch(e){ banner(e.message); }finally{ busy(false); }
+}
+async function loadFixture(name){
+  await run(async()=>{
+    const r=await api('/tickets/load-samples?fixture='+name,{method:'POST'});
+    await refresh();
+    const failed=r.decisions.filter(d=>d.error);
+    if(failed.length) banner(`${failed.length} of ${r.count} fell back to rules — ${failed[0].error.slice(0,180)}`);
+  });
+}
+
+$('#submit').onclick=()=>run(async()=>{
+  const t=$('#text').value.trim(); if(!t) return;
+  const d=await api('/tickets',{method:'POST',headers:{'content-type':'application/json'},
+                                body:JSON.stringify({text:t,source:'ui'})});
+  selected=d.id; $('#text').value='';
+  await refresh(); showDetail(d.id);
+  if(d.error) banner('Classifier fell back to rules — '+d.error.slice(0,180));
+});
+$('#samples').onclick=()=>loadFixture('samples');
+$('#demo').onclick=()=>loadFixture('demo');
+$('#file').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const fd=new FormData(); fd.append('file',f);
+  run(async()=>{ await api('/tickets/upload',{method:'POST',body:fd}); await refresh(); })
+    .finally(()=>{e.target.value='';});
+};
 $('#clearq').onclick=()=>{filter=null;refresh();};
-$('#clearall').onclick=async()=>{if(!confirm('Delete all audit records?'))return;await api('/tickets',{method:'DELETE'});selected=null;$('#detail').innerHTML='<h2>Why</h2><div class="empty">Select a ticket to see how it was classified and why.</div>';refresh();};
+$('#clearall').onclick=()=>{
+  if(!confirm('Delete every audit record?')) return;
+  run(async()=>{
+    await api('/tickets',{method:'DELETE'});
+    selected=null;
+    $('#detail').innerHTML='<h2>How this was classified, and why</h2><div class="empty">Select a ticket above.</div>';
+    await refresh();
+  });
+};
 $('#text').addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter')$('#submit').click();});
-loadHealth();refresh();
+loadHealth(); refresh();
 </script>
 </body>
 </html>

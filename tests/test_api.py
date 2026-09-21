@@ -65,3 +65,15 @@ def test_upload_csv():
     r = client.post("/tickets/upload", files={"file": ("t.csv", body, "text/csv")})
     assert r.status_code == 200 and r.json()["count"] == 2
     assert {d["ticket"]["external_id"] for d in r.json()["decisions"]} == {"1", "2"}
+
+
+def test_demo_fixture_loads_and_covers_the_matrix():
+    r = client.post("/tickets/load-samples", params={"fixture": "demo"})
+    assert r.status_code == 200 and r.json()["count"] == 32
+    cats = {d["extraction"]["category"] for d in r.json()["decisions"]}
+    assert {"billing", "bug", "security", "legal_contract", "spam"} <= cats
+    assert any(d["extraction"]["escalate"] for d in r.json()["decisions"])
+
+
+def test_unknown_fixture_is_rejected():
+    assert client.post("/tickets/load-samples", params={"fixture": "nope"}).status_code == 400

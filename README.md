@@ -44,7 +44,7 @@ inference.
 | `POST` | `/tickets` | Classify one ticket. Body `{"text": "...", "source"?: "...", "external_id"?: "..."}` |
 | `POST` | `/tickets/batch` | `{"tickets": [ {...}, ... ]}` |
 | `POST` | `/tickets/upload` | Multipart file: `.json` (array of strings or objects), `.jsonl`, `.csv` (`text` column, optional `id`), or `.txt` (blank-line separated) |
-| `POST` | `/tickets/load-samples` | Ingest the 10 Climb sample tickets |
+| `POST` | `/tickets/load-samples?fixture=samples\|demo` | Ingest the 10 Climb samples, or a 32-ticket demo set spanning every category and escalation reason |
 | `GET` | `/tickets` | Recent decisions, optional `?queue=` filter |
 | `GET` | `/tickets/{id}` | Full decision: final fields, model's raw output, rules fired, overrides, usage |
 | `GET` | `/tickets/{id}/explain` | Same decision as plain text |
@@ -104,7 +104,18 @@ uv run python scripts/eval.py                   # with a key: scorecard -> docs/
 TEST_CLASSIFIER_MODE=llm uv run pytest tests/test_gold_llm_mode.py -s
 ```
 
-Scorecards live in [docs/](docs/). `scripts/compare_evals.py` diffs two runs row by row.
+Measured on the gold set (gpt-5 vs the rules-only fallback):
+
+| | rules only | model + rules |
+|---|---|---|
+| Escalation recall | 100% | 100% |
+| False escalations | 0 | 0 |
+| Category accuracy | 100% | 100% |
+| Urgency exact / tolerant | 77% / 97% | 80% / 100% |
+| p50 latency per ticket | ~0 ms | 11.4 s |
+
+Full scorecards in [docs/EVAL-llm.md](docs/EVAL-llm.md) and [docs/EVAL-rules.md](docs/EVAL-rules.md),
+including every model rationale. `scripts/compare_evals.py` diffs two runs row by row.
 `scripts/loadtest.py` measures the intake path under concurrent writes; results and the SQLite WAL
 change they motivated are in [docs/LOADTEST.md](docs/LOADTEST.md). The rules-only layer alone scores 100% escalation recall with zero
 false escalations on the gold set; that is the safety-net claim and it is tested in CI.

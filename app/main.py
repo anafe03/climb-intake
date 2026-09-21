@@ -89,11 +89,24 @@ async def upload(file: UploadFile = File(...)):
     return BatchOut(count=len(decisions), decisions=decisions)
 
 
+FIXTURES = {
+    "samples": ("sample_tickets.json", "climb-samples"),
+    "demo": ("demo_tickets.json", "demo-set"),
+}
+
+
 @app.post("/tickets/load-samples", response_model=BatchOut)
-def load_samples():
-    """Convenience for demos: ingest the 10 Climb sample tickets."""
-    items = json.loads((DATA / "sample_tickets.json").read_text())
-    tickets = [TicketIn(text=i["text"], source="climb-samples", external_id=str(i["id"])) for i in items]
+def load_samples(fixture: str = "samples"):
+    """Convenience for demos: ingest a bundled ticket fixture.
+
+    fixture=samples -> the 10 Climb-provided tickets
+    fixture=demo    -> a wider set spanning every category, urgency, and escalation reason
+    """
+    if fixture not in FIXTURES:
+        raise HTTPException(400, f"unknown fixture '{fixture}'; expected one of {sorted(FIXTURES)}")
+    filename, source = FIXTURES[fixture]
+    items = json.loads((DATA / filename).read_text())
+    tickets = [TicketIn(text=i["text"], source=source, external_id=str(i["id"])) for i in items]
     decisions = _process_many(tickets)
     return BatchOut(count=len(decisions), decisions=decisions)
 
