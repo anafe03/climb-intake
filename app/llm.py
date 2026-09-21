@@ -75,7 +75,9 @@ def classify(text: str) -> tuple[Extraction, dict]:
     response = _client().messages.parse(
         model=model_name(),
         max_tokens=4096,
-        system=SYSTEM_PROMPT,
+        # Stable prefix, cached across tickets. Opus 5 minimum cacheable prefix is 512 tokens;
+        # usage.cache_read_input_tokens in the audit record shows whether it lands.
+        system=[{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
         thinking={"type": "adaptive"},
         output_config={"effort": "medium"},
         messages=[{"role": "user", "content": f"<ticket>\n{text}\n</ticket>"}],
@@ -91,6 +93,8 @@ def classify(text: str) -> tuple[Extraction, dict]:
         "stop_reason": response.stop_reason,
         "input_tokens": response.usage.input_tokens,
         "output_tokens": response.usage.output_tokens,
+        "cache_read_input_tokens": getattr(response.usage, "cache_read_input_tokens", 0) or 0,
+        "cache_creation_input_tokens": getattr(response.usage, "cache_creation_input_tokens", 0) or 0,
         "llm_ms": int((time.perf_counter() - started) * 1000),
     }
     return response.parsed_output, meta

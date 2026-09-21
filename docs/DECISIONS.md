@@ -116,3 +116,15 @@ has not been applied. Stated plainly in the README.
   API for backfills and a queue worker for live traffic.
 - Multi-tenant audit: the current audit table has no tenant column because the samples have no
   customer identity. First thing to add when there's an auth context.
+
+### D12. The model path is tested without the network
+**Chose:** `tests/test_llm_path_mocked.py` monkeypatches `llm.classify` to return a wrong answer,
+raise an API error, or raise a refusal, and asserts what the pipeline ships in each case. A schema
+test checks the Pydantic model uses no JSON Schema keywords structured outputs reject.
+**Why:** The two stories the panel will ask about ("what if the model is wrong" and "what if the API
+is down") should be provable in CI, not narrated. The real-model eval is a separate, key-gated test.
+
+### D13. System prompt is a cached prefix, and we log whether it hits
+**Chose:** `cache_control: ephemeral` on the system block; `cache_read_input_tokens` recorded in the
+audit `usage`. Opus 5's minimum cacheable prefix is 512 tokens and the prompt is close to that.
+**Why:** Cheap to add, and logging the hit count means we claim only what the numbers show.

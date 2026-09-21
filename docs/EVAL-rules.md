@@ -1,6 +1,6 @@
 # Eval scorecard: mode=rules
 
-Generated 2026-09-21 10:35 on 30 gold tickets (10 Climb samples + 20 edge cases).
+Generated 2026-09-21 10:43 on 30 gold tickets (10 Climb samples + 20 edge cases).
 
 | Metric | Value |
 |---|---|
@@ -12,7 +12,7 @@ Generated 2026-09-21 10:35 on 30 gold tickets (10 Climb samples + 20 edge cases)
 | Urgency exact / within tolerance | 77% / 97% |
 | Customer name accuracy (incl. correctly null) | 100% |
 | Identifier extraction | 100% |
-| Latency p50 / p95 per ticket | 0 ms / 2 ms |
+| Latency p50 / p95 per ticket | 0 ms / 0 ms |
 | Wall time (concurrency 4) | 0.0 s |
 | Tokens in / out | 0 / 0 |
 
