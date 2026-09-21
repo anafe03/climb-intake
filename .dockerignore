@@ -3,6 +3,8 @@
 __pycache__
 *.pyc
 data/audit.db*
+.venv
+requirements-dev.lock
 data/eval-results
 .git
 infra
