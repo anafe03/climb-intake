@@ -151,3 +151,11 @@ desk. `edge-17` ("help") lands there.
 **Why:** The sample notes say #5 should be "spam/low-confidence rather than forced into a category".
 Forcing a guess into a team's queue costs that team time and hides the classifier's uncertainty. A
 review queue makes the uncertainty visible and gives labelers a stream of hard cases for the gold set.
+
+**Follow-up (same day):** the WAL change introduced a cold-start race. `PRAGMA journal_mode=WAL`
+needs an exclusive lock; a thread-pool burst on a fresh DB file raced through the "not initialised"
+check and one thread got `database is locked`. The load test missed it because `/health` had already
+initialised the file before the burst. Caught by the per-test fresh DB in `tests/test_api.py`, fixed
+with a process-level init lock, pinned by `tests/test_audit_concurrency.py` (16 threads x 64 writes
+on a cold file). Lesson for the panel: the measurement that motivated the change did not cover the
+change's own failure mode.

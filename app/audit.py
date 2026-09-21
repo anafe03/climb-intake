@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import sqlite3
+import threading
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -41,21 +42,42 @@ def db_path() -> Path:
 
 
 _initialised: set[str] = set()
+_init_lock = threading.Lock()
+
+
+def _ensure_initialised(path: Path) -> None:
+    """Run once per process per DB file, under a lock.
+
+    `PRAGMA journal_mode=WAL` needs an exclusive lock on the file. Without the lock, the first burst
+    of concurrent requests on a fresh DB races here and one thread gets "database is locked"
+    (found by tests/test_api.py::test_upload_* on a fresh per-test DB).
+    """
+    key = str(path)
+    if key in _initialised:
+        return
+    with _init_lock:
+        if key in _initialised:
+            return
+        conn = sqlite3.connect(path, timeout=10.0)
+        try:
+            # WAL lets readers proceed while one writer commits. Persistent on the file.
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.executescript(SCHEMA)
+            conn.commit()
+        finally:
+            conn.close()
+        _initialised.add(key)
 
 
 @contextmanager
 def connect():
     path = db_path()
-    # timeout: wait for a writer lock instead of raising "database is locked" under concurrency.
+    _ensure_initialised(path)
+    # timeout: wait for the writer lock instead of raising "database is locked" under concurrency.
     conn = sqlite3.connect(path, timeout=10.0)
     conn.row_factory = sqlite3.Row
     try:
-        if str(path) not in _initialised:
-            # WAL lets readers proceed while one writer commits; NORMAL sync is safe under WAL.
-            conn.execute("PRAGMA journal_mode=WAL")
-            conn.execute("PRAGMA synchronous=NORMAL")
-            conn.executescript(SCHEMA)
-            _initialised.add(str(path))
+        conn.execute("PRAGMA synchronous=NORMAL")  # per-connection; safe under WAL
         yield conn
         conn.commit()
     finally:
