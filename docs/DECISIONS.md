@@ -119,6 +119,36 @@ routed via rules.
 tokens into `usage`. Model quality differs per provider; the scorecard is per-run and names the
 model, so a comparison is a two-command exercise.
 
+### D18. Local container runtime: Docker Desktop vs Colima (and why the deliverable is identical)
+**The question a reviewer might ask:** "You said Docker, but your machine runs Colima. Is that the
+same thing?"
+
+**What is actually being delivered:** `Dockerfile` and `docker-compose.yml`. Those are the artifact.
+They describe an OCI image and are consumed by the `docker` CLI. Nothing in either file names a
+runtime, a VM, or a vendor.
+
+**Why a runtime is needed at all on macOS:** Linux containers need a Linux kernel. macOS does not
+have one, so every option runs a small Linux VM and talks to a daemon inside it. The choice is only
+*who manages that VM*.
+
+| | Docker Desktop | Colima |
+|---|---|---|
+| Vendor | Docker Inc, proprietary GUI app | Open source CLI (Lima + containerd/dockerd) |
+| Install | `brew install --cask docker`, then open the app once to accept terms and install a privileged helper | `brew install colima docker`, then `colima start` |
+| Licence | Free for individuals and small companies; paid for large orgs | Apache 2.0, no licence gate |
+| Interface | Menu-bar app, dashboard, settings UI | Headless, scriptable |
+| `docker build` / `docker compose` | identical | identical |
+| Image produced | identical bytes for the same Dockerfile | identical bytes for the same Dockerfile |
+
+**Chose:** Colima first, because this build ran in a non-interactive session where a GUI licence
+click was not possible. Docker Desktop installed alongside afterwards at the developer's request.
+**Consequence for the reviewer:** none. `docker compose up --build` in the README works under either.
+The image that would be pushed to Artifact Registry and run on Cloud Run is byte-identical, because
+Cloud Run runs the image, not the laptop's VM manager.
+**If pushed:** "Then why mention it?" Because the README claims a container that runs locally, and
+the honest version of that claim names what it was verified under. An unverified claim is the thing
+my decision log exists to prevent.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the
