@@ -160,9 +160,15 @@ three resources.
 
 ## Interface notes
 
-The web view is a triage workspace: a list on the left sorted newest-first (toggle to urgency order),
-and the full explanation on the right. Each decision is linkable at `/?t=<decision id>`. Colours come
-from climb.ai's published CSS tokens; the typefaces there are licensed, so this uses a system stack.
+The web view is one list of decisions. Click any ticket to open the full breakdown in a dialog:
+the request as it arrived, the four extracted fields with the evidence behind each, the queue it was
+routed to, the reasoning, and whether any guardrail rule changed the answer. Arrow keys step between
+tickets without closing it, and every decision is linkable at `/?t=<decision id>`.
+
+Sort by most recent, most urgent, longest or quickest to read, or category; filter to the tickets that
+need a human. Each row shows how long that ticket took to classify, which makes the model-vs-rules
+latency difference visible without reading the eval. Colours come from climb.ai's published CSS
+tokens; the typefaces there are licensed, so this uses a system stack.
 
 ## Layout
 
