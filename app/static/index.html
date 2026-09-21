@@ -259,11 +259,18 @@ async function select(id){
     ? `<span class="yes">Yes</span><small>Because ${x.escalation_reasons.map(r=>REASON[r]||cap(r)).join(', and ')}.</small>`
     : `<span class="none">No</span><small>Nothing here is a security, legal, or executive matter.</small>`;
 
+  // Rules can fire and then cancel each other out. Compare the shipped answer to the model's
+  // before claiming the safety net changed anything.
+  const netChange = L && ['category','urgency','escalate'].some(k=>JSON.stringify(L[k])!==JSON.stringify(x[k]));
+  const trail = d.overrides.map(o=>`<div style="margin-top:7px"><code>${esc(o)}</code></div>`).join('');
   let guard;
-  if(d.overrides.length)
+  if(d.overrides.length && (netChange || !L))
     guard=`<div class="card changed"><b>The safety net changed the answer.</b> A keyword rule spotted something the
-      model missed, and rules are only ever allowed to make a ticket <i>more</i> urgent or escalated, never less.
-      ${d.overrides.map(o=>`<div style="margin-top:7px"><code>${esc(o)}</code></div>`).join('')}</div>`;
+      model missed, and rules may only make a ticket <i>more</i> urgent or escalated, never less.${trail}</div>`;
+  else if(d.overrides.length)
+    guard=`<div class="card calm"><b>Rules fired, then cancelled out — the reading is unchanged.</b>
+      One rule matched and another undid it, so what ships is exactly what the model said. The full
+      trail is kept for audit:${trail}</div>`;
   else if(d.rule_hits.length)
     guard=`<div class="card calm">A keyword rule matched this text and agreed with the reading. Nothing changed.
       <div style="margin-top:6px">${d.rule_hits.map(h=>`<code>${esc(h.rule)}</code> on “${esc(h.matched)}”`).join('<br>')}</div></div>`;

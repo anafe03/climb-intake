@@ -84,3 +84,17 @@ def test_security_and_legal_keep_their_urgency_floors():
     assert sec.urgency == Urgency.high
     legal, _, _ = apply_escalation_rules("Our attorney will review this for breach.", _base(urgency=Urgency.low))
     assert legal.urgency == Urgency.high
+
+
+def test_spam_suppression_undoes_a_keyword_escalation_and_leaves_no_net_change():
+    """Marketing copy that name-drops GDPR trips the compliance rule; spam suppression must undo it.
+
+    Found live on a vendor solicitation reading 'GDPR-compliant'. The audit trail keeps every step,
+    but the shipped answer must equal what the model said.
+    """
+    text = "Scale your pipeline with our verified B2B lead lists! 40,000 contacts, GDPR-compliant, first 500 free."
+    model_answer = _base(category=Category.spam, urgency=Urgency.low, escalate=False, conf=0.9)
+    out, hits, overrides = apply_escalation_rules(text, model_answer)
+    assert (out.category, out.urgency, out.escalate) == (Category.spam, Urgency.low, False)
+    assert any("compliance_request" in o for o in overrides)   # it did fire
+    assert any("spam.suppress" in o for o in overrides)        # and was undone

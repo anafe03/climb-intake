@@ -190,6 +190,20 @@ visibility) and it is the tolerated direction, but it is worth saying out loud i
 is the more liberal escalator here, not the regexes.** If false-positive volume ever became a
 problem, the lever is the prompt's escalation definition, not the guardrail.
 
+### D22. Rules can fire and cancel out; the audit keeps the trail, the summary states the net
+**Found live:** a vendor spam email reading "GDPR-compliant" tripped `legal.compliance_request`,
+which forced escalation and lifted urgency low → high. `spam.suppress` then undid both. The shipped
+answer was identical to what the model said, but the audit record listed three overrides, and the UI
+read them as "the safety net changed the answer".
+**Changed:** the explanation now compares the shipped fields against the model's before claiming a
+change, and says "rules fired, then cancelled out" when they net to nothing. The full trail is still
+shown, because an auditor asking "did anything touch this ticket?" deserves the real sequence.
+**Why it matters:** in a layered system the intermediate states are not the outcome. Reporting them
+as the outcome is the kind of thing that erodes trust in an audit log. Pinned by
+`test_spam_suppression_undoes_a_keyword_escalation_and_leaves_no_net_change`.
+**Related risk this exposes:** keyword compliance detection false-positives on marketing copy. The
+spam classifier is what saves it here, which means the ordering of those two rules is load-bearing.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the
