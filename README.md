@@ -52,7 +52,9 @@ inference.
 | `GET` | `/health` | Mode (`llm` / `rules`) and model |
 | `DELETE` | `/tickets` | Clear the audit log (demo convenience) |
 
-Interactive docs at `/docs`. Tickets with an `external_id` are idempotent on `(source, external_id)`:
+The web view supports per-decision deep links: `http://localhost:8080/?t=<decision id>` opens
+straight to that ticket's explanation, so a routing decision can be linked in a Slack thread or a
+ticket comment. Interactive docs at `/docs`. Tickets with an `external_id` are idempotent on `(source, external_id)`:
 a retry returns the original decision.
 
 ```bash

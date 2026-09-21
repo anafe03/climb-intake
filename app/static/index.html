@@ -245,8 +245,9 @@ function emptyDetail(){
     <p style="margin-top:14px">Then click any ticket to see what it decided and why.</p></div>`;
 }
 
-async function select(id){
+async function select(id,push=true){
   selected=id; renderRows();
+  if(push){const u=new URL(location);u.searchParams.set('t',id);history.replaceState(null,'',u)}
   document.querySelector('.row.sel')?.scrollIntoView({block:'nearest'});
   const d=await api('/tickets/'+id), x=d.extraction, L=d.llm_extraction;
   const moved=k=>L&&JSON.stringify(L[k])!==JSON.stringify(x[k]);
@@ -366,10 +367,15 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowDown'||e.key==='j'){e.preventDefault();select(v[Math.min(i+1,v.length-1)].id)}
   if(e.key==='ArrowUp'||e.key==='k'){e.preventDefault();select(v[Math.max(i-1,0)].id)}});
 
-(async()=>{const h=await api('/health');const m=$('#mode');const live=h.mode==='llm';
+(async()=>{
+  const h=await api('/health'); const m=$('#mode'); const live=h.mode==='llm';
   m.className='mode'+(live?'':' off');
   m.textContent=live?`reading with ${h.model}`:'no API key — keyword rules only';
-  await reload(true)})();
+  const want=new URL(location).searchParams.get('t');
+  rows=await api('/tickets?limit=300'); renderRows();
+  if(want && rows.some(r=>r.id===want)) await select(want,false);
+  else await reload(true);
+})();
 </script>
 </body>
 </html>

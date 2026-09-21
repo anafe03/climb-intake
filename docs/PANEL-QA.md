@@ -53,6 +53,10 @@ whether it actually hits rather than assume.
 **How do you know the model isn't hallucinating a customer?** The schema says name is null unless
 literally in the text, and the gold set scores "correctly null" on 9 of 10 Climb samples.
 
+**How would support actually use the "why" view?** Every decision has a shareable URL
+(`/?t=<id>`), and the same content is available as JSON (`/tickets/{id}`) and as plain text
+(`/tickets/{id}/explain`) for anyone who would rather curl it than click.
+
 ## Evaluation
 
 **How did you test it?** 30-row gold set: the 10 Climb tickets plus 20 edge cases I wrote (false-
