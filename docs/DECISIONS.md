@@ -128,3 +128,26 @@ is down") should be provable in CI, not narrated. The real-model eval is a separ
 **Chose:** `cache_control: ephemeral` on the system block; `cache_read_input_tokens` recorded in the
 audit `usage`. Opus 5's minimum cacheable prefix is 512 tokens and the prompt is close to that.
 **Why:** Cheap to add, and logging the hit count means we claim only what the numbers show.
+
+### D14. Measure the audit path before trusting it: WAL + busy timeout + exactly-once rows
+**Chose:** `scripts/loadtest.py` fires concurrent `POST /tickets` and checks `rows == accepted`.
+First run: 0 errors but p99 455 ms at 16 writers (sqlite default journal, DDL on every connection).
+After WAL + `synchronous=NORMAL` + schema-once: p99 165 ms, same load, rows still exact.
+**Why:** "Log every ticket's routing decision" is a correctness requirement, so it gets a
+measurement, not an assumption. Numbers in `docs/LOADTEST.md`.
+**If pushed:** SQLite is single-writer; the test shows where the ceiling is (hundreds of rps on one
+box), which is the evidence for *when* Cloud SQL is needed rather than *that* it is.
+
+### D15. Resubmits are idempotent on (source, external_id)
+**Chose:** If a ticket carries an `external_id` and the same `(source, external_id)` was already
+decided, return the original decision. No re-classification, no double count.
+**Why:** Upstream systems retry. Without this, a CRM webhook retry creates two tickets in two queues
+and the escalation desk chases a duplicate. Also makes "Load 10 samples" safe to click twice.
+
+### D16. Low-confidence tickets go to a human-review queue instead of a guessed category
+**Chose:** `routing.yaml` has `low_confidence: {threshold: 0.5, queue: human-review}`. Applied only
+when the ticket is *not* escalated, since escalated tickets already have a human via the escalation
+desk. `edge-17` ("help") lands there.
+**Why:** The sample notes say #5 should be "spam/low-confidence rather than forced into a category".
+Forcing a guess into a team's queue costs that team time and hides the classifier's uncertainty. A
+review queue makes the uncertainty visible and gives labelers a stream of hard cases for the gold set.

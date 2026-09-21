@@ -41,16 +41,17 @@ inference.
 |---|---|---|
 | `POST` | `/tickets` | Classify one ticket. Body `{"text": "...", "source"?: "...", "external_id"?: "..."}` |
 | `POST` | `/tickets/batch` | `{"tickets": [ {...}, ... ]}` |
-| `POST` | `/tickets/upload` | Multipart file: `.json` (array of strings or objects), `.jsonl`, or `.txt` (blank-line separated) |
+| `POST` | `/tickets/upload` | Multipart file: `.json` (array of strings or objects), `.jsonl`, `.csv` (`text` column, optional `id`), or `.txt` (blank-line separated) |
 | `POST` | `/tickets/load-samples` | Ingest the 10 Climb sample tickets |
 | `GET` | `/tickets` | Recent decisions, optional `?queue=` filter |
 | `GET` | `/tickets/{id}` | Full decision: final fields, model's raw output, rules fired, overrides, usage |
 | `GET` | `/tickets/{id}/explain` | Same decision as plain text |
-| `GET` | `/queues` | Queue names and counts |
+| `GET` | `/queues` | Queue names, counts, and total distinct decisions |
 | `GET` | `/health` | Mode (`llm` / `rules`) and model |
 | `DELETE` | `/tickets` | Clear the audit log (demo convenience) |
 
-Interactive docs at `/docs`.
+Interactive docs at `/docs`. Tickets with an `external_id` are idempotent on `(source, external_id)`:
+a retry returns the original decision.
 
 ```bash
 curl -s localhost:8080/tickets -H 'content-type: application/json' \
@@ -84,6 +85,8 @@ curl -s localhost:8080/tickets -H 'content-type: application/json' \
 
 [app/routing.yaml](app/routing.yaml) maps category to queue with per-urgency overrides (critical bugs
 go to `engineering-oncall`). Escalated tickets are additionally copied to `human-escalation-desk`.
+Non-escalated tickets with category confidence below 0.5 go to `human-review` instead of a guessed
+team queue.
 
 ## Evaluation
 
@@ -99,7 +102,9 @@ uv run python scripts/eval.py                   # with a key: scorecard -> docs/
 TEST_CLASSIFIER_MODE=llm uv run pytest tests/test_gold_llm_mode.py -s
 ```
 
-Scorecards live in [docs/](docs/). The rules-only layer alone scores 100% escalation recall with zero
+Scorecards live in [docs/](docs/). `scripts/compare_evals.py` diffs two runs row by row.
+`scripts/loadtest.py` measures the intake path under concurrent writes; results and the SQLite WAL
+change they motivated are in [docs/LOADTEST.md](docs/LOADTEST.md). The rules-only layer alone scores 100% escalation recall with zero
 false escalations on the gold set; that is the safety-net claim and it is tested in CI.
 
 ## Audit log

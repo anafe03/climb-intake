@@ -40,12 +40,22 @@ def db_path() -> Path:
     return p
 
 
+_initialised: set[str] = set()
+
+
 @contextmanager
 def connect():
-    conn = sqlite3.connect(db_path())
+    path = db_path()
+    # timeout: wait for a writer lock instead of raising "database is locked" under concurrency.
+    conn = sqlite3.connect(path, timeout=10.0)
     conn.row_factory = sqlite3.Row
     try:
-        conn.executescript(SCHEMA)
+        if str(path) not in _initialised:
+            # WAL lets readers proceed while one writer commits; NORMAL sync is safe under WAL.
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
+            conn.executescript(SCHEMA)
+            _initialised.add(str(path))
         yield conn
         conn.commit()
     finally:
@@ -99,6 +109,17 @@ def list_recent(limit: int = 100, queue: str | None = None) -> list[Decision]:
     return [Decision.model_validate_json(r["decision_json"]) for r in rows]
 
 
+def total() -> int:
+    with connect() as conn:
+        return conn.execute("SELECT COUNT(*) FROM decisions").fetchone()[0]
+
+
+def find_by_external(source: str, external_id: str) -> Decision | None:
+    with connect() as conn:
+        row = conn.execute("SELECT decision_json FROM decisions WHERE source=? AND external_id=? ORDER BY created_at DESC LIMIT 1", (source, external_id)).fetchone()
+    return Decision.model_validate_json(row["decision_json"]) if row else None
+
+
 def queue_counts() -> dict[str, int]:
     with connect() as conn:
         rows = conn.execute("SELECT queue, COUNT(*) c FROM decisions GROUP BY queue").fetchall()
@@ -112,3 +133,4 @@ def queue_counts() -> dict[str, int]:
 def clear() -> None:
     with connect() as conn:
         conn.execute("DELETE FROM decisions")
+    _initialised.discard(str(db_path()))

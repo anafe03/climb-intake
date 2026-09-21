@@ -1,6 +1,8 @@
 """FastAPI surface: single + batch intake, explain view, queues, audit."""
 from __future__ import annotations
 
+import csv
+import io
 import json
 import logging
 import os
@@ -61,7 +63,7 @@ def create_batch(batch: BatchIn):
 
 @app.post("/tickets/upload", response_model=BatchOut)
 async def upload(file: UploadFile = File(...)):
-    """Accepts .json (array of {text,...} or strings), .jsonl, or .txt (tickets separated by blank lines)."""
+    """Accepts .json (array of {text,...} or strings), .jsonl, .csv (a `text` column, optional id/source), or .txt (blank-line separated)."""
     raw = (await file.read()).decode("utf-8", errors="replace")
     name = (file.filename or "").lower()
     tickets: list[TicketIn] = []
@@ -70,6 +72,8 @@ async def upload(file: UploadFile = File(...)):
             items = [json.loads(line) for line in raw.splitlines() if line.strip()]
         elif name.endswith(".json"):
             items = json.loads(raw)
+        elif name.endswith(".csv"):
+            items = list(csv.DictReader(io.StringIO(raw)))
         else:
             items = [block for block in raw.split("\n\n") if block.strip()]
     except json.JSONDecodeError as e:
@@ -138,7 +142,7 @@ def explain(decision_id: str):
 @app.get("/queues")
 def queues():
     counts = audit.queue_counts()
-    return {"queues": [{"name": q, "count": counts.get(q, 0)} for q in routing.all_queues()]}
+    return {"total": audit.total(), "queues": [{"name": q, "count": counts.get(q, 0)} for q in routing.all_queues()]}
 
 
 @app.delete("/tickets")

@@ -38,3 +38,30 @@ def test_upload_txt():
 
 def test_rejects_empty():
     assert client.post("/tickets", json={"text": ""}).status_code == 422
+
+
+def test_external_id_is_idempotent():
+    body = {"text": "Refund invoice #77 please.", "source": "crm", "external_id": "T-77"}
+    a = client.post("/tickets", json=body).json()
+    b = client.post("/tickets", json=body).json()
+    assert a["id"] == b["id"]
+    assert client.get("/queues").json()["total"] == 1
+
+
+def test_load_samples_twice_does_not_duplicate():
+    client.post("/tickets/load-samples")
+    client.post("/tickets/load-samples")
+    assert client.get("/queues").json()["total"] == 10
+
+
+def test_low_confidence_goes_to_human_review():
+    d = client.post("/tickets", json={"text": "help"}).json()
+    assert d["queue"] == "human-review"
+    assert d["extraction"]["category_confidence"] < 0.5
+
+
+def test_upload_csv():
+    body = "id,text\n1,The export is broken.\n2,\"Refund invoice #1, please.\"\n"
+    r = client.post("/tickets/upload", files={"file": ("t.csv", body, "text/csv")})
+    assert r.status_code == 200 and r.json()["count"] == 2
+    assert {d["ticket"]["external_id"] for d in r.json()["decisions"]} == {"1", "2"}

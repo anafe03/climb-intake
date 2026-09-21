@@ -77,6 +77,17 @@ from my machine (no gcloud/terraform installed); stated in the README.
 instance; Pub/Sub or Cloud Tasks in front of intake so it's async and retried; Message Batches API for
 backfills. Batch concurrency is a 4-thread pool today.
 
+**Does the audit log hold up under load?** Measured: 0 errors and exactly-once rows at 16 and 32
+concurrent writers in rules mode; WAL mode cut p99 from 455 ms to 165 ms. `docs/LOADTEST.md`. SQLite
+is single-writer, and the test says that ceiling is hundreds of rps on one box.
+
+**What if the upstream system retries?** Idempotent on `(source, external_id)`: the retry gets the
+original decision back, no duplicate in any queue.
+
+**What about tickets the classifier isn't sure of?** Below 0.5 confidence and not escalated, they go
+to a `human-review` queue rather than a guessed team. That's also the labeling stream for growing the
+gold set.
+
 **Audit?** Every decision is a SQLite row plus a JSON log line. The record includes the model's raw
 answer, the final answer, rules fired with matched text, overrides, token usage, latency, and the
 mode. "Why did this route here" is answerable after the fact from the record alone.

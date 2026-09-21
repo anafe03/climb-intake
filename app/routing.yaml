@@ -19,3 +19,8 @@ queues:
   other:
     default: general-support
 escalation_queue: human-escalation-desk
+# Tickets the classifier is unsure about go to a person instead of being forced into a category.
+# Escalated tickets are exempt: they already have a human in the loop via the escalation queue.
+low_confidence:
+  threshold: 0.5
+  queue: human-review

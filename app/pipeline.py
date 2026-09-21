@@ -27,6 +27,12 @@ def effective_mode() -> str:
 
 
 def process(ticket: TicketIn, persist: bool = True) -> Decision:
+    # Idempotency: the same (source, external_id) resubmitted returns the original decision instead
+    # of re-classifying and double-counting it in the queues.
+    if persist and ticket.external_id:
+        existing = audit.find_by_external(ticket.source, ticket.external_id)
+        if existing:
+            return existing
     started = time.perf_counter()
     mode = effective_mode()
     model = None
@@ -50,7 +56,7 @@ def process(ticket: TicketIn, persist: bool = True) -> Decision:
         base = rules.rules_only_extraction(ticket.text)
 
     final, hits, overrides = rules.apply_escalation_rules(ticket.text, base)
-    queue, esc_queue = routing.route(final.category, final.urgency, final.escalate)
+    queue, esc_queue = routing.route(final.category, final.urgency, final.escalate, final.category_confidence)
 
     decision = Decision(
         id=uuid.uuid4().hex[:12],

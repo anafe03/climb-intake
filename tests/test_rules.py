@@ -60,3 +60,9 @@ def test_rules_only_classifier_on_samples():
     assert spam.category == Category.spam
     ids = rules_only_extraction("invoice #88213 from Acme Corp").customer.identifiers
     assert any("88213" in i for i in ids)
+
+
+def test_low_confidence_routing_skipped_when_escalated():
+    from app.routing import route
+    assert route(Category.other, Urgency.low, escalate=False, confidence=0.3) == ("human-review", None)
+    assert route(Category.other, Urgency.low, escalate=True, confidence=0.3) == ("general-support", "human-escalation-desk")
