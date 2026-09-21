@@ -28,8 +28,9 @@ def effective_mode() -> str:
 
 
 def process(ticket: TicketIn, persist: bool = True) -> Decision:
-    # Idempotency: the same (source, external_id) resubmitted returns the original decision instead
-    # of re-classifying and double-counting it in the queues.
+    # Fast path for sequential retries: skip the model call if we already decided this ticket.
+    # Correctness does not rest here — a unique index in audit.record() arbitrates concurrent
+    # resubmits, since this check and the later insert are not atomic together.
     if persist and ticket.external_id:
         existing = audit.find_by_external(ticket.source, ticket.external_id)
         if existing:
@@ -76,5 +77,7 @@ def process(ticket: TicketIn, persist: bool = True) -> Decision:
         error=error,
     )
     if persist:
-        audit.record(decision)
+        # record() returns the authoritative decision: this one, or the winner of a concurrent
+        # resubmit of the same (source, external_id).
+        decision = audit.record(decision)
     return decision

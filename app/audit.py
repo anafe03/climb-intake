@@ -34,6 +34,23 @@ CREATE INDEX IF NOT EXISTS idx_decisions_created ON decisions(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_decisions_queue ON decisions(queue);
 """
 
+# Idempotency is enforced here, not in application logic. A check-then-insert in the request path
+# races: two concurrent resubmits of the same ticket both read "absent" and both insert.
+UNIQUE_EXTERNAL = """
+CREATE UNIQUE INDEX IF NOT EXISTS idx_decisions_external
+  ON decisions(source, external_id) WHERE external_id IS NOT NULL;
+"""
+
+# Rows predating the unique index may contain duplicates; keep the earliest of each group.
+DEDUPE = """
+DELETE FROM decisions WHERE id IN (
+  SELECT id FROM (
+    SELECT id, ROW_NUMBER() OVER (PARTITION BY source, external_id ORDER BY created_at) rn
+    FROM decisions WHERE external_id IS NOT NULL
+  ) WHERE rn > 1
+);
+"""
+
 
 def db_path() -> Path:
     p = Path(os.environ.get("AUDIT_DB_PATH", "./data/audit.db"))
@@ -63,7 +80,12 @@ def _ensure_initialised(path: Path) -> None:
             # WAL lets readers proceed while one writer commits. Persistent on the file.
             conn.execute("PRAGMA journal_mode=WAL")
             conn.executescript(SCHEMA)
+            removed = conn.executescript(DEDUPE) and None
+            removed = conn.total_changes
+            conn.executescript(UNIQUE_EXTERNAL)
             conn.commit()
+            if removed:
+                log.warning(json.dumps({"event": "audit_dedupe_on_startup", "rows_removed": removed}))
         finally:
             conn.close()
         _initialised.add(key)
@@ -84,10 +106,15 @@ def connect():
         conn.close()
 
 
-def record(d: Decision) -> None:
+def record(d: Decision) -> Decision:
+    """Persist the decision and return the authoritative one.
+
+    If another writer won the race for this (source, external_id), the insert is ignored and the
+    winner is returned, so every caller sees the same decision and the queues count it once.
+    """
     with connect() as conn:
-        conn.execute(
-            "INSERT OR REPLACE INTO decisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        cur = conn.execute(
+            "INSERT OR IGNORE INTO decisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
                 d.id, d.created_at, d.ticket.source, d.ticket.external_id, d.ticket.text,
                 d.mode, d.model, d.extraction.category.value, d.extraction.urgency.value,
@@ -95,6 +122,17 @@ def record(d: Decision) -> None:
                 d.model_dump_json(),
             ),
         )
+        if cur.rowcount == 0:
+            row = conn.execute(
+                "SELECT decision_json FROM decisions WHERE source=? AND external_id=?",
+                (d.ticket.source, d.ticket.external_id),
+            ).fetchone()
+            if row:
+                winner = Decision.model_validate_json(row["decision_json"])
+                log.info(json.dumps({"event": "routing_decision_deduplicated",
+                                     "discarded_id": d.id, "kept_id": winner.id,
+                                     "source": d.ticket.source, "external_id": d.ticket.external_id}))
+                return winner
     # Structured log line for cloud log sinks (Cloud Logging / CloudWatch parse JSON on stdout).
     log.info(json.dumps({
         "event": "routing_decision",
@@ -111,6 +149,7 @@ def record(d: Decision) -> None:
         "latency_ms": d.latency_ms,
         "usage": d.usage,
     }))
+    return d
 
 
 def get(decision_id: str) -> Decision | None:
