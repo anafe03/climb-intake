@@ -104,7 +104,7 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 async function api(path,opts={}){const r=await fetch(path,opts);if(!r.ok){throw new Error(await r.text())}return r.headers.get('content-type')?.includes('json')?r.json():r.text();}
 function busy(on){$('#busy').innerHTML=on?'<span class="spin"></span>':'';document.querySelectorAll('button').forEach(b=>b.disabled=on);}
 
-async function loadHealth(){const h=await api('/health');const m=$('#mode');m.textContent=h.mode==='llm'?'Claude + rules':'rules only';m.className='pill '+(h.mode==='llm'?'llm':'rules');$('#model').textContent=h.mode==='llm'?h.model:'no API key: degraded mode';}
+async function loadHealth(){const h=await api('/health');const m=$('#mode');m.textContent=h.mode==='llm'?'Claude + rules':'rules only';m.className='pill '+(h.mode==='llm'?'llm':'rules');$('#model').textContent=h.mode==='llm'?`${h.provider} · ${h.model}`:'no API key: degraded mode';}
 async function loadQueues(){const q=await api('/queues');$('#queues').innerHTML=q.queues.map(x=>`<div class="q ${x.name.includes('escalation')?'esc':''} ${filter===x.name?'active':''}" data-q="${x.name}"><b>${x.count}</b><small>${x.name}</small></div>`).join('');document.querySelectorAll('.q').forEach(el=>el.onclick=()=>{filter=el.dataset.q;refresh();});}
 async function loadList(){const rows=await api('/tickets?limit=200'+(filter?'&queue='+encodeURIComponent(filter):''));$('#count').textContent=rows.length?`(${rows.length}${filter?' in '+filter:''})`:'';
  if(!rows.length){$('#list').innerHTML='<div class="empty">No tickets yet. Submit one or load the samples.</div>';return;}

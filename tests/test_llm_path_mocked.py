@@ -5,6 +5,7 @@ These prove the two stories the panel will ask about:
   2. The model call fails (API error / refusal) -> the ticket is still routed, marked as degraded.
 """
 import anthropic
+import openai
 import httpx
 import pytest
 
@@ -85,3 +86,32 @@ def test_extraction_schema_is_structured_output_friendly():
             for v in node:
                 walk(v)
     walk(schema)
+
+
+def test_provider_selection(monkeypatch):
+    for k in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "OPENAI_API_KEY", "LLM_PROVIDER"):
+        monkeypatch.delenv(k, raising=False)
+    assert llm.provider() is None and pipeline.effective_mode() == "rules"
+    monkeypatch.setenv("OPENAI_API_KEY", "x")
+    assert llm.provider() == "openai" and pipeline.effective_mode() == "rules"  # CLASSIFIER_MODE=rules in conftest
+    monkeypatch.setenv("CLASSIFIER_MODE", "auto")
+    assert pipeline.effective_mode() == "llm"
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "y")
+    assert llm.provider() == "anthropic"
+    monkeypatch.setenv("LLM_PROVIDER", "openai")
+    assert llm.provider() == "openai"
+    monkeypatch.setenv("LLM_PROVIDER", "anthropic")
+    monkeypatch.delenv("ANTHROPIC_API_KEY")
+    assert llm.provider() is None
+
+
+def test_openai_error_degrades_to_rules(monkeypatch):
+    monkeypatch.setenv("CLASSIFIER_MODE", "llm")
+    monkeypatch.setenv("OPENAI_API_KEY", "x")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    from app import llm_openai
+    def boom(text):
+        raise openai.APIConnectionError(request=httpx.Request("POST", "https://api.openai.com/v1/responses"))
+    monkeypatch.setattr(llm_openai, "classify", boom)
+    d = pipeline.process(TicketIn(text="Our CEO wants an update today."), persist=False)
+    assert d.mode == "llm_fallback_rules" and "APIConnectionError" in d.error and d.extraction.escalate

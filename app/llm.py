@@ -69,8 +69,41 @@ class RefusedError(RuntimeError):
     pass
 
 
+# ---------------------------------------------------------------------------
+# Provider selection. The prompt, schema, rules, and audit are provider-neutral; only the
+# transport differs. `LLM_PROVIDER=auto` picks whichever key is present (Anthropic first).
+# ---------------------------------------------------------------------------
+
+def provider() -> str | None:
+    want = os.environ.get("LLM_PROVIDER", "auto").lower()
+    has_anthropic = bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"))
+    has_openai = bool(os.environ.get("OPENAI_API_KEY"))
+    if want == "anthropic":
+        return "anthropic" if has_anthropic else None
+    if want == "openai":
+        return "openai" if has_openai else None
+    return "anthropic" if has_anthropic else ("openai" if has_openai else None)
+
+
+def active_model() -> str | None:
+    p = provider()
+    if p == "anthropic":
+        return model_name()
+    if p == "openai":
+        from . import llm_openai
+        return llm_openai.model_name()
+    return None
+
+
 def classify(text: str) -> tuple[Extraction, dict]:
-    """Return (extraction, meta). Raises anthropic errors / RefusedError for the caller to handle."""
+    """Return (extraction, meta) from the active provider. Raises provider errors for the caller."""
+    if provider() == "openai":
+        from . import llm_openai
+        return llm_openai.classify(text)
+    return classify_anthropic(text)
+
+
+def classify_anthropic(text: str) -> tuple[Extraction, dict]:
     started = time.perf_counter()
     response = _client().messages.parse(
         model=model_name(),

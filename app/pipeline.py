@@ -8,6 +8,7 @@ import uuid
 from datetime import datetime, timezone
 
 import anthropic
+import openai
 
 from . import audit, llm, routing, rules
 from .models import Decision, Extraction, TicketIn
@@ -16,7 +17,7 @@ log = logging.getLogger("climb.pipeline")
 
 
 def has_credentials() -> bool:
-    return bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"))
+    return llm.provider() is not None
 
 
 def effective_mode() -> str:
@@ -46,7 +47,7 @@ def process(ticket: TicketIn, persist: bool = True) -> Decision:
             model = meta.pop("model")
             usage = meta
             base = llm_extraction
-        except (anthropic.APIError, llm.RefusedError, ValueError) as e:
+        except (anthropic.APIError, openai.APIError, llm.RefusedError, ValueError) as e:
             # Degrade rather than drop: a routing service must always produce a decision.
             error = f"{type(e).__name__}: {e}"
             log.warning("llm classification failed, falling back to rules: %s", error)

@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import audit, pipeline, routing
+from . import audit, llm, pipeline, routing
 from .models import Decision, TicketIn
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -47,7 +47,7 @@ def index():
 
 @app.get("/health")
 def health():
-    return {"ok": True, "mode": pipeline.effective_mode(), "model": os.environ.get("CLAUDE_MODEL", "claude-opus-5")}
+    return {"ok": True, "mode": pipeline.effective_mode(), "provider": llm.provider(), "model": llm.active_model()}
 
 
 @app.post("/tickets", response_model=Decision)

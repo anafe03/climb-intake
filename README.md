@@ -31,7 +31,9 @@ With Docker:
 docker compose up --build      # http://localhost:8080
 ```
 
-Without an API key the service runs in **rules-only** mode and says so on `/health` and in the UI
+Either an Anthropic or an OpenAI key works (`LLM_PROVIDER=auto` prefers Anthropic; the prompt,
+schema, rules, and audit are provider-neutral, only the transport differs). Without any key the
+service runs in **rules-only** mode and says so on `/health` and in the UI
 header. Every endpoint still works; category and urgency are keyword heuristics instead of model
 inference.
 

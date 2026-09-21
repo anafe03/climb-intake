@@ -107,6 +107,18 @@ has not been applied. Stated plainly in the README.
 
 ---
 
+### D17. Provider is a transport detail: Anthropic or OpenAI behind one `classify()` contract
+**Chose:** `llm.provider()` picks Anthropic if its key is present, else OpenAI, else rules. Both
+adapters take the same system prompt and the same Pydantic schema and return the same
+`(Extraction, meta)` tuple. Rules, routing, audit, UI, and eval never know which ran.
+**Why:** During the build the Anthropic account had no credits and the OpenAI key was at hand. A
+router that depends on one vendor's billing state is a router with an outage waiting. The live
+fallback also proved itself: the 400 from Anthropic landed in the audit record and the ticket still
+routed via rules.
+**If pushed:** Prompt caching is explicit on Anthropic and automatic on OpenAI; both report cached
+tokens into `usage`. Model quality differs per provider; the scorecard is per-run and names the
+model, so a comparison is a two-command exercise.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the
