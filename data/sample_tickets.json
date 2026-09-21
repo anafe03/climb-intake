@@ -1,0 +1,12 @@
+[
+  {"id": 1, "label": "Billing - routine", "text": "Hey, I noticed we got charged $4,200 on our last invoice but I thought we downgraded to the Team plan back in July? Can someone check this and adjust if it's an error?"},
+  {"id": 2, "label": "Bug report - moderate", "text": "The CSV export button on the analytics dashboard has been throwing a 500 error since yesterday afternoon. Tried Chrome and Firefox, same result. Our reporting is due Friday."},
+  {"id": 3, "label": "Security concern - needs escalation", "text": "One of our former employees (terminated last week) just logged into the Climb admin console using old credentials that should've been revoked. We can see activity in the audit log from this morning."},
+  {"id": 4, "label": "Contract complaint - legal threat", "text": "I've reviewed the renewal terms your rep sent and this is not what we agreed to verbally in our Q2 call. If this isn't corrected by end of week we're going to have our legal team review the original MSA for breach."},
+  {"id": 5, "label": "Spam/nonsense", "text": "hey do u guys sell crypto too??? my uncle said climb was actually a mining operation lol anyway can u send me 500 free credits my discord is xXdarklord99Xx"},
+  {"id": 6, "label": "Billing - refund request", "text": "We were double-billed for March and April on invoice #88213. Please refund the duplicate charge to the card on file. Let me know if you need anything else from us."},
+  {"id": 7, "label": "Executive mention - escalation flag", "text": "Our CEO is personally asking why the onboarding for our enterprise account still isn't complete after 3 weeks. She's planning to bring this up directly with your leadership team if we don't see progress today."},
+  {"id": 8, "label": "Bug report - low priority", "text": "The dark mode toggle resets every time I refresh the page. Whenever you get a chance."},
+  {"id": 9, "label": "Security concern - data exposure", "text": "I was able to see another company's customer records when I exported our data this morning. This looks like a permissions issue on your end."},
+  {"id": 10, "label": "Bug report - severe (implicit)", "text": "Noticed our checkout flow is charging customers twice on any order over $200 — happened three times to us this morning alone. Support forwarded me two more emails from other customers with the same issue since 9am. Anyone else seeing this on their end?"}
+]

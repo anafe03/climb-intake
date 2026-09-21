@@ -1,0 +1,21 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --extra dev
+      - run: uv run pytest
+      - run: CLASSIFIER_MODE=rules uv run python scripts/eval.py
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t climb-intake:ci .
+      - run: |
+          docker run -d --rm -p 8080:8080 -e CLASSIFIER_MODE=rules --name ci climb-intake:ci
+          for i in $(seq 1 20); do curl -fs localhost:8080/health && break; sleep 1; done
+          curl -fs -X POST localhost:8080/tickets/load-samples | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['count']==10"
+          docker stop ci

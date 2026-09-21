@@ -1,0 +1,21 @@
+# Category -> queue. Optional per-urgency override. Escalated tickets are ALSO copied to escalation_queue.
+queues:
+  billing:
+    default: billing-support
+    critical: billing-oncall
+  bug:
+    default: engineering-triage
+    critical: engineering-oncall
+  security:
+    default: security-incident-response
+  legal_contract:
+    default: legal-and-account-management
+  onboarding:
+    default: customer-success
+  feature_request:
+    default: product-feedback
+  spam:
+    default: spam-review
+  other:
+    default: general-support
+escalation_queue: human-escalation-desk

@@ -1,0 +1,3 @@
+project_id        = "my-gcp-project"
+image             = "us-central1-docker.pkg.dev/my-gcp-project/climb-intake/intake:v1"
+anthropic_api_key = "sk-ant-..."

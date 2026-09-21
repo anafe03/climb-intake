@@ -1,0 +1,13 @@
+services:
+  intake:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      AUDIT_DB_PATH: /srv/data/audit.db
+    volumes:
+      - audit-data:/srv/data
+volumes:
+  audit-data:
