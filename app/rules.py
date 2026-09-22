@@ -154,6 +154,13 @@ SCALE_CUE = _rx(r"\b(all )?(\d{2,}) (of our )?(users|analysts|staff|employees|pe
 PLAN_CUE = _rx(r"\b(team|pro|business|enterprise|starter) plan\b")
 
 COMPANY = re.compile(r"(?:\bfrom|\bat|on behalf of)\s+([A-Z][A-Za-z0-9&]+(?:\s+(?:Corp|Inc|LLC|Ltd|Co|Labs|Group|Technologies|Systems|Logistics|Health|Healthcare|Partners|Solutions|Media|Capital|Industries|Analytics|Digital))?)")
+# Signature lines: "— Carlos Mendoza, Grupo Andino", "- Dana Whitfield, Acme Logistics".
+# Language-independent, which matters because the keyword layer has no idea what language it is reading.
+SIGNATURE = re.compile(
+    r"[\u2014\u2013-]{1,2}\s*([A-Z\u00c0-\u017e][\w.'\u00c0-\u017e]+(?:\s+[A-Z\u00c0-\u017e][\w.'\u00c0-\u017e]+){0,2})"
+    r"\s*,\s*([A-Z\u00c0-\u017e][\w&.'\u00c0-\u017e]+(?:\s+[A-Z\u00c0-\u017e][\w&.'\u00c0-\u017e]+){0,3})\s*$"
+)
+
 NOT_COMPANY = {"Chrome", "Firefox", "Safari", "Climb", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "The", "Our", "Your", "My", "Q1", "Q2", "Q3", "Q4"}
 
 
@@ -201,12 +208,18 @@ def rules_only_extraction(text: str) -> Extraction:
 
     m = COMPANY.search(t)
     company = m.group(1) if m and m.group(1).split()[0] not in NOT_COMPANY else None
+    contact = None
+    if not company:
+        sig = SIGNATURE.search(t.strip())
+        if sig and sig.group(2).split()[0] not in NOT_COMPANY:
+            contact, company = sig.group(1), sig.group(2)
     ids = [x if isinstance(x, str) else x[0] for x in IDENTIFIER.findall(t)]
 
     # Scored guess at the sender, same contract as the model path but from cues only.
     guess, conf, basis = None, 0.0, []
     if company:
-        guess, conf, basis = company, 1.0, ["company named in the text"]
+        guess, conf = company, 1.0
+        basis = ["signed off with a name and company"] if contact else ["company named in the text"]
     else:
         dom = EMAIL_DOMAIN.search(t)
         if dom and dom.group(1).lower() not in FREE_MAIL:
@@ -231,7 +244,7 @@ def rules_only_extraction(text: str) -> Extraction:
             guess, conf = "an existing customer (account reference present)", 0.3
             basis.append(f"identifier in the text: {ids[0]}")
 
-    customer = Customer(name=company, identifiers=ids, best_guess=guess,
+    customer = Customer(name=company, contact_name=contact, identifiers=ids, best_guess=guess,
                         confidence=round(conf, 2), basis=basis)
     cust_reason = (f"The text names “{company}” directly." if company
                    else (f"No company is named. Guessed from {basis[0]}." if basis

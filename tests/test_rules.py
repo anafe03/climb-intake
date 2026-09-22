@@ -100,3 +100,21 @@ def test_spam_suppression_undoes_a_keyword_escalation_and_leaves_no_net_change()
     assert (out.category, out.urgency, out.escalate) == (Category.spam, Urgency.low, False)
     assert any("compliance_request" in o for o in overrides)   # it did fire
     assert any("spam.suppress" in o for o in overrides)        # and was undone
+
+
+def test_keyword_layer_reads_signature_lines_in_any_language():
+    """A signed-off ticket names its sender even when the body is not English.
+
+    Found live: a Spanish billing ticket ending "— Carlos Mendoza, Grupo Andino" was reported as
+    "nothing identifies the sender" because the company regex only looked for "from"/"at".
+    """
+    es = rules_only_extraction("Hola, nos facturaron dos veces la suscripción de octubre. Gracias. — Carlos Mendoza, Grupo Andino")
+    assert es.customer.name == "Grupo Andino" and es.customer.contact_name == "Carlos Mendoza"
+    assert es.customer.confidence == 1.0
+
+    en = rules_only_extraction("We were double-billed again. Please fix. - Dana Whitfield, Acme Logistics")
+    assert en.customer.name == "Acme Logistics" and en.customer.contact_name == "Dana Whitfield"
+
+    # An em-dash that is not a signature must not invent a customer.
+    plain = rules_only_extraction("The export button is broken — it returns a 500 every time.")
+    assert plain.customer.name is None and plain.customer.confidence == 0.0

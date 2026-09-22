@@ -104,7 +104,7 @@ serve stale markup (see `DECISIONS.md` D30). One command settles it:
 
 ```bash
 docker compose build --no-cache && docker compose up -d --force-recreate
-curl -s localhost:8080/ | grep -c scrim2     # any string you know is in the current page
+diff <(curl -s localhost:8080/) app/static/index.html && echo "serving current code"
 ```
 
 ## Clicking through the explainers

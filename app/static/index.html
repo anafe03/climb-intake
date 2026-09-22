@@ -332,18 +332,21 @@ function explainer(key,d){
   if(key==='who') return head('Who sent it',
       'Two separate things: what the text states outright, and what we can infer from context with a score attached.')
     + why(x.customer_reason)
-    // Only the two facts we can verify are marked. The middle bands are the model's own judgment,
-    // so rather than regex-guessing which one it used, we show the basis it actually reported.
-    + `<h5>The confidence ladder</h5><ul class="crit">
-        ${li('A company name stated verbatim','1.0 — becomes the fact, not a guess',!!c.name)}
-        ${li('A work email domain, or an identifying account id','0.75–0.9 — pins the org without naming it',false)}
-        ${li('Scale, plan, product surface, industry, stated role','0.4–0.7 — the shape of the customer',false)}
-        ${li('Only that they are a customer of some kind','0.1–0.3',false)}
-        ${li('Nothing at all','0.0, and we say so rather than invent one',c.confidence===0&&!c.best_guess)}
+    // The rung follows from the number, so it is marked deterministically. The number itself is a
+    // judgment (the model's, or a constant in the keyword path) — which is what the note says.
+    + (()=>{const q=c.confidence, r=q>=0.95?0:q>=0.75?1:q>=0.4?2:q>0?3:4;
+      return `<h5>The confidence ladder</h5><ul class="crit">
+        ${li('A company name stated verbatim','1.0 — becomes the fact, not a guess',r===0)}
+        ${li('A work email domain, or an identifying account id','0.75–0.94 — pins the org without naming it',r===1)}
+        ${li('Scale, plan, product surface, industry, stated role','0.4–0.74 — the shape of the customer',r===2)}
+        ${li('Only that they are a customer of some kind','0.1–0.39',r===3)}
+        ${li('Nothing at all','0.0, and we say so rather than invent one',r===4)}
        </ul>
-       <p style="font-size:11.5px;color:var(--faint);margin:8px 0 0">Filled dots are facts we can check.
-       The bands between are the reader's own judgment, so instead of guessing which rung it used,
-       the evidence it actually cited is shown below.</p>`
+       <p style="font-size:11.5px;color:var(--faint);margin:9px 0 0">The filled rung is read straight off
+       the score of <b>${q.toFixed(2)}</b> — that part is arithmetic. Where the score itself came from
+       depends on the mode: ${d.model
+         ? `<b>${esc(d.model)}</b> assigned it, following this ladder as an instruction in the prompt.`
+         : `no model ran, so it is a fixed constant in <code>app/rules.py</code> for whichever cue matched.`}</p>`})()
     + found(c.name
         ? `Named outright: <b>${esc(c.name)}</b>.`
         : (c.best_guess

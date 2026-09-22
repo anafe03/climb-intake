@@ -1,6 +1,6 @@
 # Eval scorecard: mode=rules
 
-Generated 2026-09-22 09:58 on 30 gold tickets (10 Climb samples + 20 edge cases).
+Generated 2026-09-22 11:13 on 31 gold tickets (10 Climb samples + 21 edge cases).
 
 | Metric | Value |
 |---|---|
@@ -54,6 +54,7 @@ Generated 2026-09-22 09:58 on 30 gold tickets (10 Climb samples + 20 edge cases)
 | edge-28 | other/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | human-review |
 | edge-29 | spam/low/- | spam/low/-  | ✅ | ✅ | ✅ | human-review |
 | edge-30 | security/medium/ESC | security/high/ESC [security_incident] | ✅ | ✅ | ✅ | security-incident-response |
+| edge-31 | billing/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | billing-support |
 
 ## Rationales (model output, verbatim)
 
@@ -126,3 +127,5 @@ Generated 2026-09-22 09:58 on 30 gold tickets (10 Climb samples + 20 edge cases)
 
 **edge-30** — Keyword-rules mode (no model available): category 'security' by cue words, urgency 'medium'. Escalation is decided by the guardrail layer.
   - overrides: security.unauthorized_access forced escalate=true (matched 'offboarded'); security.unauthorized_access lifted urgency medium -> high
+
+**edge-31** — Keyword-rules mode (no model available): category 'billing' by cue words, urgency 'medium'. Escalation is decided by the guardrail layer.

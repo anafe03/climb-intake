@@ -411,8 +411,22 @@ image built the same way. That verification happens to stand, because everything
 behavioural — health, classification, restart persistence, the non-root uid — and none of it depended
 on the exact page markup. But it is luck rather than method, and the fix is to install buildx or to
 check a build marker rather than trust the cache.
-**Added to the demo checklist:** before presenting, confirm the served page matches the working tree
-(`curl -s localhost:8080/ | grep -c <a string you just added>`).
+**It happened a second time, and the second cause was mine.** I ran the rebuild with its output
+piped to `/dev/null`, saw no error, and assumed it had worked. Inspecting the image showed it was
+built before my last edit: `docker inspect` gave an image timestamp earlier than the file's mtime,
+and `docker exec ... stat` showed a smaller file inside the container than on disk. Running the same
+build with its output visible produced the right image immediately.
+
+**Two rules out of this.** Never suppress the output of a command whose success you are about to
+depend on. And verify the artifact, not the command — a build that printed nothing is not evidence
+that the right bytes shipped.
+
+**Added to the demo checklist:** before presenting, confirm the served page matches the working tree.
+
+```bash
+docker compose build --no-cache && docker compose up -d --force-recreate
+diff <(curl -s localhost:8080/) app/static/index.html && echo "serving current code"
+```
 
 ## Open questions to raise with the panel (or answer if asked)
 
