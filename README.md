@@ -31,6 +31,25 @@ With Docker:
 docker compose up --build      # http://localhost:8080
 ```
 
+The image installs from the committed `requirements.lock` rather than resolving version ranges, so
+two builds weeks apart produce the same image, and it runs as a non-root user with the audit
+database on a named volume.
+
+<details><summary>If you're on Apple silicon without Docker Desktop</summary>
+
+`brew install docker` may hit a Tier 3 configuration with no bottle and try to compile the CLI from
+source. Take the static binary instead, and give Colima explicit DNS or registry pulls will stall:
+
+```bash
+brew install colima docker-compose
+VER=$(curl -s https://download.docker.com/mac/static/stable/aarch64/ \
+      | grep -oE 'docker-2[0-9]\.[0-9.]+\.tgz' | sort -V | tail -1)
+curl -fsSL "https://download.docker.com/mac/static/stable/aarch64/$VER" | tar xz
+install -m 0755 docker/docker ~/.local/bin/docker
+colima start --cpu 2 --memory 4 --disk 20 --dns 1.1.1.1 --dns 8.8.8.8
+```
+</details>
+
 Either an Anthropic or an OpenAI key works (`LLM_PROVIDER=auto` prefers Anthropic; the prompt,
 schema, rules, and audit are provider-neutral, only the transport differs). Without any key the
 service runs in **rules-only** mode and says so on `/health` and in the UI

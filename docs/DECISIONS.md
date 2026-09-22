@@ -140,8 +140,28 @@ have one, so every option runs a small Linux VM and talks to a daemon inside it.
 | `docker build` / `docker compose` | identical | identical |
 | Image produced | identical bytes for the same Dockerfile | identical bytes for the same Dockerfile |
 
-**Chose:** Colima first, because this build ran in a non-interactive session where a GUI licence
-click was not possible. Docker Desktop installed alongside afterwards at the developer's request.
+**Chose:** Colima, because this build ran in a non-interactive session where a GUI licence click
+was not possible.
+
+**What actually happened installing it**, recorded because it cost hours and a reviewer on a similar
+machine will hit it. `brew install docker` on this box (macOS 14.4, arm64, Homebrew 7.x) reports a
+**Tier 3 configuration** — no prebuilt bottle — so Homebrew fell back to compiling the CLI from Go
+source. It ran for over two hours and then failed. The fix was to skip Homebrew for the CLI and take
+Docker's own static binary:
+
+```bash
+brew install colima docker-compose          # these do have bottles
+VER=$(curl -s https://download.docker.com/mac/static/stable/aarch64/ \
+      | grep -oE 'docker-2[0-9]\.[0-9.]+\.tgz' | sort -V | tail -1)
+curl -fsSL "https://download.docker.com/mac/static/stable/aarch64/$VER" | tar xz
+install -m 0755 docker/docker ~/.local/bin/docker   # then ensure ~/.local/bin is on PATH
+colima start --cpu 2 --memory 4 --disk 20
+```
+
+Colima's VM also needed explicit DNS (`--dns 1.1.1.1 --dns 8.8.8.8`) before registry pulls would
+complete; without it, large layer downloads died with `unexpected EOF` and TLS handshake timeouts
+while the host network was healthy at ~590 KB/s. That is a VM network-stack problem, not a project
+problem, but it is the kind of thing worth writing down rather than rediscovering.
 **Consequence for the reviewer:** none. `docker compose up --build` in the README works under either.
 The image that would be pushed to Artifact Registry and run on Cloud Run is byte-identical, because
 Cloud Run runs the image, not the laptop's VM manager.
