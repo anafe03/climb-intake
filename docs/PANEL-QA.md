@@ -84,6 +84,11 @@ routes low-confidence tickets to a human review queue instead of guessing.
 the key, a service account scoped to read that one secret, health probes on `/health`. Not applied
 from my machine (no gcloud/terraform installed); stated in the README.
 
+**How slow is the model, really?** p50 about 12 s, but the tail runs past 40 s — and I checked whether
+that was rate limiting by running the same tickets at concurrency 1, 4 and 8. At concurrency 1, with
+nothing to rate limit, a ticket still took 41 s. The tail is the model. That is why intake should be
+asynchronous, and why the per-attempt deadline is bounded with a fallback. `docs/LOADTEST.md`.
+
 **How does it scale?** Cloud SQL behind the same `audit.py` interface once there is more than one
 instance; Pub/Sub or Cloud Tasks in front of intake so it's async and retried; Message Batches API for
 backfills. Batch concurrency is a 4-thread pool today.

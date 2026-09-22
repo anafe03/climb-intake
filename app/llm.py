@@ -57,8 +57,19 @@ you relied on.
 """
 
 
+def timeout_s() -> float:
+    """Per-attempt deadline. Measured: model p50 ~15 s with a tail past 40 s even unloaded, so a
+    generous-but-bounded timeout plus one retry keeps worst-case response time predictable, and the
+    rules layer catches whatever times out. See docs/LOADTEST.md."""
+    return float(os.environ.get("LLM_TIMEOUT_S", "30"))
+
+
+def max_retries() -> int:
+    return int(os.environ.get("LLM_MAX_RETRIES", "1"))
+
+
 def _client() -> anthropic.Anthropic:
-    return anthropic.Anthropic(timeout=60.0, max_retries=2)
+    return anthropic.Anthropic(timeout=timeout_s(), max_retries=max_retries())
 
 
 def model_name() -> str:

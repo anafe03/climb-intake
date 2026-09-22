@@ -222,6 +222,29 @@ escalated rows so escalation reads as a surface rather than just coloured text.
 **Lesson worth repeating in review:** frequency in the markup is not hierarchy. The design system's
 own variable names were the source of truth, and they were one fetch away.
 
+### D24. The latency tail is the model, not rate limiting — hypothesis tested and rejected
+**What I saw:** model-mode eval p50 12.5 s, p95 77.8 s, with four consecutive tickets between 75 s
+and 95 s. That pattern looks like 429 backoff under concurrency 6.
+**What I tested:** the same 8 tickets at concurrency 1, 4, and 8.
+
+| concurrency | p50 | max |
+|---|---|---|
+| 1 | 15.4 s | 41.3 s |
+| 4 | 22.2 s | 48.9 s |
+| 8 | 19.5 s | 93.9 s |
+
+**The hypothesis was wrong.** At concurrency 1 there is nothing to rate limit, and a ticket still took
+41 s against a 15 s median. The tail is the model's own variable reasoning time. Concurrency worsens
+the worst case; it does not cause it.
+**Changed as a result:** per-attempt deadline is now bounded and configurable (`LLM_TIMEOUT_S=30`,
+`LLM_MAX_RETRIES=1`), so worst case per ticket is ~60 s and anything beyond that degrades to the
+keyword layer and still routes.
+**What it buys the argument:** "make intake asynchronous" stops being an architectural preference and
+becomes a measured requirement — a synchronous HTTP handler that can block 40 s is not a design you
+defend, it is one the numbers reject. Full write-up in `docs/LOADTEST.md`.
+**If pushed — "why not just lower concurrency?"** Because the table shows concurrency buys throughput
+(147 s → 58 s wall for 8 tickets) and does nothing for per-ticket latency. It is the wrong lever.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

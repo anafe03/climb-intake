@@ -43,3 +43,42 @@ uv run uvicorn app.main:app --port 8080     # rules mode: leave ANTHROPIC_API_KE
 curl -X DELETE localhost:8080/tickets
 uv run python scripts/loadtest.py --n 300 --c 16
 ```
+
+---
+
+# Model latency: the tail is the model, not rate limiting
+
+Running the 30-ticket gold set through the model produced a p50 of 12.5 s and a p95 of 77.8 s. Four
+tickets with consecutive ids all landed between 75 s and 95 s, which looked exactly like 429 backoff
+from running six requests in parallel.
+
+**Hypothesis:** concurrency is tripping provider rate limits, and the SDK's automatic retries turn an
+11-second call into a 95-second one. If so, lowering concurrency should flatten the tail.
+
+**Test:** the same 8 gold tickets at three concurrency levels.
+
+| concurrency | wall | p50 | max | fallbacks |
+|---|---|---|---|---|
+| 1 | 146.9 s | 15.4 s | 41.3 s | 0 |
+| 4 | 57.6 s | 22.2 s | 48.9 s | 0 |
+| 8 | 93.9 s | 19.5 s | 93.9 s | 0 |
+
+**The hypothesis was wrong.** With exactly one request in flight — no contention, nothing to rate
+limit — a single ticket still took 41 s against a 15 s median. The heavy tail is the model's own
+variable reasoning time on harder tickets. Concurrency makes the worst case worse, but it is not the
+cause.
+
+## What this changes
+
+1. **A synchronous `POST /tickets` can block for 40 s or more, and that is inherent.** This is the
+   evidence for making intake asynchronous — accept, return `202`, classify on a worker — rather than
+   an architectural preference. It moves from "good practice" to "measured requirement".
+2. **The per-attempt deadline is now bounded and configurable** (`LLM_TIMEOUT_S`, default 30 s;
+   `LLM_MAX_RETRIES`, default 1). Worst case per ticket is about 60 s, after which the ticket
+   degrades to the keyword layer and still routes, marked `llm_fallback_rules` in the audit record.
+   A predictable answer beats an unbounded wait.
+3. **Batch concurrency is not the lever it looks like.** Raising it improves throughput (147 s → 58 s
+   wall for 8 tickets) but does not improve per-ticket latency.
+
+Reproduce with the snippet in `docs/DECISIONS.md` D24, or by varying `BATCH_CONCURRENCY` against
+`scripts/eval.py` and comparing the p50/p95 lines in the generated scorecard.

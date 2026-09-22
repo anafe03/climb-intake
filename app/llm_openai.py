@@ -6,7 +6,7 @@ import time
 
 import openai
 
-from .llm import SYSTEM_PROMPT
+from .llm import SYSTEM_PROMPT, max_retries, timeout_s
 from .models import Extraction
 
 
@@ -16,7 +16,7 @@ def model_name() -> str:
 
 def classify(text: str) -> tuple[Extraction, dict]:
     started = time.perf_counter()
-    client = openai.OpenAI(timeout=60.0, max_retries=2)
+    client = openai.OpenAI(timeout=timeout_s(), max_retries=max_retries())
     response = client.responses.parse(
         model=model_name(),
         instructions=SYSTEM_PROMPT,
