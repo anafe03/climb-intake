@@ -140,6 +140,45 @@ input[type=file]{display:none}
 .f .v.high{color:var(--warn)} .f .v.critical{color:var(--danger)}
 .f .v.yes{color:var(--danger)} .f .v.none{color:var(--faint);font-weight:500}
 .f .s{font-size:11.5px;color:var(--dim);margin-top:5px;line-height:1.5}
+.f{position:relative;cursor:pointer;transition:background .12s}
+.f:hover{background:var(--sunken)}
+.f .how{position:absolute;top:11px;right:12px;font:700 9.5px var(--sans);letter-spacing:.06em;
+  color:var(--primary);opacity:0;transition:opacity .12s}
+.f:hover .how,.f.expanded .how{opacity:1}
+.f.expanded{background:var(--sunken)}
+.f.expanded .k{color:var(--primary)}
+
+.drawer{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--primary);
+  border-radius:10px;margin:10px 0 22px;padding:18px 20px;display:none}
+.drawer.on{display:block}
+@keyframes slide{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.drawer h4{margin:0 0 4px;font-size:14px;font-weight:650}
+.drawer .lead{font-size:12.5px;color:var(--dim);margin:0 0 14px;line-height:1.5}
+.drawer h5{margin:16px 0 7px;font:700 10px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.drawer p{margin:0 0 10px;font-size:13px;line-height:1.65}
+.crit{list-style:none;margin:0;padding:0}
+.crit li{padding:7px 0 7px 22px;position:relative;font-size:12.5px;line-height:1.55;
+  border-bottom:1px solid var(--line)}
+.crit li:last-child{border-bottom:0}
+.crit li::before{content:"○";position:absolute;left:4px;top:7px;color:var(--faint);font-size:11px}
+.crit li.hit::before{content:"●";color:var(--primary)}
+.crit li.hit{background:var(--sunken);margin:0 -10px;padding-left:32px;padding-right:10px;border-radius:5px;font-weight:600}
+.crit li b{font-weight:700}
+.crit li span{font-weight:400;color:var(--dim)}
+.judg{background:var(--sunken);border-left:3px solid var(--climb-sage);border-radius:0 7px 7px 0;
+  padding:11px 14px;font-size:12.5px;line-height:1.65;margin-top:14px}
+.judg > b:first-child{display:block;margin-bottom:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.found{background:var(--wash);border:1px solid var(--wash-line);border-radius:7px;
+  padding:11px 14px;font-size:12.5px;line-height:1.6;margin-top:12px}
+.found > b:first-child{display:block;margin-bottom:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--climb-coral-deep)}
+.dest{cursor:pointer;transition:background .12s}
+.dest:hover{background:var(--sunken)}
+.score{display:inline-block;font:700 10px var(--mono);padding:2px 7px;border-radius:4px;
+  background:var(--sunken);border:1px solid var(--line-2);color:var(--dim);margin-left:7px;vertical-align:2px}
+.score.hi{background:var(--climb-mint);border-color:#a9d9b5;color:#20512f}
+.score.mid{background:#fdf0d8;border-color:#e8cea9;color:#6b4a12}
+.score.lo{background:var(--wash);border-color:var(--wash-line);color:var(--climb-coral-deep)}
+.guess{font-weight:600}
 .sig{display:inline-block;font:10.5px/1.5 var(--mono);background:var(--sunken);border:1px solid var(--line);
   border-radius:4px;padding:2px 7px;margin:4px 4px 0 0;color:var(--dim);max-width:100%;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:top}
@@ -226,6 +265,119 @@ const REASON={security_incident:'a possible security incident',data_exposure:'da
   legal_threat:'a legal or contract threat',compliance_request:'a regulatory demand with a deadline',
   executive_mention:'an executive is involved'};
 const RANK={critical:3,high:2,medium:1,low:0};
+
+
+/* ── Field explainers. Each answers: what are the criteria, what did we find here, and
+      what was the judgment call behind the rule. Written to be read aloud in a demo. ── */
+const CATEGORY_DEFS=[
+  ['billing','charges, invoices, refunds, plan changes, pricing, seats, renewals with no legal threat'],
+  ['bug','something in the product is broken or behaving wrongly'],
+  ['security','unauthorised access, credentials, data exposure, vulnerabilities, phishing'],
+  ['legal_contract','contract disputes, breach claims, legal threats, regulatory demands'],
+  ['onboarding','implementation, setup, go-live progress for an account'],
+  ['feature_request','asking for capability that does not exist, limit increases, roadmap'],
+  ['spam','nonsense, solicitations, trolling — a real answer, not a failure'],
+  ['other','legitimate but fits nothing above'],
+];
+const URGENCY_DEFS=[
+  ['low','cosmetic or explicitly "whenever you get a chance"'],
+  ['medium','a real request with no deadline and contained impact'],
+  ['high','a stated deadline, or material impact on one customer'],
+  ['critical','money moving wrongly, or many people blocked, right now'],
+];
+const URGENCY_CRITERIA=[
+  ['Deadlines','"due Friday", "before the 30th", "today"'],
+  ['Financial size','the amount at stake, and whose money it is'],
+  ['Scope','one user, the whole account, or their own end customers'],
+  ['Recurrence','"third time this month", "still happening"'],
+  ['Ongoing harm','is it still causing damage as they write'],
+];
+const ESC_DEFS=[
+  ['security_incident','active or suspected unauthorised access, credentials not revoked, phishing, vulnerability reports'],
+  ['data_exposure','they saw data belonging to someone else, or theirs was exposed'],
+  ['legal_threat','legal review, breach of contract, MSA disputes, attorneys'],
+  ['compliance_request','GDPR, CCPA and similar demands carrying statutory deadlines'],
+  ['executive_mention','a C-level, VP, founder, board or leadership team named on either side'],
+];
+
+function li(label,desc,hit){return `<li class="${hit?'hit':''}"><b>${esc(label)}</b> <span>— ${esc(desc)}</span></li>`}
+
+function explainer(key,d){
+  const x=d.extraction, c=x.customer;
+  const head=(t,lead)=>`<h4>${esc(t)}</h4><p class="lead">${esc(lead)}</p>`;
+  const why=(txt)=>txt?`<h5>Why this ticket read that way</h5><p>${esc(txt)}</p>`:'';
+  const judg=(t)=>`<div class="judg"><b>The judgment call</b>${t}</div>`;
+  const found=(t)=>`<div class="found"><b>In this ticket</b>${t}</div>`;
+
+  if(key==='who') return head('Who sent it',
+      'Two separate things: what the text states outright, and what we can infer from context with a score attached.')
+    + why(x.customer_reason)
+    + `<h5>What we look for</h5><ul class="crit">
+        ${li('A company name stated verbatim','becomes the fact, confidence 1.0',!!c.name)}
+        ${li('A work email domain','~0.8 — identifies the org without naming it',c.basis.some(b=>/domain/i.test(b)))}
+        ${li('Account or invoice identifiers','resolvable against the CRM',c.identifiers.length>0)}
+        ${li('Scale, plan, product surface, industry','0.4–0.7 — shape of the customer, not their name',c.basis.some(b=>/scale|plan|enterprise|product/i.test(b)))}
+        ${li('Nothing at all','confidence 0.0, and we say so',c.confidence===0)}
+       </ul>`
+    + found(c.name
+        ? `Named outright: <b>${esc(c.name)}</b>.`
+        : (c.best_guess
+          ? `No name given. Best guess: <b>${esc(c.best_guess)}</b> &mdash; confidence <b>${c.confidence.toFixed(2)}</b>, resting on ${c.basis.map(b=>`“${esc(String(b).replace(/^["“'\s]+|["”'\s]+$/g,''))}”`).join(', ')}.`
+          : `Nothing in the text identifies the sender. Confidence 0.00 — we say "unknown" rather than invent one.`))
+    + judg(`A blank "unknown" is useless to whoever picks the ticket up, so we do guess — but we never promote a guess
+        into the name field, and we always attach the score and the evidence. A wrong attribution sends a team to the
+        wrong account; a scored guess with its basis shown lets a human accept or reject it in two seconds.
+        In production this field would come from the authenticated sender, and this inference becomes the cross-check.`);
+
+  if(key==='what') return head('What kind of request',
+      'One of eight categories. Spam is a real answer, not a failure to classify.')
+    + why(x.category_reason)
+    + `<h5>The categories</h5><ul class="crit">${CATEGORY_DEFS.map(([k,v])=>li(cap(k),v,k===x.category)).join('')}</ul>`
+    + found(`Chose <b>${esc(cap(x.category))}</b> at <b>${x.category_confidence.toFixed(2)}</b> confidence.`)
+    + judg(`Below 0.50 confidence and not escalated, a ticket goes to <code>human-review</code> instead of being forced
+        into a team's queue. A wrong guess costs that team time and hides the uncertainty; a review queue makes the
+        uncertainty visible and gives labellers a stream of genuinely hard cases.`);
+
+  if(key==='urgency') return head('How urgent',
+      'Never stated in the ticket. Always inferred, which is the part a keyword matcher cannot do.')
+    + why(x.urgency_reason)
+    + `<h5>What we infer it from</h5><ul class="crit">${URGENCY_CRITERIA.map(([k,v])=>
+        li(k,v,x.urgency_signals.some(sg=>new RegExp(k.split(' ')[0],'i').test(sg)))).join('')}</ul>`
+    + `<h5>The levels</h5><ul class="crit">${URGENCY_DEFS.map(([k,v])=>li(cap(k),v,k===x.urgency)).join('')}</ul>`
+    + found(x.urgency_signals.length
+        ? `Read <b>${esc(x.urgency)}</b> from: ${x.urgency_signals.map(g=>`“${esc(g)}”`).join(', ')}.`
+        : `Read <b>${esc(x.urgency)}</b> with no explicit cue in the text.`)
+    + judg(`Tone is not urgency. An angry message about a routine billing error is still medium; a calm message about
+        double-charging 1,900 end customers is critical. That distinction is the whole reason there is a model here
+        and not just a word list.`);
+
+  if(key==='human') return head('Does a human need to see it',
+      'Decided by topic, not by severity — and deliberately biased toward escalating.')
+    + why(x.escalation_reason_text)
+    + `<h5>The five escalation topics</h5><ul class="crit">${ESC_DEFS.map(([k,v])=>
+        li(cap(k),v,x.escalation_reasons.includes(k))).join('')}</ul>`
+    + found(x.escalate
+        ? `Escalated for ${x.escalation_reasons.map(r=>`<b>${esc(cap(r))}</b>`).join(' and ')}, and copied to the escalation desk.`
+        : `None of the five applied, so it routes to its owning team without a human gate.`)
+    + judg(`Escalation and urgency are separate axes. A full outage is critical but does not escalate — it goes to
+        on-call. A CEO thank-you note escalates at low urgency. And because a missed escalation is the one failure
+        that is unacceptable, a keyword layer runs over the raw text afterwards and may only ever <i>raise</i> this
+        flag, never lower it. False positives are tolerated by design; both layers score 100% recall on the gold set.`);
+
+  if(key==='route') return head('Where it goes',
+      'A lookup, not a judgment — category plus urgency against a table kept in YAML.')
+    + `<h5>How the table works</h5><ul class="crit">
+        ${li('Category picks the queue','billing → billing-support, bug → engineering-triage, and so on',true)}
+        ${li('Urgency can override it','critical bugs go to engineering-oncall, not triage',x.urgency==='critical')}
+        ${li('Escalated tickets are copied, not moved','the owning team still sees it; the escalation desk also gets it',x.escalate)}
+        ${li('Low confidence diverts','under 0.50 and not escalated → human-review',d.queue==='human-review')}
+       </ul>`
+    + found(`<b>${esc(cap(x.category))}</b> + <b>${esc(x.urgency)}</b> → <code>${esc(d.queue)}</code>${
+        d.escalation_queue?` , plus a copy to <code>${esc(d.escalation_queue)}</code>`:''}.`)
+    + judg(`The table is data, not code, because support leads change routing far more often than engineers change
+        logic. It lives at <code>app/routing.yaml</code> and needs no deploy to edit.`);
+  return '';
+}
 
 async function api(p,o={}){const r=await fetch(p,o);
   if(!r.ok) throw new Error((await r.text()).slice(0,240));
@@ -317,10 +469,15 @@ async function openModal(id){
       ${d.rule_hits.map(h=>`<code>${esc(h.rule)} on “${esc(h.matched)}”</code>`).join('')}</div>`;
   else guard=`<div class="note calm">No escalation keyword matched, so the reading stands as-is.</div>`;
 
+  // A stated name is a fact. Anything else is an inference, shown with its score and never promoted.
+  const conf=x.customer.confidence||0;
+  const band=conf>=0.8?'hi':conf>=0.4?'mid':'lo';
+  const pill=`<span class="score ${band}">${conf.toFixed(2)}</span>`;
   const who=x.customer.name
-    ? `${esc(x.customer.name)}${x.customer.contact_name?`<div class="s">${esc(x.customer.contact_name)}</div>`:''}`
-    : `<span class="none">Not stated</span><div class="s">The message never names a company, so it's left blank
-        rather than guessed.${x.customer.identifiers.length?' Picked up: '+esc(x.customer.identifiers.join(', ')):''}</div>`;
+    ? `${esc(x.customer.name)}${pill}${x.customer.contact_name?`<div class="s">${esc(x.customer.contact_name)}</div>`:''}<div class="s">Named outright in the ticket.</div>`
+    : (x.customer.best_guess
+      ? `<span class="guess">${esc(x.customer.best_guess)}</span>${pill}<div class="s">Inferred, not stated. From ${x.customer.basis.slice(0,2).map(b=>`\u201c${esc(String(b).replace(/^["\u201c'\s]+|["\u201d'\s]+$/g,''))}\u201d`).join(', ')||'context'}.</div>`
+      : `<span class="none">Unknown</span><span class="score lo">0.00</span><div class="s">Nothing in the text identifies the sender.${x.customer.identifiers.length?' Picked up: '+esc(x.customer.identifiers.join(', ')):''}</div>`);
 
   const v=visible(), i=v.findIndex(r=>r.id===id);
   $('#modal').innerHTML=`
@@ -338,26 +495,29 @@ async function openModal(id){
     <div class="mbody">
       <div class="sec"><h3>The request, exactly as it arrived</h3>
         <div class="req">${esc(d.ticket.text)}</div></div>
-      <div class="sec"><h3>What it worked out</h3>
+      <div class="sec"><h3>What it worked out <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--faint)">— click any card for the criteria and the reasoning</span></h3>
         <div class="facts">
-          <div class="f"><div class="k">Who sent it</div><div class="v">${who}</div></div>
-          <div class="f"><div class="k">What kind</div><div class="v">${esc(CATEGORY[x.category]||cap(x.category))}</div>
+          <div class="f" data-x="who"><div class="how">How?</div><div class="k">Who sent it</div><div class="v">${who}</div></div>
+          <div class="f" data-x="what"><div class="how">How?</div><div class="k">What kind</div>
+            <div class="v">${esc(CATEGORY[x.category]||cap(x.category))}</div>
             <div class="s">confidence ${x.category_confidence.toFixed(2)}${moved('category')?` · model first said “${esc(cap(L.category))}”`:''}</div></div>
-          <div class="f"><div class="k">How urgent</div><div class="v ${x.urgency}">${esc(URGENCY[x.urgency]||x.urgency)}</div>
+          <div class="f" data-x="urgency"><div class="how">How?</div><div class="k">How urgent</div>
+            <div class="v ${x.urgency}">${esc(URGENCY[x.urgency]||x.urgency)}</div>
             ${x.urgency_signals.length?`<div class="s">From the text:</div>${x.urgency_signals.slice(0,3).map(g=>{
               const t=g.length>44?g.slice(0,42).trim()+'…':g;return `<span class="sig" title="${esc(g)}">${esc(t)}</span>`}).join('')}`:''}
             ${moved('urgency')?`<div class="s">model first said “${esc(L.urgency)}”</div>`:''}</div>
-          <div class="f"><div class="k">Needs a human?</div>
+          <div class="f" data-x="human"><div class="how">How?</div><div class="k">Needs a human?</div>
             <div class="v ${x.escalate?'yes':'none'}">${x.escalate?'Yes':'No'}</div>
             <div class="s">${x.escalate?'Because '+x.escalation_reasons.map(r=>REASON[r]||cap(r)).join(', and ')+'.'
               :'Nothing here is a security, legal, or executive matter.'}
               ${moved('escalate')?` Model first said ${L.escalate?'yes':'no'}.`:''}</div></div>
-        </div></div>
-      <div class="dest"><span class="k">So it goes to</span>
+        </div>
+        <div class="drawer" id="drawer"></div></div>
+      <div class="dest" data-x="route"><span class="k">So it goes to <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--faint)">— click to see the routing rule</span></span>
         <span class="qp">${esc(d.queue)}</span>
         ${d.escalation_queue?`<span style="color:var(--faint);font-size:12.5px">and a copy to</span>
           <span class="qp esc">${esc(d.escalation_queue)}</span>`:''}</div>
-      <div class="sec"><h3>Why it read it that way</h3><div class="prose">${esc(x.rationale)}</div></div>
+      <div class="sec"><h3>Why it read it that way, overall</h3><div class="prose">${esc(x.rationale)}</div></div>
       <div class="sec"><h3>The safety net</h3>${guard}</div>
       ${d.error?`<div class="sec"><h3>The model call failed, so keyword rules handled it</h3>
         <div class="note"><code>${esc(d.error)}</code></div></div>`:''}
@@ -370,6 +530,23 @@ async function openModal(id){
       </div>
       <details><summary>Full audit record</summary><pre>${esc(JSON.stringify(d,null,2))}</pre></details>
     </div>`;
+  // Clicking a fact card (or the routing box) opens the criteria + reasoning for that field.
+  let openField=null;
+  const drawer=$('#drawer');
+  const toggle=(key,el)=>{
+    document.querySelectorAll('.f').forEach(f=>f.classList.remove('expanded'));
+    if(openField===key){openField=null;drawer.classList.remove('on');return}
+    openField=key; drawer.innerHTML=explainer(key,d); drawer.classList.add('on');
+    if(el&&el.classList.contains('f')) el.classList.add('expanded');
+    drawer.scrollIntoView({block:'nearest'});
+  };
+  document.querySelectorAll('.f[data-x]').forEach(f=>f.onclick=()=>toggle(f.dataset.x,f));
+  const destEl=document.querySelector('.dest[data-x]');
+  if(destEl) destEl.onclick=()=>toggle('route',destEl);
+  // ?x=<field> opens that explainer directly, so a decision can be linked at field level.
+  const wantX=new URL(location).searchParams.get('x');
+  if(wantX) toggle(wantX, document.querySelector(`.f[data-x="${wantX}"]`)||destEl);
+
   $('#mx').onclick=closeModal;
   $('#mprev').onclick=()=>i>0&&openModal(v[i-1].id);
   $('#mnext').onclick=()=>i<v.length-1&&openModal(v[i+1].id);

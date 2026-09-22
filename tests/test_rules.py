@@ -4,8 +4,10 @@ from app.rules import apply_escalation_rules, rules_only_extraction
 
 
 def _base(category=Category.other, urgency=Urgency.low, escalate=False, conf=0.5):
-    return Extraction(customer=Customer(), category=category, category_confidence=conf, urgency=urgency,
-                      urgency_signals=[], escalate=escalate, escalation_reasons=[], summary="", rationale="")
+    return Extraction(customer=Customer(), customer_reason="", category=category, category_confidence=conf,
+                      category_reason="", urgency=urgency, urgency_signals=[], urgency_reason="",
+                      escalate=escalate, escalation_reasons=[], escalation_reason_text="",
+                      summary="", rationale="")
 
 
 def test_rules_only_raise_never_lower():

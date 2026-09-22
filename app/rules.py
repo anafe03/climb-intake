@@ -146,7 +146,14 @@ WIDESPREAD_MONEY = _rx(r"\b(customers?|users?|clients?)\b.*\b(twice|double|dupli
 MONEY = _rx(r"\$\s?\d[\d,]*")
 IDENTIFIER = _rx(r"(invoice\s*#?\s*\d+|#\d{3,}|account\s*#?\s*[A-Z]?-?\d+|[\w.+-]+@[\w-]+\.[\w.]+|@[A-Za-z0-9_]{4,})")
 # Case-sensitive on purpose: a company name is a capitalised token after "from/at/on behalf of".
-COMPANY = re.compile(r"(?:\bfrom|\bat|on behalf of)\s+([A-Z][A-Za-z0-9&]+(?:\s+(?:Corp|Inc|LLC|Ltd|Co|Labs|Group|Technologies|Systems))?)")
+# Contextual cues for the keyword layer's own (weak) guess at who is writing.
+EMAIL_DOMAIN = _rx(r"[\w.+-]+@([\w-]+\.[\w.]+)")
+FREE_MAIL = {"gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "aol.com", "proton.me"}
+ENTERPRISE_CUE = _rx(r"\b(enterprise|our (team|analysts|staff|engineers|org)|[0-9]{2,} (users|seats|analysts|people)|workspace|unity catalog|databricks|sql warehouse|basecamp|SOW|MSA)\b")
+SCALE_CUE = _rx(r"\b(all )?(\d{2,}) (of our )?(users|analysts|staff|employees|people|seats)\b")
+PLAN_CUE = _rx(r"\b(team|pro|business|enterprise|starter) plan\b")
+
+COMPANY = re.compile(r"(?:\bfrom|\bat|on behalf of)\s+([A-Z][A-Za-z0-9&]+(?:\s+(?:Corp|Inc|LLC|Ltd|Co|Labs|Group|Technologies|Systems|Logistics|Health|Healthcare|Partners|Solutions|Media|Capital|Industries|Analytics|Digital))?)")
 NOT_COMPANY = {"Chrome", "Firefox", "Safari", "Climb", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "The", "Our", "Your", "My", "Q1", "Q2", "Q3", "Q4"}
 
 
@@ -194,18 +201,58 @@ def rules_only_extraction(text: str) -> Extraction:
 
     m = COMPANY.search(t)
     company = m.group(1) if m and m.group(1).split()[0] not in NOT_COMPANY else None
-    customer = Customer(
-        name=company,
-        identifiers=[x if isinstance(x, str) else x[0] for x in IDENTIFIER.findall(t)],
-    )
+    ids = [x if isinstance(x, str) else x[0] for x in IDENTIFIER.findall(t)]
+
+    # Scored guess at the sender, same contract as the model path but from cues only.
+    guess, conf, basis = None, 0.0, []
+    if company:
+        guess, conf, basis = company, 1.0, ["company named in the text"]
+    else:
+        dom = EMAIL_DOMAIN.search(t)
+        if dom and dom.group(1).lower() not in FREE_MAIL:
+            guess, conf = f"someone at {dom.group(1)}", 0.8
+            basis.append(f"work email domain {dom.group(1)}")
+        elif dom:
+            guess, conf = "an individual user", 0.3
+            basis.append("personal email domain")
+        if ENTERPRISE_CUE.search(t):
+            basis.append(f"enterprise product language: “{ENTERPRISE_CUE.search(t).group(0)}”")
+            if conf < 0.5:
+                guess, conf = (guess or "an enterprise customer"), max(conf, 0.45)
+        sc = SCALE_CUE.search(t)
+        if sc:
+            basis.append(f"stated scale: “{sc.group(0)}”")
+            guess, conf = (guess or "a customer with a sizeable team"), max(conf, 0.5)
+        pl = PLAN_CUE.search(t)
+        if pl:
+            basis.append(f"plan referenced: “{pl.group(0)}”")
+            guess, conf = (guess or f"a customer on the {pl.group(0)}"), max(conf, 0.45)
+        if not guess and ids:
+            guess, conf = "an existing customer (account reference present)", 0.3
+            basis.append(f"identifier in the text: {ids[0]}")
+
+    customer = Customer(name=company, identifiers=ids, best_guess=guess,
+                        confidence=round(conf, 2), basis=basis)
+    cust_reason = (f"The text names “{company}” directly." if company
+                   else (f"No company is named. Guessed from {basis[0]}." if basis
+                         else "Nothing in the text identifies the sender — no name, domain, "
+                              "account reference, or scale cue."))
     return Extraction(
         customer=customer,
         category=category,
         category_confidence=conf,
         urgency=urgency,
         urgency_signals=signals,
-        escalate=False,  # rules layer below decides
+        escalate=False,  # the guardrail layer below decides
         escalation_reasons=[],
         summary=t.strip().split("\n")[0][:140],
-        rationale=f"Rules-only mode (no model): category '{category.value}' by keyword match, urgency '{urgency.value}' from cue words. Escalation determined by guardrail regexes.",
+        customer_reason=cust_reason,
+        category_reason=f"Keyword match put this in '{category.value}'. This is the fallback classifier, "
+                        f"which counts cue words rather than reading the request, so it cannot weigh a near alternative.",
+        urgency_reason=(f"Cue words set '{urgency.value}': {', '.join(signals)}." if signals
+                        else f"No urgency cue words matched, so this defaults to '{urgency.value}'."),
+        escalation_reason_text="Escalation is decided by the guardrail regexes that run after this step, "
+                               "not by the keyword classifier.",
+        rationale=f"Keyword-rules mode (no model available): category '{category.value}' by cue words, "
+                  f"urgency '{urgency.value}'. Escalation is decided by the guardrail layer.",
     )

@@ -41,23 +41,36 @@ class EscalationReason(str, Enum):
 
 
 class Customer(BaseModel):
-    """Who sent the ticket. Never invented: if the text has no company name, name is null."""
-    name: Optional[str] = Field(default=None, description="Company/account name if stated verbatim in the ticket, else null.")
-    contact_name: Optional[str] = Field(default=None, description="Person's name if stated, else null.")
-    identifiers: list[str] = Field(default_factory=list, description="Verbatim identifiers such as invoice numbers, account ids, emails, handles.")
+    """Who sent the ticket.
+
+    Two separate things, deliberately kept apart:
+      * `name` / `contact_name` — stated verbatim in the text. Facts.
+      * `best_guess` + `confidence` + `basis` — an inference from context when nothing is stated.
+        Downstream can gate on the confidence; a reader can audit the reasoning.
+    """
+    name: Optional[str] = Field(default=None, description="Company or account name ONLY if stated verbatim in the ticket, else null.")
+    contact_name: Optional[str] = Field(default=None, description="Person's name ONLY if stated verbatim, else null.")
+    identifiers: list[str] = Field(default_factory=list, description="Verbatim identifiers: invoice numbers, account ids, emails, handles, ticket refs.")
+    best_guess: Optional[str] = Field(default=None, description="Best inference about who this is, when `name` is null. E.g. 'enterprise Databricks customer, likely healthcare' or 'existing paying customer on the Team plan'. Null only if the text gives nothing at all.")
+    confidence: float = Field(default=0.0, description="0.0-1.0 confidence in `best_guess`. Use `name` verbatim -> 1.0. A domain in an email -> ~0.8. Product/plan references only -> ~0.4. Nothing -> 0.0.")
+    basis: list[str] = Field(default_factory=list, description="The specific cues the guess rests on, quoted or named. Empty when nothing was inferable.")
 
 
 class Extraction(BaseModel):
     """The structured fields the assignment asks for, plus the evidence behind them."""
     customer: Customer
+    customer_reason: str = Field(description="One or two sentences: how you identified the sender, or why the text does not support a firmer answer.")
     category: Category
     category_confidence: float = Field(description="0.0-1.0")
+    category_reason: str = Field(description="One or two sentences: what puts it in this category rather than the nearest alternative. Name the alternative you rejected.")
     urgency: Urgency
     urgency_signals: list[str] = Field(description="Short verbatim cues that drove the urgency call (deadlines, money, scope, recurrence).")
+    urgency_reason: str = Field(description="One or two sentences: which criteria set this level. Urgency is never stated, so say what you inferred it from.")
     escalate: bool
     escalation_reasons: list[EscalationReason]
+    escalation_reason_text: str = Field(description="One or two sentences: why a human is or is not needed. If not, name the escalation topics you checked and ruled out.")
     summary: str = Field(description="One sentence, what the customer wants.")
-    rationale: str = Field(description="2-4 sentences explaining category, urgency, and the escalation decision.")
+    rationale: str = Field(description="2-4 sentences tying the whole decision together.")
 
 
 class RuleHit(BaseModel):

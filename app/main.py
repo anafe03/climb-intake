@@ -130,16 +130,23 @@ def explain(decision_id: str):
     if not d:
         raise HTTPException(404, "unknown ticket id")
     x = d.extraction
+    c = x.customer
+    who = c.name or (f"{c.best_guess} (inferred, confidence {c.confidence:.2f})" if c.best_guess else "unknown")
     lines = [
         f"Ticket {d.id}  ({d.created_at}, mode={d.mode}, model={d.model or '-'})",
         "",
-        f"  Customer:   {x.customer.name or 'unknown'}  ids={x.customer.identifiers or '-'}",
+        f"  Customer:   {who}",
+        f"              ids={c.identifiers or '-'}" + (f"  basis={c.basis}" if c.basis else ""),
+        f"              why: {x.customer_reason}",
         f"  Category:   {x.category.value} (confidence {x.category_confidence:.2f})",
+        f"              why: {x.category_reason}",
         f"  Urgency:    {x.urgency.value}  signals={x.urgency_signals or '-'}",
+        f"              why: {x.urgency_reason}",
         f"  Escalate:   {x.escalate}  reasons={[r.value for r in x.escalation_reasons] or '-'}",
+        f"              why: {x.escalation_reason_text}",
         f"  Routed to:  {d.queue}" + (f"  + {d.escalation_queue}" if d.escalation_queue else ""),
         "",
-        "Model rationale:",
+        "Overall rationale:",
         f"  {x.rationale}",
         "",
         "Guardrail rules that fired:",

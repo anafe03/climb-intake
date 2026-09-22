@@ -14,8 +14,10 @@ from app.models import Category, Customer, EscalationReason, Extraction, TicketI
 
 
 def _model_answer(**kw) -> Extraction:
-    base = dict(customer=Customer(), category=Category.billing, category_confidence=0.9, urgency=Urgency.medium,
-                urgency_signals=[], escalate=False, escalation_reasons=[], summary="s", rationale="model rationale")
+    base = dict(customer=Customer(), customer_reason="r", category=Category.billing, category_confidence=0.9,
+                category_reason="r", urgency=Urgency.medium, urgency_signals=[], urgency_reason="r",
+                escalate=False, escalation_reasons=[], escalation_reason_text="r",
+                summary="s", rationale="model rationale")
     base.update(kw)
     return Extraction(**base)
 

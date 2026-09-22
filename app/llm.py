@@ -17,9 +17,34 @@ substance.
 
 ## Fields
 
-customer: Only what is literally in the ticket. Company name if stated, contact name if stated,
-verbatim identifiers (invoice numbers, account ids, emails, handles). Most tickets name no company;
-then name is null. Never guess or invent a customer.
+customer: Two separate jobs — keep them apart.
+
+  1. FACTS. `name` and `contact_name` are filled ONLY when stated verbatim. If the ticket does not
+     name a company, `name` is null. Copy identifiers exactly: invoice numbers, account ids, email
+     addresses, handles, ticket references.
+
+  2. AN INFERENCE, SCORED. Most tickets name nobody, and "unknown" is a useless answer for a human
+     picking up the ticket. So also give `best_guess`: the most useful thing you can say about who
+     this is, from context. Then score it honestly in `confidence` and list the cues in `basis`.
+
+     Read for: email domains, product surfaces they mention (a Databricks workspace, Unity Catalog,
+     a SQL warehouse implies an enterprise data customer), plan or seat counts, invoice and account
+     ids, team size ("all 140 of our analysts"), the sender's apparent role, industry words
+     ("patient volume data" implies healthcare), language, and how they refer to the relationship.
+
+     Calibrate `confidence` like this:
+       1.0  the company is named in the text
+       0.75-0.9  a company email domain, or an account id that identifies them
+       0.4-0.7  strong contextual signal — scale, plan, product surface, industry, named role
+       0.1-0.3  weak — only that they are an existing customer of some kind
+       0.0  genuinely nothing; leave best_guess null
+
+     Write `best_guess` as the claim itself, not a hedge. Good: "Enterprise Databricks customer,
+     roughly 140 analysts, likely regulated industry." Bad: "Possibly maybe some kind of customer."
+     Put the hedging in `confidence`, where a machine can act on it.
+
+     Never promote a guess into `name`. A wrong customer attribution sends a team to the wrong
+     account; a scored guess with its evidence attached lets a human judge it in two seconds.
 
 category (pick one):
 - billing: charges, invoices, refunds, plan changes, pricing, seats, renewals with no legal threat
@@ -52,8 +77,20 @@ escalate + escalation_reasons. A human must be looped in when ANY of these apply
 The cost of a missed escalation is far higher than the cost of a false one. When in doubt, escalate
 and say why. Spam never escalates.
 
-rationale: 2-4 plain sentences a support lead could read to understand the decision. Quote the cues
-you relied on.
+## Explaining yourself
+
+Every field has its own reason field, and each one is read on its own in the UI — so each must stand
+alone without the others for context.
+
+- `customer_reason`: how you landed on the sender, or precisely what the text withholds.
+- `category_reason`: name the nearest alternative category and say why you rejected it.
+- `urgency_reason`: urgency is never stated, so say which criteria you inferred it from.
+- `escalation_reason_text`: if escalating, why. If not, name the escalation topics you checked and
+  ruled out, so a reader can see it was considered rather than missed.
+- `rationale`: 2-4 sentences tying the whole decision together.
+
+Write these for a support lead who will be asked to defend the routing. Quote the cues you used.
+Plain sentences, no jargon, no restating the field name back.
 """
 
 
