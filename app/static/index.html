@@ -312,13 +312,18 @@ function explainer(key,d){
   if(key==='who') return head('Who sent it',
       'Two separate things: what the text states outright, and what we can infer from context with a score attached.')
     + why(x.customer_reason)
-    + `<h5>What we look for</h5><ul class="crit">
-        ${li('A company name stated verbatim','becomes the fact, confidence 1.0',!!c.name)}
-        ${li('A work email domain','~0.8 — identifies the org without naming it',c.basis.some(b=>/domain/i.test(b)))}
-        ${li('Account or invoice identifiers','resolvable against the CRM',c.identifiers.length>0)}
-        ${li('Scale, plan, product surface, industry','0.4–0.7 — shape of the customer, not their name',c.basis.some(b=>/scale|plan|enterprise|product/i.test(b)))}
-        ${li('Nothing at all','confidence 0.0, and we say so',c.confidence===0)}
-       </ul>`
+    // Only the two facts we can verify are marked. The middle bands are the model's own judgment,
+    // so rather than regex-guessing which one it used, we show the basis it actually reported.
+    + `<h5>The confidence ladder</h5><ul class="crit">
+        ${li('A company name stated verbatim','1.0 — becomes the fact, not a guess',!!c.name)}
+        ${li('A work email domain, or an identifying account id','0.75–0.9 — pins the org without naming it',false)}
+        ${li('Scale, plan, product surface, industry, stated role','0.4–0.7 — the shape of the customer',false)}
+        ${li('Only that they are a customer of some kind','0.1–0.3',false)}
+        ${li('Nothing at all','0.0, and we say so rather than invent one',c.confidence===0&&!c.best_guess)}
+       </ul>
+       <p style="font-size:11.5px;color:var(--faint);margin:8px 0 0">Filled dots are facts we can check.
+       The bands between are the reader's own judgment, so instead of guessing which rung it used,
+       the evidence it actually cited is shown below.</p>`
     + found(c.name
         ? `Named outright: <b>${esc(c.name)}</b>.`
         : (c.best_guess

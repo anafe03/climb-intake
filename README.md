@@ -179,6 +179,13 @@ one instance; Cloud Tasks or Pub/Sub in front of `/tickets` so intake is async a
 Message Batches API for backfills. AWS equivalent is App Runner + Secrets Manager + ECR with the same
 three resources.
 
+## Presenting this
+
+[docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md) answers the architecture questions directly — which
+fields the model produces, which are deterministic, who assigns the confidence score in each mode,
+and what runs in what order. [docs/DEMO.md](docs/DEMO.md) is a three-minute live walkthrough.
+[docs/DECISIONS.md](docs/DECISIONS.md) is the running log of every non-obvious choice.
+
 ## Interface notes
 
 The web view is one list of decisions. Click any ticket to open the full breakdown in a dialog:

@@ -1,7 +1,25 @@
 # Decision log
 
 Running notes on every non-obvious choice, written for the interview panel. Each entry: what we chose,
-what we rejected, why, and what we'd say if pushed. Newest at the bottom. Dates are absolute.
+what we rejected, why, and what we'd say if pushed. Dates are absolute.
+
+## Which calls were mine
+
+Most entries below are engineering choices I made and can defend. These ones were **product
+decisions I made and directed**, and several reversed what the implementation had already done:
+
+| Decision | What I called |
+|---|---|
+| **D26** | Don't leave the customer blank. Infer who it is, state the assumption, attach a confidence score, and say why. This reversed D4, which had refused to guess at all. |
+| **D27** | Every field must explain itself. "Why it read that way" belongs in each popup, not only as one overall paragraph — the panel will ask about a specific field. |
+| **D10** | The demo surface is an application with a list and a detail view, not a chat. A chat would bury the structured decision in prose. |
+| **D23** | Climb's brand is orange and dark blue. I corrected the palette after the first pass sampled the wrong colour as primary. |
+| **D18 / D25** | Containerize it properly and prove it runs, rather than shipping a Dockerfile nobody executed. |
+| **Interface** | Most recent run at the top; click a request to open everything in a popup; sort by urgency and by time. |
+| **Fixtures** | More sample tickets than the ten provided, so a demo can show the full category and escalation matrix. |
+
+The rest — the two-layer classifier, the guardrail asymmetry, the audit design, the eval method —
+were engineering calls, and each entry says what was rejected and why.
 
 ---
 
@@ -225,6 +243,7 @@ as the outcome is the kind of thing that erodes trust in an audit log. Pinned by
 spam classifier is what saves it here, which means the ordering of those two rules is load-bearing.
 
 ### D23. Brand palette taken from climb.ai's own CSS tokens, not from eyeballing the page
+**Austin caught this.** He said the brand was orange and dark blue; the first pass had made it teal.
 **First attempt was wrong.** Counting hex codes in the rendered HTML made `#006172` look dominant
 (656 occurrences, mostly inline SVG strokes), so the UI came out all teal with orange used only as an
 error colour. The named tokens in the stylesheet tell a different story:
@@ -290,6 +309,7 @@ container test. Killing the local server first is the only reason the result is 
 **Rule this reinforces:** a green check is only evidence if you know what answered it.
 
 ### D26. Reversed D4: infer the sender, but score the inference and show its basis
+**Directed by Austin.** This was his call, not mine; the original design refused to guess.
 **What D4 said:** leave `customer.name` null unless a company is named verbatim. Never guess.
 **Why that was wrong in practice:** nine of the ten sample tickets name nobody, so the field read
 "unknown" almost every time. That is technically honest and operationally useless — the person
@@ -328,6 +348,7 @@ hidden. It is rendered next to the value, colour-banded, in the UI and in the pl
 endpoint. The failure mode to avoid is unscored confidence, not inference.
 
 ### D27. Every field carries its own reasoning, because the demo is the interface
+**Directed by Austin**, for exactly the reason in the heading: the panel asks about one field at a time.
 One overall `rationale` could not answer "why did you decide *that* specific thing", which is the
 question a reviewer actually asks. The schema now carries `customer_reason`, `category_reason`,
 `urgency_reason` and `escalation_reason_text` alongside the summary, and the prompt requires each to
