@@ -351,6 +351,35 @@ container's background colour rather than its own. Renamed to `.expanded`.
 **Worth saying out loud:** three separate checks — DOM dump, error handler, unit tests — all passed
 on a screen that was visibly broken. Rendering it was the only test that could fail.
 
+### D29. The eval for the new feature failed, and the eval was the thing that was wrong
+Adding the scored sender inference (D26) without eval coverage was a gap, so the gold set gained
+expected confidence bands for seven tickets. Two "failed" immediately:
+
+| Ticket | Model said | My band | Model's guess |
+|---|---|---|---|
+| edge-24 | 0.90 | 0.2–0.8 | "Independent security researcher reporting an IDOR via responsible disclosure" |
+| edge-29 | 0.70 | 0.0–0.4 | "External SEO marketing agency sending an unsolicited sales pitch" |
+
+Both guesses are well-founded — each sender says plainly what they are. **I had written the bands by
+conflating "we have no company name" with "we do not know who this is".** The field answers the
+second question. The bands were corrected, not the model.
+
+**And the two modes needed different treatment.** The keyword fallback scores 0.00 on both, because
+it cannot read "I'm a security researcher". That is honest, not a miss. So confidence is now scored
+asymmetrically:
+
+- **The ceiling is a safety property, enforced in every mode.** The system must never claim more
+  certainty about a sender than the text supports. Overclaiming is reported as its own line and must
+  be empty.
+- **The floor is a quality property, enforced only on the model path.** A degraded fallback under-
+  claiming is correct behaviour.
+
+Both modes now sit at 100% with no overclaiming. Two unit tests pin the invariants that matter more
+than the percentage: every guess carries its basis unless confidence is 0.00, and a guess is never
+written into `name` unless the string appears in the ticket.
+**Why this belongs in the log:** the first instinct on a red eval is to tune the model. Here the
+right move was to read the failures, find the spec error in my own test, and fix the test.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

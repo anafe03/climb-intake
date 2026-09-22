@@ -17,3 +17,21 @@ def test_rules_mode_never_produces_empty_queue():
         d = process(TicketIn(text=row["text"]), persist=False)
         assert d.queue
         assert d.mode == "rules"
+
+
+def test_every_guess_carries_its_basis():
+    """A scored guess with no stated basis is unauditable. Confidence 0 is the only exception."""
+    for row in load_gold():
+        c = process(TicketIn(text=row["text"]), persist=False).extraction.customer
+        assert c.basis or c.confidence == 0.0, f"{row['id']}: confidence {c.confidence} with no basis"
+        assert 0.0 <= c.confidence <= 1.0
+        if c.name:
+            assert c.confidence >= 0.9, f"{row['id']}: named customer but confidence {c.confidence}"
+
+
+def test_a_guess_never_becomes_a_stated_name():
+    """The whole safety argument for D26 rests on this: inference never enters `name`."""
+    for row in load_gold():
+        x = process(TicketIn(text=row["text"]), persist=False).extraction
+        if x.customer.name:
+            assert x.customer.name.lower() in row["text"].lower(), f"{row['id']}: invented a name"
