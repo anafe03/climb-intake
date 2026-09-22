@@ -94,3 +94,22 @@ Expand **Full audit record** in any dialog.
   lands in a real queue and is never marked resolved.
 - **Load the same fixture twice.** Nothing duplicates — idempotent on `(source, external_id)`,
   enforced by a unique index rather than a check in the request path.
+
+---
+
+## Before you present: confirm the container is serving current code
+
+The legacy Docker builder does not always invalidate the layer that copies `app/`, so a rebuild can
+serve stale markup (see `DECISIONS.md` D30). One command settles it:
+
+```bash
+docker compose build --no-cache && docker compose up -d --force-recreate
+curl -s localhost:8080/ | grep -c scrim2     # any string you know is in the current page
+```
+
+## Clicking through the explainers
+
+Each of the five boxes under **What it worked out** opens its own pop-out with an ✕, so you can open
+one, talk to it, close it, and open the next without losing your place. Each pop-out is deep-linkable
+as `/?t=<decision id>&x=<who|what|urgency|human|route>`, which is handy if you want tabs pre-loaded
+rather than clicking live.

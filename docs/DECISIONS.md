@@ -401,6 +401,19 @@ written into `name` unless the string appears in the ticket.
 **Why this belongs in the log:** the first instinct on a red eval is to tune the model. Here the
 right move was to read the failures, find the spec error in my own test, and fix the test.
 
+### D30. A stale Docker layer nearly invalidated a verification
+`docker compose up --build` served a page that was a mix of old and new: the rebuilt JavaScript was
+present but the rebuilt markup was not. The legacy builder (`DEPRECATED: The legacy builder...`, no
+buildx installed) did not reliably invalidate the `COPY app ./app` layer. `docker compose build
+--no-cache` followed by `--force-recreate` fixed it.
+**Why it matters beyond the annoyance:** I had already run a container verification (D25) against an
+image built the same way. That verification happens to stand, because everything it checked was
+behavioural — health, classification, restart persistence, the non-root uid — and none of it depended
+on the exact page markup. But it is luck rather than method, and the fix is to install buildx or to
+check a build marker rather than trust the cache.
+**Added to the demo checklist:** before presenting, confirm the served page matches the working tree
+(`curl -s localhost:8080/ | grep -c <a string you just added>`).
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the
