@@ -45,6 +45,12 @@ def index():
     return FileResponse(STATIC / "index.html")
 
 
+@app.get("/notes", include_in_schema=False)
+def presenter_notes():
+    """Demo walkthrough. Served from the app so it can deep-link into the live ticket list."""
+    return FileResponse(STATIC / "presenter.html")
+
+
 @app.get("/health")
 def health():
     return {"ok": True, "mode": pipeline.effective_mode(), "provider": llm.provider(), "model": llm.active_model()}

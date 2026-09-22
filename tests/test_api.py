@@ -77,3 +77,8 @@ def test_demo_fixture_loads_and_covers_the_matrix():
 
 def test_unknown_fixture_is_rejected():
     assert client.post("/tickets/load-samples", params={"fixture": "nope"}).status_code == 400
+
+
+def test_presenter_notes_are_served():
+    r = client.get("/notes")
+    assert r.status_code == 200 and "Presenter notes" in r.text

@@ -183,7 +183,8 @@ three resources.
 
 [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md) answers the architecture questions directly — which
 fields the model produces, which are deterministic, who assigns the confidence score in each mode,
-and what runs in what order. [docs/DEMO.md](docs/DEMO.md) is a three-minute live walkthrough.
+and what runs in what order. Presenter notes live at **`/notes`** on the running service — a timed walkthrough that deep-links
+into the loaded tickets; [docs/DEMO.md](docs/DEMO.md) is the plain-text version.
 [docs/DECISIONS.md](docs/DECISIONS.md) is the running log of every non-obvious choice.
 
 ## Interface notes

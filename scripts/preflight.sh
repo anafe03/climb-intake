@@ -25,6 +25,8 @@ for _ in $(seq 1 60); do curl -fs $BASE/health >/dev/null 2>&1 && break; sleep 1
   && ok "runs as non-root" || no "not running as the climb user"
 diff <(curl -s $BASE/) app/static/index.html >/dev/null \
   && ok "served page matches the working tree" || no "SERVING STALE CODE — rebuild"
+diff <(curl -s $BASE/notes) app/static/presenter.html >/dev/null \
+  && ok "presenter notes current at /notes" || no "/notes stale or missing"
 
 echo "── api"
 MODE=$(curl -s $BASE/health | $PY -c 'import json,sys;print(json.load(sys.stdin)["mode"])')
