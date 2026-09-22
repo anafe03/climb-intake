@@ -11,7 +11,7 @@ WORKDIR /srv
 
 # Dependencies first: this layer only rebuilds when the lockfile changes.
 COPY requirements.lock ./
-RUN pip install --no-cache-dir --require-hashes=false -r requirements.lock
+RUN pip install --no-cache-dir -r requirements.lock
 
 COPY pyproject.toml ./
 COPY app ./app

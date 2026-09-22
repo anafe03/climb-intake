@@ -265,6 +265,30 @@ defend, it is one the numbers reject. Full write-up in `docs/LOADTEST.md`.
 **If pushed — "why not just lower concurrency?"** Because the table shows concurrency buys throughput
 (147 s → 58 s wall for 8 tickets) and does nothing for per-ticket latency. It is the wrong lever.
 
+### D25. The container is verified, and building it found a bug reading could not
+**Verified on 2026-09-21** with Colima 0.10.3 + Docker 29.8.1 + Compose 5.5.1, `docker compose up --build`:
+
+| Check | Result |
+|---|---|
+| Image builds from the committed lockfile | 311 MB, 1 m 45 s |
+| `/health` reports `llm` mode with the key from `.env` | yes |
+| Classifies through the container | security / critical / escalated, 14.6 s |
+| 10 Climb samples ingest | 10 of 10 |
+| Docker healthcheck reaches `healthy` | yes |
+| Runs as non-root | uid 10001 `climb` |
+| Audit survives `docker compose restart` | 11 decisions before, 11 after |
+| Structured audit line on container stdout | yes |
+
+**The bug:** `pip install --require-hashes=false` — that flag takes no value, so the dependency layer
+failed with exit 2. The Dockerfile had been written, reviewed and committed; only running a build
+surfaced it.
+**And a near-miss worth admitting:** the first Compose run silently did nothing, because the static
+Docker CLI ships without the Compose plugin wired, and `docker compose up -d` was parsed as
+`docker -d`. The health check that followed hit the *local* dev server still on port 8080 and
+returned a healthy, model-backed response. It would have been easy to report that as a passing
+container test. Killing the local server first is the only reason the result is trustworthy.
+**Rule this reinforces:** a green check is only evidence if you know what answered it.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the
