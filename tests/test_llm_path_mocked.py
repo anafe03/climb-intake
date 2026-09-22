@@ -165,3 +165,35 @@ def test_openai_adapter_raises_when_nothing_parsed(monkeypatch):
     monkeypatch.setattr(llm_openai.openai, "OpenAI", lambda **kw: SimpleNamespace(responses=FakeResponses()))
     with pytest.raises(ValueError, match="no parsed output"):
         llm_openai.classify("anything")
+
+
+def test_alternatives_survive_the_pipeline_and_sum_sensibly(llm_mode, monkeypatch):
+    """A multi-class answer must reach the audit record intact. Verified with a mock because the
+    account ran out of credits mid-session; the live shape is unverified until it is topped up."""
+    from app.models import Alternative
+    ans = _model_answer(category=Category.bug, category_confidence=0.6, category_alternatives=[
+        Alternative(category=Category.billing, confidence=0.25, why_not="wrong charge, but the cause is a defect"),
+        Alternative(category=Category.other, confidence=0.15, why_not="could be a question, but it reports a fault"),
+    ])
+    monkeypatch.setattr(llm, "classify", lambda text: (ans, {"model": "mock"}))
+    d = pipeline.process(TicketIn(text="Checkout is charging customers twice."), persist=False)
+    alts = d.extraction.category_alternatives
+    assert [a.category.value for a in alts] == ["billing", "other"]
+    total = d.extraction.category_confidence + sum(a.confidence for a in alts)
+    assert 0.95 <= total <= 1.05, f"shares should sum to about 1.0, got {total}"
+    assert all(a.why_not for a in alts), "every alternative must say why it lost"
+
+
+def test_health_reports_the_model_as_failing_after_an_error(llm_mode, monkeypatch):
+    """A health check that says 'up' while every call fails is worse than no health check."""
+    import anthropic, httpx
+    from fastapi.testclient import TestClient
+    from app.main import app
+    pipeline.LAST_MODEL_CALL.update(status="unknown", at=None, error=None)
+    monkeypatch.setattr(llm, "classify", lambda t: (_ for _ in ()).throw(
+        anthropic.APIConnectionError(request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"))))
+    pipeline.process(TicketIn(text="The export is broken."), persist=False)
+    body = TestClient(app).get("/health").json()
+    assert body["last_model_call"] == "failing"
+    assert body["ok"] is False
+    assert "APIConnectionError" in body["last_model_error"]

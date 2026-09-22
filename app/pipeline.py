@@ -15,6 +15,10 @@ from .models import Decision, Extraction, TicketIn
 
 log = logging.getLogger("climb.pipeline")
 
+# Last model-call outcome, so /health can distinguish "a key is configured" from "the model works".
+# Costs nothing: it is a side effect of traffic, not a probe.
+LAST_MODEL_CALL: dict = {"status": "unknown", "at": None, "error": None}
+
 
 def has_credentials() -> bool:
     return llm.provider() is not None
@@ -48,9 +52,12 @@ def process(ticket: TicketIn, persist: bool = True) -> Decision:
             model = meta.pop("model")
             usage = meta
             base = llm_extraction
+            LAST_MODEL_CALL.update(status="ok", at=datetime.now(timezone.utc).isoformat(timespec="seconds"), error=None)
         except (anthropic.APIError, openai.APIError, llm.RefusedError, ValueError) as e:
             # Degrade rather than drop: a routing service must always produce a decision.
             error = f"{type(e).__name__}: {e}"
+            LAST_MODEL_CALL.update(status="failing", at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                                   error=error[:300])
             log.warning("llm classification failed, falling back to rules: %s", error)
             mode = "llm_fallback_rules"
             base = rules.rules_only_extraction(ticket.text)

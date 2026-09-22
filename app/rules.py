@@ -261,7 +261,9 @@ def rules_only_extraction(text: str) -> Extraction:
         summary=t.strip().split("\n")[0][:140],
         customer_reason=cust_reason,
         category_reason=f"Keyword match put this in '{category.value}'. This is the fallback classifier, "
-                        f"which counts cue words rather than reading the request, so it cannot weigh a near alternative.",
+                        f"which counts cue words rather than reading the request, so it cannot weigh a near "
+                        f"alternative and reports none.",
+        category_alternatives=[],
         urgency_reason=(f"Cue words set '{urgency.value}': {', '.join(signals)}." if signals
                         else f"No urgency cue words matched, so this defaults to '{urgency.value}'."),
         escalation_reason_text="Escalation is decided by the guardrail regexes that run after this step, "

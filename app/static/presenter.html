@@ -18,6 +18,25 @@ header{background:var(--teal);color:#fff;padding:20px 0}
 .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
 header h1{margin:0;font-size:19px;font-weight:650}
 header p{margin:4px 0 0;color:var(--cyan);font-size:13px}
+.plan{display:flex;gap:8px;align-items:center;margin-top:13px}
+.plan button{font:600 12.5px var(--sans);background:rgba(255,255,255,.12);color:#fff;border:0;
+  padding:6px 14px;border-radius:7px;cursor:pointer}
+.plan button.on{background:var(--coral);color:#3a1004}
+.plan span{font:12px var(--mono);color:var(--cyan);margin-left:6px}
+.beat.extra{display:none}
+body.long .beat.extra{display:block}
+.beat.cut{opacity:.42}
+.beat.cut .time{color:var(--coral-deep);font-weight:700}
+.beat.cut::after{content:"cut from the 15-minute run";display:block;margin-top:10px;
+  font:700 10px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--coral-deep)}
+body.long .extra-only{display:block}
+.extra-only{display:none}
+.tag{font:700 9.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;
+  background:var(--sunken);color:var(--faint);padding:3px 7px;border-radius:5px;border:1px solid var(--line)}
+.cmd{position:relative}
+.cmd button{position:absolute;top:8px;right:8px;font:600 11px var(--sans);background:rgba(255,255,255,.14);
+  color:#cfe7ea;border:0;padding:4px 9px;border-radius:6px;cursor:pointer}
+.cmd button:hover{background:rgba(255,255,255,.26)}
 .layout{display:grid;grid-template-columns:1fr 290px;gap:32px;padding:28px 0 90px}
 @media (max-width:940px){.layout{grid-template-columns:1fr}aside{position:static !important}}
 
@@ -71,6 +90,11 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
 <header><div class="wrap">
   <h1>Presenter notes — Climb Intake</h1>
   <p>Open the app in another tab. Links below jump straight to the ticket for each beat.</p>
+  <div class="plan">
+    <button id="p15" class="on">15 minutes</button>
+    <button id="p30">30 minutes</button>
+    <span id="runtime"></span>
+  </div>
 </div></header>
 
 <div class="wrap layout">
@@ -78,7 +102,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   <div class="status" id="status">checking the running service…</div>
 
   <div class="beat">
-    <div class="top"><span class="n">0</span><h2>What the problem is</h2><span class="time">30 sec</span></div>
+    <div class="top"><span class="n">0</span><h2>What the problem is</h2><span class="time" data-sec="45" data-short="45">45 sec</span></div>
     <div class="say">
       <p>"Requests arrive as freeform text. Nobody labels them. Somebody still has to read each one and
       decide who handles it and how fast — and get the dangerous ones in front of a person."</p>
@@ -88,7 +112,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   </div>
 
   <div class="beat">
-    <div class="top"><span class="n">1</span><h2>Type two tickets live</h2><span class="time">45 sec</span></div>
+    <div class="top"><span class="n">1</span><h2>Type two tickets live</h2><span class="time" data-sec="150" data-short="120">2.5 min</span></div>
     <div class="do"><b>Do</b>Paste into the box, one after the other:<br>
       <code>why was i charged 500 bucks</code><br>
       <code>why was i charged 5000 dollars</code></div>
@@ -102,7 +126,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   </div>
 
   <div class="beat">
-    <div class="top"><span class="n">2</span><h2>Open a ticket and walk the five boxes</h2><span class="time">70 sec</span></div>
+    <div class="top"><span class="n">2</span><h2>Open a ticket and walk the five boxes</h2><span class="time" data-sec="240" data-short="210">4 min</span></div>
     <div class="do"><b>Do</b>Open the security-researcher ticket, then click each box in turn.
       <div id="links-walk"></div></div>
     <div class="say">
@@ -118,7 +142,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   </div>
 
   <div class="beat">
-    <div class="top"><span class="n">3</span><h2>The escalation argument</h2><span class="time">50 sec</span></div>
+    <div class="top"><span class="n">3</span><h2>The escalation argument</h2><span class="time" data-sec="150" data-short="120">2.5 min</span></div>
     <div class="do"><b>Do</b>Click <b>Needs a human</b> in the toolbar to filter.</div>
     <div class="say">
       <p>"A missed escalation is the one failure their brief calls unacceptable. So escalation doesn't
@@ -137,7 +161,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   </div>
 
   <div class="beat">
-    <div class="top"><span class="n">4</span><h2>The numbers</h2><span class="time">35 sec</span></div>
+    <div class="top"><span class="n">4</span><h2>The numbers</h2><span class="time" data-sec="90" data-short="60">1.5 min</span></div>
     <div class="do"><b>Do</b>Open <code>docs/EVAL-llm.md</code>, or just read from the sidebar.</div>
     <div class="say">
       <p>"31 tickets: the 10 they gave me, plus 21 edge cases I wrote to trap the failure modes —
@@ -149,15 +173,164 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
     </div>
     <p class="why"><b>Say the weakness first.</b> Urgency exact sits at 77% and moves run to run. Naming
     that before they find it is worth more than the three points.</p>
+    <p class="why"><b>In the 15-minute cut:</b> don't open the file. Read the four rows off the sidebar
+    and move on.</p>
   </div>
 
   <div class="beat">
-    <div class="top"><span class="n">5</span><h2>Close on the audit trail</h2><span class="time">25 sec</span></div>
+    <div class="top"><span class="n">5</span><h2>Close on the audit trail</h2><span class="time" data-sec="60" data-short="0">1 min</span></div>
     <div class="do"><b>Do</b>Expand <b>Full audit record</b> on any ticket.</div>
     <div class="say">
       <p>"Every decision is a row in SQLite and a JSON line on stdout: what the model said, what
       shipped, every rule that fired with the text it matched, tokens, latency, and which mode ran."</p>
       <p>"'Why did this route here' is answerable six months later."</p>
+    </div>
+  </div>
+
+
+  <h2 class="section">6 · The API, in a terminal <span class="tag">always cover</span></h2>
+  <div class="beat">
+    <div class="top"><span class="n">6</span><h2>Show it is a service, not a web page</h2><span class="time" data-sec="150" data-short="90">2.5 min</span></div>
+    <p class="why">Have a terminal ready beside the browser. The point of this beat: <b>the UI is one
+    client. Everything it does is an endpoint.</b></p>
+
+    <div class="do"><b>Classify one ticket</b>The same call the page makes.</div>
+    <div class="cmd"><pre>curl -s localhost:8080/tickets \
+  -H 'content-type: application/json' \
+  -d '{"text":"A contractor we released Friday still has an active token against our workspace."}' \
+  | jq '{category:.extraction.category, urgency:.extraction.urgency,
+         escalate:.extraction.escalate, why:.extraction.escalation_reason_text,
+         queue:.queue, also:.escalation_queue}'</pre></div>
+
+    <div class="do"><b>Ask it why, in plain text</b>For a human reading a ticket comment, not a machine.</div>
+    <div class="cmd"><pre>ID=$(curl -s 'localhost:8080/tickets?limit=1' | jq -r '.[0].id')
+curl -s localhost:8080/tickets/$ID/explain</pre></div>
+    <div class="say"><p>"Same decision, three shapes: the page, JSON for a system, and plain text for a
+    person. The explain endpoint is what you'd paste into a Slack thread."</p></div>
+
+    <div class="do"><b>Batch upload</b>CSV, JSON, JSONL or blank-line-separated text.</div>
+    <div class="cmd"><pre>printf 'id,text\n5001,"Export is broken and reporting is due Friday."\n' > /tmp/t.csv
+curl -s -X POST localhost:8080/tickets/upload -F 'file=@/tmp/t.csv' | jq '.count'</pre></div>
+
+    <div class="do"><b>Queue state</b>What the downstream teams would be pulling from.</div>
+    <div class="cmd"><pre>curl -s localhost:8080/queues | jq '.queues[] | select(.count > 0)'</pre></div>
+
+    <div class="do"><b>Then open the generated docs</b><code>localhost:8080/docs</code></div>
+    <div class="say"><p>"Schema is Pydantic, so the OpenAPI spec is generated, not maintained. If a
+    downstream team wants a client, they generate it from this."</p></div>
+    <p class="why"><b>In the 15-minute cut:</b> run only the first two commands — classify, then
+    explain. That is the whole point of the beat.</p>
+    <p class="why"><b>If asked about idempotency:</b> POST the same ticket twice with an
+    <code>external_id</code> and show the identical decision id comes back. Upstream systems retry;
+    without this a webhook retry puts a duplicate in the escalation desk.</p>
+  </div>
+
+  <h2 class="section">7 · Containerisation and deployment <span class="tag">always cover</span></h2>
+  <div class="beat">
+    <div class="top"><span class="n">7</span><h2>How it ships</h2><span class="time" data-sec="180" data-short="90">3 min</span></div>
+    <div class="do"><b>Start here</b>Show it is already the thing they're talking to.</div>
+    <div class="cmd"><pre>docker compose ps
+docker exec $(docker compose ps -q) id -un</pre></div>
+    <div class="say"><p>"What you've been clicking is the container, not a dev server. Running as an
+    unprivileged user, healthcheck green."</p></div>
+
+    <div class="do"><b>Walk the Dockerfile</b>Four things worth pointing at.</div>
+    <div class="say">
+      <p><b>Pinned lockfile</b> — "It installs from a committed lockfile, not version ranges, so a build
+      today and a build next month produce the same image."</p>
+      <p><b>Layer order</b> — "Dependencies copy before app code, so editing a template doesn't
+      re-download the world."</p>
+      <p><b>Non-root</b> — "Runs as uid 10001. The audit database is on a named volume, so it survives
+      a restart — I test that."</p>
+      <p><b>Healthcheck</b> — "Hits <code>/health</code>, which reports whether a model is reachable, so
+      an orchestrator knows the difference between up and degraded."</p>
+    </div>
+
+    <div class="do"><b>Then the IaC</b><code>infra/terraform/</code> — four resources.</div>
+    <div class="say">
+      <p>"Artifact Registry for the image. Secret Manager for the API key. A service account scoped to
+      read that one secret, nothing else. Cloud Run with startup and liveness probes on
+      <code>/health</code>, min zero max three instances."</p>
+      <p>"The key is never in the image and never in the repo — it's injected at runtime from Secret
+      Manager."</p>
+    </div>
+    <div class="cmd"><pre>cd infra/terraform && tofu validate</pre></div>
+    <p class="why"><b>In the 15-minute cut:</b> <code>docker compose ps</code>, name the four Dockerfile
+    points in one sentence each, say the Terraform stands up four resources, and state what is not
+    verified. Skip the walkthrough.</p>
+    <p class="why"><b>Say this plainly:</b> the container is verified — built, run, exercised, restarted.
+    The Terraform passes validate against the real provider schema but has <b>never been applied</b>,
+    because there's no GCP project wired up. Claiming otherwise is the kind of thing that unravels in
+    the first follow-up question.</p>
+
+    <div class="do extra-only"><b>If they push on scale</b>The order matters more than the list.</div>
+    <div class="say extra-only">
+      <p>"First Cloud SQL, because SQLite is single-writer and I measured where that ceiling is —
+      hundreds of requests per second on one box, which is further out than people assume."</p>
+      <p>"Then async intake: accept, return 202, classify on a worker. That's not taste. I measured
+      model latency at concurrency 1, 4 and 8, and the tail is the model itself, not contention —
+      41 seconds against a 15 second median with a single request in flight. A synchronous handler
+      that can block that long is a design the numbers reject."</p>
+      <p>"Then the Message Batches API for backfills, at half the cost, since those aren't latency
+      sensitive."</p>
+    </div>
+  </div>
+
+  <h2 class="section extra-only">8 · The audit trail <span class="tag">30 min only</span></h2>
+  <div class="beat extra">
+    <div class="top"><span class="n">8</span><h2>What you could answer six months later</h2><span class="time" data-sec="120" data-short="0">2 min</span></div>
+    <div class="do"><b>Do</b>Expand <b>Full audit record</b>, then show the same thing as a log line.</div>
+    <div class="cmd"><pre>docker compose logs --tail 3 | grep routing_decision | jq</pre></div>
+    <div class="say">
+      <p>"Two sinks on purpose. SQLite because the explain view needs to query it. A JSON line on stdout
+      because that's what Cloud Logging or CloudWatch ingests with no extra plumbing."</p>
+      <p>"The record keeps <b>both</b> answers — what the model said, and what shipped after the rules
+      ran — plus every rule that fired with the exact text it matched, token counts, latency, and which
+      mode produced it."</p>
+    </div>
+    <p class="why"><b>The line that lands:</b> "If a customer asks in March why their February ticket
+    went where it went, the answer is a row, not an archaeology project."</p>
+  </div>
+
+  <h2 class="section extra-only">9 · Where it was wrong <span class="tag">30 min only</span></h2>
+  <div class="beat extra">
+    <div class="top"><span class="n">9</span><h2>Three things I got wrong and how I found them</h2><span class="time" data-sec="180" data-short="0">3 min</span></div>
+    <p class="why">Volunteer this. It is the strongest material you have and it is the part nobody else
+    will offer. Keep each one to three sentences.</p>
+    <div class="say">
+      <p><b>The latency tail.</b> "p95 was 78 seconds and four consecutive tickets were slow, which
+      looks exactly like rate-limit backoff. I tested it at concurrency 1, 4 and 8. At concurrency 1,
+      with nothing to rate limit, a ticket still took 41 seconds. My hypothesis was wrong and the tail
+      is the model. That's why intake should be async — measured, not assumed."</p>
+      <p><b>An eval whose spec was the bug.</b> "I added confidence scoring, then added expected bands
+      to the gold set. Two failed immediately. Both were my error: I'd conflated 'we have no company
+      name' with 'we don't know who this is'. A sender who writes 'I'm a security researcher' is
+      identified with high confidence. I fixed the test, not the model."</p>
+      <p><b>A screen that was visibly broken while every check passed.</b> "Clicking a field made the
+      card go blank. The DOM was right, the class was applied, no JavaScript error, all tests green.
+      It was a class-name collision — <code>.open</code> was already used elsewhere with opacity zero.
+      Only rendering it in a browser and reading the pixels found it."</p>
+    </div>
+    <p class="why"><b>Then land it:</b> "Each of those is in the decision log with the measurement that
+    settled it. That's the habit I'd bring to a customer engagement — the thing that changes my mind
+    is a number, and I write down what changed it."</p>
+  </div>
+
+  <h2 class="section extra-only">10 · Design decisions <span class="tag">30 min only</span></h2>
+  <div class="beat extra">
+    <div class="top"><span class="n">10</span><h2>Open the decision log</h2><span class="time" data-sec="120" data-short="0">2 min</span></div>
+    <div class="do"><b>Do</b>Open <code>docs/DECISIONS.md</code>. Don't read it — scroll it, then pick two.</div>
+    <div class="say">
+      <p>"33 entries. Each one says what I chose, what I rejected, and what I'd say if pushed. The top
+      names which calls were product decisions rather than engineering ones."</p>
+      <p><b>Pick D26</b> — "This one reverses an earlier decision. I originally refused to guess the
+      customer at all. That was technically honest and operationally useless, because nine of ten
+      tickets name nobody. It now infers, scores the inference, and shows the evidence — but a guess
+      never enters the name field. I marked the old decision superseded rather than quietly editing
+      it, so the reasoning change is visible."</p>
+      <p><b>Pick D16</b> — "Low confidence routes to a human review queue rather than a guessed team.
+      A wrong guess costs that team time and hides the uncertainty. A review queue makes it visible and
+      gives you a stream of genuinely hard cases to label."</p>
     </div>
   </div>
 
@@ -240,6 +413,46 @@ function findBy(rows, ...needles){
   const hit = rows.find(r => needles.every(n => r.ticket.text.toLowerCase().includes(n)));
   return hit && hit.id;
 }
+
+function fmt(sec){ const m = sec/60; return (m % 1 ? m.toFixed(1) : m) + ' min'; }
+function retime(){
+  const long = document.body.classList.contains('long');
+  let sec = 0;
+  document.querySelectorAll('.beat').forEach(b => {
+    const t = b.querySelector('.time[data-sec]');
+    if (!t) return;
+    const full = Number(t.dataset.sec);
+    const short = t.dataset.short === undefined ? full : Number(t.dataset.short);
+    const use = long ? full : short;
+    // An 'extra' beat is 30-minute material; a short=0 beat is cut from the 15-minute run.
+    const cut = !long && (use === 0 || b.classList.contains('extra'));
+    b.classList.toggle('cut', cut);
+    t.textContent = cut ? 'skip' : fmt(use);
+    if (!cut) sec += use;
+  });
+  const mins = Math.round(sec/60);
+  const target = long ? 30 : 15;
+  document.getElementById('runtime').textContent =
+    `${mins} min of material, ~${target - mins} min for questions — target ${target} min`;
+}
+document.getElementById('p15').onclick = () => {
+  document.body.classList.remove('long');
+  document.getElementById('p15').classList.add('on');
+  document.getElementById('p30').classList.remove('on'); retime();
+};
+document.getElementById('p30').onclick = () => {
+  document.body.classList.add('long');
+  document.getElementById('p30').classList.add('on');
+  document.getElementById('p15').classList.remove('on'); retime();
+};
+document.querySelectorAll('.cmd').forEach(c => {
+  const b = document.createElement('button');
+  b.textContent = 'copy';
+  b.onclick = () => { navigator.clipboard.writeText(c.querySelector('pre').textContent);
+                      b.textContent = 'copied'; setTimeout(()=>b.textContent='copy', 1200); };
+  c.appendChild(b);
+});
+retime();
 
 (async () => {
   const st = document.getElementById('status');

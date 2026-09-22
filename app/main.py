@@ -53,7 +53,19 @@ def presenter_notes():
 
 @app.get("/health")
 def health():
-    return {"ok": True, "mode": pipeline.effective_mode(), "provider": llm.provider(), "model": llm.active_model()}
+    last = pipeline.LAST_MODEL_CALL
+    degraded = last["status"] == "failing"
+    return {
+        # ok=False when a model is configured but its last call failed: an orchestrator should be able
+        # to tell "up" from "up but answering with the fallback".
+        "ok": not degraded,
+        "mode": pipeline.effective_mode(),
+        "provider": llm.provider(),
+        "model": llm.active_model(),
+        "last_model_call": last["status"],
+        "last_model_error": last["error"],
+        "last_model_call_at": last["at"],
+    }
 
 
 @app.post("/tickets", response_model=Decision)

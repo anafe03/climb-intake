@@ -479,6 +479,52 @@ What it checks, grouped by what it would have caught:
 **Why write it down:** every item on that list is something I actually got wrong at least once during
 this build. The checklist is a record of the mistakes, not a precaution against imagined ones.
 
+### D34. Confidence is a share of opinion, not a grade — and it was measured before it was changed
+**Austin asked three questions:** should confidence be multi-class, are these probabilities or
+confidence levels, and are they even consistent between runs. The third is testable, so it was tested
+first: the same three tickets, five runs each.
+
+| Ticket | Label stability | Confidence mean | Std dev |
+|---|---|---|---|
+| Clear security breach | 5/5 | 0.99 | 0.011 |
+| Borderline rate-limit request | 5/5 | 0.92 | 0.025 |
+| Genuinely ambiguous SOC 2 request | 5/5 | 0.92 | 0.027 |
+
+**The labels are stable; the confidence is not informative.** Run-to-run variance is tiny — about
+±0.03, so the same ticket twice gives effectively the same number. But a case two people would file
+differently scored 0.92, the same as a borderline one and barely below a certainty. The score was
+discriminating between runs, not between easy and hard tickets, which is the only thing it is for.
+
+**What changed.** `category_confidence` is now framed in the prompt as a share of opinion — *if ten
+support leads read this, how many file it where you did* — and the remainder must be distributed
+into `category_alternatives`, each with a clause saying what argues for it and what rules it out.
+Forcing the runner-up to be named is what makes the primary honest; a model that must write down the
+alternative cannot price it at zero for free.
+
+**Are they probabilities?** No, and the docs now say so plainly. They are the model's own stated
+share, self-reported and unvalidated against outcomes. They would become probabilities only by
+binning predictions by confidence and measuring accuracy per bin against labelled data — a
+calibration curve. With 31 gold rows that curve would be noise, so the honest position is: stable,
+useful for ordering and for the 0.5 routing threshold, not a calibrated probability.
+**If pushed:** "What would make you trust it as a probability?" A few thousand labelled tickets, a
+reliability diagram, and isotonic regression over the raw score if it turned out to be miscalibrated.
+
+**Status: implemented, not verified live.** The OpenAI account ran out of credits during the
+re-measurement, so the post-change numbers do not exist yet. The shape is pinned by a mocked test;
+the calibration claim is not. That is stated here rather than quietly left as an implication.
+
+### D35. A health check that lied, found by running out of credits
+When the credits ran out mid-test, every classification failed and fell back to keyword rules —
+correctly, and every ticket still routed. But `/health` carried on reporting `{"ok": true, "mode":
+"llm"}`, because it only checked whether a key was *configured*.
+**An orchestrator reading that would have seen a healthy service answering every request with the
+degraded path.** `/health` now reports `last_model_call` (`ok` / `failing` / `unknown`), the error,
+and when it happened, and returns `ok: false` while the model is failing. The header badge says
+"<model> unreachable — keyword rules only" and the UI raises the error.
+**Cost: nothing.** It is a side effect of real traffic, not a probe, so it adds no API calls.
+**Why this one is worth telling:** the outage was real, the fallback worked exactly as designed, and
+the only thing that failed was the part that was supposed to tell me about it.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

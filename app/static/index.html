@@ -384,6 +384,13 @@ function explainer(key,d){
         ${li('0.50 – 0.69','defensible, and a reasonable person could pick the other one',rung===2)}
         ${li('below 0.50','not confident enough to send to a team \u2014 goes to human-review instead',rung===3)}
        </ul>`
+    + ((x.category_alternatives||[]).length
+        ? `<h5>What else was in contention</h5><ul class="crit">
+            ${li(cap(x.category)+' — chosen', `${cc.toFixed(2)} of the weight`, true)}
+            ${x.category_alternatives.map(a=>li(cap(a.category), `${a.confidence.toFixed(2)} — ${a.why_not}`, false)).join('')}
+           </ul><p style="font-size:11.5px;color:var(--faint);margin:9px 0 0">Read it as: if ten support
+           leads filed this ticket, roughly this is how they would split.</p>`
+        : `<h5>What else was in contention</h5><div class="note calm">Nothing — only one category fits this ticket.</div>`)
     + found(`Chose <b>${esc(cap(x.category))}</b> at <b>${cc.toFixed(2)}</b> \u2014 ${
         ['no real alternative','clear, with an arguable neighbour','defensible, the alternative is genuinely arguable',
          'below the bar, so this was diverted to human-review'][rung]}.`)
@@ -564,7 +571,9 @@ async function openModal(id){
           <div class="f" data-x="who"><div class="how">How?</div><div class="k">Who sent it</div><div class="v">${who}</div></div>
           <div class="f" data-x="what"><div class="how">How?</div><div class="k">What kind</div>
             <div class="v">${esc(CATEGORY[x.category]||cap(x.category))}</div>
-            <div class="s">confidence ${x.category_confidence.toFixed(2)}${moved('category')?` · model first said “${esc(cap(L.category))}”`:''}</div></div>
+            <div class="s">confidence ${x.category_confidence.toFixed(2)}${moved('category')?` · model first said “${esc(cap(L.category))}”`:''}</div>
+            ${(x.category_alternatives||[]).length?`<div class="s">also weighed ${
+              x.category_alternatives.map(a=>`${esc(cap(a.category))} ${a.confidence.toFixed(2)}`).join(', ')}</div>`:''}</div>
           <div class="f" data-x="urgency"><div class="how">How?</div><div class="k">How urgent</div>
             <div class="v ${x.urgency}">${esc(URGENCY[x.urgency]||x.urgency)}</div>
             ${x.urgency_signals.length?`<div class="s">From the text:</div>${x.urgency_signals.slice(0,3).map(g=>{
@@ -692,8 +701,12 @@ ta.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter')$('
 
 (async()=>{
   const h=await api('/health'), m=$('#mode'), live=h.mode==='llm';
-  m.className='mode'+(live?'':' off');
-  m.textContent=live?`reading with ${h.model}`:'no API key — keyword rules only';
+  const failing = h.last_model_call === 'failing';
+  m.className = 'mode' + (live && !failing ? '' : ' off');
+  m.textContent = !live ? 'no API key — keyword rules only'
+    : failing ? `${h.model} unreachable — keyword rules only`
+    : `reading with ${h.model}`;
+  if (failing && h.last_model_error) status(`Model calls are failing, so tickets are being read by keyword rules. ${h.last_model_error.slice(0,150)}`, {err:true});
   await reload();
   const want=new URL(location).searchParams.get('t');
   if(want && rows.some(r=>r.id===want)) openModal(want);

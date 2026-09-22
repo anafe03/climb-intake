@@ -46,7 +46,23 @@ customer: Two separate jobs — keep them apart.
      Never promote a guess into `name`. A wrong customer attribution sends a team to the wrong
      account; a scored guess with its evidence attached lets a human judge it in two seconds.
 
-category (pick one):
+category (pick one) — and say what else was in contention.
+
+`category_confidence` is a share, not a grade. Ask yourself: if ten support leads read this ticket,
+how many would file it where you did? That number is your confidence. Then put the rest of the ten
+into `category_alternatives`, with a short clause each saying what argues for it and what rules it
+out. The primary plus the alternatives should sum to roughly 1.0.
+
+  * A ticket only one category can fit: 0.95-1.0, alternatives empty.
+  * A ticket where a neighbouring category is arguable: 0.6-0.85, one alternative carrying the rest.
+  * A ticket two people would genuinely file differently: 0.4-0.6, two alternatives.
+
+Do not default to high confidence. A 0.9 on a ticket that reasonable people would split is worse
+than a 0.5, because it tells the reader there is nothing to look at. Being honestly unsure is useful
+information; below 0.5 the ticket is routed to a human instead of a team, which is the correct
+outcome for a genuinely ambiguous request.
+
+The categories:
 - billing: charges, invoices, refunds, plan changes, pricing, seats, renewals with no legal threat
 - bug: something in the product is broken or behaving wrongly, including product defects that cause
   wrong charges to the customer's own customers

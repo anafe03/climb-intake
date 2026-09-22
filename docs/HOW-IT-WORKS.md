@@ -41,6 +41,20 @@ brief calls unacceptable, so recall does not depend on a probabilistic component
 
 **It depends which of the two modes produced the ticket, and the UI always says which.**
 
+### Are these probabilities?
+
+**No.** They are the model's own stated confidence, self-reported and not validated against outcomes.
+They are useful for ordering tickets and for the 0.50 routing threshold, and they are stable — the
+same ticket scored five times moves by about ±0.03. They are not calibrated probabilities, and
+calling them that would be a claim I have not earned. Turning them into probabilities means binning
+predictions by score and measuring accuracy per bin against labelled data; with 31 gold rows that
+curve would be noise.
+
+Category confidence is framed as a **share of opinion**: if ten support leads read this ticket, how
+many file it where the system did. The remainder is reported in `category_alternatives`, each with a
+clause saying what argues for it and what rules it out — which is also what keeps the primary honest,
+since a model forced to name the runner-up cannot price it at zero for free.
+
 ### Model mode (`mode: llm`) — the score is the model's, guided by an explicit ladder
 
 The number is the model's own self-assessment. It is not calibrated post-hoc and it is not computed

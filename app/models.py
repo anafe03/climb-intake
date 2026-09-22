@@ -56,6 +56,13 @@ class Customer(BaseModel):
     basis: list[str] = Field(default_factory=list, description="The specific cues the guess rests on, quoted or named. Empty when nothing was inferable.")
 
 
+class Alternative(BaseModel):
+    """A category that was genuinely in contention, and how much."""
+    category: Category
+    confidence: float = Field(description="0.0-1.0. The primary plus all alternatives should sum to roughly 1.0.")
+    why_not: str = Field(description="One short clause: what in the ticket argues for this, and what rules it out.")
+
+
 class Extraction(BaseModel):
     """The structured fields the assignment asks for, plus the evidence behind them."""
     customer: Customer
@@ -63,6 +70,7 @@ class Extraction(BaseModel):
     category: Category
     category_confidence: float = Field(description="0.0-1.0")
     category_reason: str = Field(description="One or two sentences: what puts it in this category rather than the nearest alternative. Name the alternative you rejected.")
+    category_alternatives: list[Alternative] = Field(default_factory=list, description="The one or two categories genuinely in contention, with their share. Empty only when the ticket is unambiguous.")
     urgency: Urgency
     urgency_signals: list[str] = Field(description="Short verbatim cues that drove the urgency call (deadlines, money, scope, recurrence).")
     urgency_reason: str = Field(description="One or two sentences: which criteria set this level. Urgency is never stated, so say what you inferred it from.")
