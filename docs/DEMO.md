@@ -97,7 +97,17 @@ Expand **Full audit record** in any dialog.
 
 ---
 
-## Before you present: confirm the container is serving current code
+## Before you present: run the preflight
+
+```bash
+./scripts/preflight.sh            # or --rebuild to rebuild the image first
+```
+
+26 checks against the live container and the repo, including the six acceptance cases from the
+brief, the no-API-key fallback, and whether the numbers in the README still match the last eval run.
+Everything should read PASS except the git remote, if you have not pushed yet.
+
+## Confirming the container is serving current code
 
 The legacy Docker builder does not always invalidate the layer that copies `app/`, so a rebuild can
 serve stale markup (see `DECISIONS.md` D30). One command settles it:

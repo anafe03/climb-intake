@@ -130,12 +130,12 @@ Measured on the gold set (gpt-5 vs the rules-only fallback):
 | | keyword rules only | model + rules |
 |---|---|---|
 | Escalation recall | 100% | 100% |
-| False escalations | 0 | 0 |
+| False escalations | none | none |
 | Category accuracy | 100% | 100% |
-| Urgency exact / tolerant | 77% / 97% | 77% / 100% |
+| Urgency exact / within tolerance | 77% / 97% | 77% / 97% |
 | Sender-confidence calibration | 100% | 100% |
 | Overclaimed sender confidence | none | none |
-| p50 latency per ticket | ~0 ms | 17.6 s |
+| p50 latency per ticket | under 5 ms | 15.3 s |
 
 Full scorecards in [docs/EVAL-llm.md](docs/EVAL-llm.md) and [docs/EVAL-rules.md](docs/EVAL-rules.md),
 including every model rationale. `scripts/compare_evals.py` diffs two runs row by row.

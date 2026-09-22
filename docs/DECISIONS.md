@@ -454,6 +454,31 @@ succeeded immediately.
 failed attempt, so no screenshot or claim was ever made against a stale container. Without it, three
 broken builds would have looked identical to three successful ones.
 
+### D33. A pre-demo check that fails on the things that quietly rot
+`scripts/preflight.sh` runs 26 checks against the live container and the repo. It exists because the
+failure modes in this build were never "the code is broken" — they were "the container is serving
+yesterday's page", "the eval predates the schema", "the docs quote a number from a better run".
+
+What it checks, grouped by what it would have caught:
+
+- **Stale artifacts.** The served page is diffed against the working tree. This caught three
+  network-failed builds in a row (D32) and two stale-layer episodes (D30).
+- **The assignment's own acceptance criteria.** The six design-note cases from the brief are asserted
+  by ticket number: #3, #4, #7 and #9 escalate, #5 stays spam, #10 reaches critical with no alarm
+  words. If a prompt change breaks one of those, this fails rather than the demo.
+- **The degraded path.** It starts a second container with no API key and asserts a terminated-
+  employee ticket still escalates, so the fallback is proven on every run rather than assumed.
+- **Documented-vs-measured drift.** The urgency figures in `README.md` and `HOW-IT-WORKS.md` are
+  compared against `data/eval-results/*.json`, and the two scorecards must cover the same number of
+  gold rows. This caught the model scorecard sitting a gold row behind, and the README quoting 100%
+  tolerance from an earlier, luckier run.
+- **The unglamorous ones.** Non-root user, docker healthcheck, empty-body 422, unknown-id 404,
+  idempotent fixture reload, audit lines on stdout, all five explainer deep links, terraform validate,
+  clean working tree, and whether a git remote exists.
+
+**Why write it down:** every item on that list is something I actually got wrong at least once during
+this build. The checklist is a record of the mistakes, not a precaution against imagined ones.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the
