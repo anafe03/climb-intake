@@ -1,6 +1,6 @@
 # Eval scorecard: mode=rules
 
-Generated 2026-09-22 11:13 on 31 gold tickets (10 Climb samples + 21 edge cases).
+Generated 2026-09-22 16:29 on 31 gold tickets (10 Climb samples + 21 edge cases).
 
 | Metric | Value |
 |---|---|
@@ -24,35 +24,35 @@ Generated 2026-09-22 11:13 on 31 gold tickets (10 Climb samples + 21 edge cases)
 
 | id | expected | got | esc ok | cat ok | urg ok | queue |
 |---|---|---|---|---|---|---|
-| climb-01 | billing/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | human-review |
-| climb-02 | bug/high/- | bug/high/-  | ✅ | ✅ | ✅ | human-review |
+| climb-01 | billing/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | billing-support |
+| climb-02 | bug/high/- | bug/high/-  | ✅ | ✅ | ✅ | engineering-triage |
 | climb-03 | security/critical/ESC | security/critical/ESC [security_incident] | ✅ | ✅ | ✅ | security-incident-response |
 | climb-04 | legal_contract/high/ESC | legal_contract/high/ESC [legal_threat] | ✅ | ✅ | ✅ | legal-and-account-management |
-| climb-05 | spam/low/- | spam/low/-  | ✅ | ✅ | ✅ | human-review |
-| climb-06 | billing/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | human-review |
+| climb-05 | spam/low/- | spam/low/-  | ✅ | ✅ | ✅ | spam-review |
+| climb-06 | billing/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | billing-support |
 | climb-07 | onboarding/high/ESC | onboarding/high/ESC [executive_mention] | ✅ | ✅ | ✅ | customer-success |
-| climb-08 | bug/low/- | bug/low/-  | ✅ | ✅ | ✅ | human-review |
+| climb-08 | bug/low/- | bug/low/-  | ✅ | ✅ | ✅ | engineering-triage |
 | climb-09 | security/critical/ESC | security/critical/ESC [data_exposure] | ✅ | ✅ | ✅ | security-incident-response |
-| climb-10 | bug/critical/- | bug/critical/-  | ✅ | ✅ | ✅ | human-review |
-| edge-11 | billing/low/- | billing/medium/-  | ✅ | ✅ | ✅ | human-review |
+| climb-10 | bug/critical/- | bug/critical/-  | ✅ | ✅ | ✅ | engineering-oncall |
+| edge-11 | billing/low/- | billing/medium/-  | ✅ | ✅ | ✅ | billing-support |
 | edge-12 | other/low/ESC | other/medium/ESC [executive_mention] | ✅ | ✅ | ✅ | general-support |
 | edge-13 | other/medium/- | bug/medium/-  | ✅ | ✅ | ✅ | engineering-triage |
 | edge-14 | security/high/ESC | security/high/ESC [security_incident] | ✅ | ✅ | ✅ | security-incident-response |
 | edge-15 | feature_request/medium/- | other/medium/-  | ✅ | ✅ | ✅ | human-review |
 | edge-16 | billing/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | billing-support |
 | edge-17 | other/low/- | other/medium/-  | ✅ | ✅ | ✅ | human-review |
-| edge-18 | billing/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | human-review |
+| edge-18 | billing/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | billing-support |
 | edge-19 | legal_contract/high/ESC | legal_contract/high/ESC [compliance_request] | ✅ | ✅ | ✅ | legal-and-account-management |
-| edge-20 | bug/critical/- | bug/critical/-  | ✅ | ✅ | ✅ | human-review |
-| edge-21 | billing/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | human-review |
+| edge-20 | bug/critical/- | bug/critical/-  | ✅ | ✅ | ✅ | engineering-oncall |
+| edge-21 | billing/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | billing-support |
 | edge-22 | other/low/ESC | feature_request/medium/ESC [executive_mention] | ✅ | ✅ | ✅ | product-feedback |
-| edge-23 | spam/low/- | billing/high/-  | ✅ | ✅ | ❌ | human-review |
+| edge-23 | spam/low/- | billing/high/-  | ✅ | ✅ | ❌ | billing-support |
 | edge-24 | security/critical/ESC | security/critical/ESC [security_incident, data_exposure] | ✅ | ✅ | ✅ | security-incident-response |
-| edge-25 | billing/low/- | billing/medium/-  | ✅ | ✅ | ✅ | human-review |
-| edge-26 | billing/high/- | billing/high/-  | ✅ | ✅ | ✅ | human-review |
-| edge-27 | bug/critical/- | bug/critical/-  | ✅ | ✅ | ✅ | human-review |
-| edge-28 | other/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | human-review |
-| edge-29 | spam/low/- | spam/low/-  | ✅ | ✅ | ✅ | human-review |
+| edge-25 | billing/low/- | billing/medium/-  | ✅ | ✅ | ✅ | billing-support |
+| edge-26 | billing/high/- | billing/high/-  | ✅ | ✅ | ✅ | billing-support |
+| edge-27 | bug/critical/- | bug/critical/-  | ✅ | ✅ | ✅ | engineering-oncall |
+| edge-28 | other/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | billing-support |
+| edge-29 | spam/low/- | spam/low/-  | ✅ | ✅ | ✅ | spam-review |
 | edge-30 | security/medium/ESC | security/high/ESC [security_incident] | ✅ | ✅ | ✅ | security-incident-response |
 | edge-31 | billing/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | billing-support |
 

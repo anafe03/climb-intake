@@ -525,6 +525,28 @@ and when it happened, and returns `ok: false` while the model is failing. The he
 **Why this one is worth telling:** the outage was real, the fallback worked exactly as designed, and
 the only thing that failed was the part that was supposed to tell me about it.
 
+### D36. Two confidences, one variable name
+`rules_only_extraction` computed a category confidence into a local called `conf`. When the scored
+customer inference (D26) was added to the same function, it reused the name. The customer score
+silently overwrote the category score.
+
+**The symptom was visible but easy to misread:** on the queue board, a pile of ordinary tickets had
+been routed to `human-review`. That queue exists for tickets the classifier is unsure about, so a
+lot of traffic in it looks like a working feature rather than a bug. The real cause was that every
+category score had been replaced by a customer score, most of which sit below the 0.50 review
+threshold. Spam scored 0.45 instead of 0.85, which also silently disabled spam suppression — the
+rule that stops a marketing email containing the word "GDPR" from escalating.
+
+**Why the eval did not catch it:** the gold scorer checks the category *label*, which was still
+correct, and escalation recall, which was unaffected. Nothing asserted the category *score*, and the
+`human-review` diversion is not a gold field. The tests now pin both: the two confidences must not
+track each other, and no more than a handful of gold tickets may fall below the review threshold.
+
+**Found by:** rendering the queue board and reading it. The same class of find as D28 — a screen that
+looked plausible, with every automated check green.
+**The lesson I keep relearning:** shadowing is cheap to introduce in a long function and invisible in
+review. Both variables are now named for what they measure.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

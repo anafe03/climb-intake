@@ -172,21 +172,21 @@ def rules_only_extraction(text: str) -> Extraction:
     signals: list[str] = []
 
     if spam_score >= 2 and not security_hit:
-        category, conf = Category.spam, 0.85
+        category, cat_conf = Category.spam, 0.85
     elif security_hit:
-        category, conf = Category.security, 0.8
+        category, cat_conf = Category.security, 0.8
     elif legal_hit:
-        category, conf = Category.legal_contract, 0.7
+        category, cat_conf = Category.legal_contract, 0.7
     elif BUG.search(t) or BILLING.search(t):
         nb, nbi = len(BUG.findall(t)), len(BILLING.findall(t))
         category = Category.billing if nbi > nb else Category.bug
-        conf = 0.6 if abs(nb - nbi) > 1 else 0.5
+        cat_conf = 0.6 if abs(nb - nbi) > 1 else 0.5
     elif ONBOARDING.search(t):
-        category, conf = Category.onboarding, 0.6
+        category, cat_conf = Category.onboarding, 0.6
     elif FEATURE.search(t):
-        category, conf = Category.feature_request, 0.5
+        category, cat_conf = Category.feature_request, 0.5
     else:
-        category, conf = Category.other, 0.3
+        category, cat_conf = Category.other, 0.3
 
     urgency = Urgency.medium
     if category == Category.spam:
@@ -216,36 +216,36 @@ def rules_only_extraction(text: str) -> Extraction:
     ids = [x if isinstance(x, str) else x[0] for x in IDENTIFIER.findall(t)]
 
     # Scored guess at the sender, same contract as the model path but from cues only.
-    guess, conf, basis = None, 0.0, []
+    guess, cust_conf, basis = None, 0.0, []
     if company:
-        guess, conf = company, 1.0
+        guess, cust_conf = company, 1.0
         basis = ["signed off with a name and company"] if contact else ["company named in the text"]
     else:
         dom = EMAIL_DOMAIN.search(t)
         if dom and dom.group(1).lower() not in FREE_MAIL:
-            guess, conf = f"someone at {dom.group(1)}", 0.8
+            guess, cust_conf = f"someone at {dom.group(1)}", 0.8
             basis.append(f"work email domain {dom.group(1)}")
         elif dom:
-            guess, conf = "an individual user", 0.3
+            guess, cust_conf = "an individual user", 0.3
             basis.append("personal email domain")
         if ENTERPRISE_CUE.search(t):
             basis.append(f"enterprise product language: “{ENTERPRISE_CUE.search(t).group(0)}”")
-            if conf < 0.5:
-                guess, conf = (guess or "an enterprise customer"), max(conf, 0.45)
+            if cust_conf < 0.5:
+                guess, cust_conf = (guess or "an enterprise customer"), max(cust_conf, 0.45)
         sc = SCALE_CUE.search(t)
         if sc:
             basis.append(f"stated scale: “{sc.group(0)}”")
-            guess, conf = (guess or "a customer with a sizeable team"), max(conf, 0.5)
+            guess, cust_conf = (guess or "a customer with a sizeable team"), max(cust_conf, 0.5)
         pl = PLAN_CUE.search(t)
         if pl:
             basis.append(f"plan referenced: “{pl.group(0)}”")
-            guess, conf = (guess or f"a customer on the {pl.group(0)}"), max(conf, 0.45)
+            guess, cust_conf = (guess or f"a customer on the {pl.group(0)}"), max(cust_conf, 0.45)
         if not guess and ids:
-            guess, conf = "an existing customer (account reference present)", 0.3
+            guess, cust_conf = "an existing customer (account reference present)", 0.3
             basis.append(f"identifier in the text: {ids[0]}")
 
     customer = Customer(name=company, contact_name=contact, identifiers=ids, best_guess=guess,
-                        confidence=round(conf, 2), basis=basis)
+                        confidence=round(cust_conf, 2), basis=basis)
     cust_reason = (f"The text names “{company}” directly." if company
                    else (f"No company is named. Guessed from {basis[0]}." if basis
                          else "Nothing in the text identifies the sender — no name, domain, "
@@ -253,7 +253,7 @@ def rules_only_extraction(text: str) -> Extraction:
     return Extraction(
         customer=customer,
         category=category,
-        category_confidence=conf,
+        category_confidence=cat_conf,
         urgency=urgency,
         urgency_signals=signals,
         escalate=False,  # the guardrail layer below decides

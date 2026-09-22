@@ -118,3 +118,32 @@ def test_keyword_layer_reads_signature_lines_in_any_language():
     # An em-dash that is not a signature must not invent a customer.
     plain = rules_only_extraction("The export button is broken — it returns a 500 every time.")
     assert plain.customer.name is None and plain.customer.confidence == 0.0
+
+
+def test_category_and_customer_confidences_are_independent():
+    """They were the same local variable for a while, so the customer guess silently overwrote the
+    category score. Symptom: spam scored 0.45 instead of 0.85, spam-suppression stopped firing, and
+    tickets fell below the 0.50 threshold into human-review. Caught by looking at the queue board.
+    """
+    spam = rules_only_extraction(
+        "Scale your pipeline with our verified B2B lead lists! 40,000 enterprise data contacts, "
+        "GDPR-compliant, first 500 free. Reply LEADS to get started."
+    )
+    assert spam.category is Category.spam
+    assert spam.category_confidence == 0.85, "category confidence was clobbered by the customer guess"
+    assert spam.customer.confidence != spam.category_confidence, "the two must not track each other"
+
+    # And the downstream consequence: suppression depends on the category score being right.
+    out, _, overrides = apply_escalation_rules(
+        "Our verified B2B lead lists are GDPR-compliant, first 500 free. Reply LEADS to get started.", spam
+    )
+    assert out.escalate is False and out.urgency is Urgency.low
+    assert any("spam.suppress" in o for o in overrides)
+
+
+def test_no_gold_ticket_falls_below_the_review_threshold_by_accident():
+    """A category score under 0.50 diverts to human-review. That should be rare and deliberate."""
+    from tests.gold import load_gold
+    low = [(r["id"], rules_only_extraction(r["text"]).category_confidence) for r in load_gold()]
+    diverted = [(i, c) for i, c in low if c < 0.5]
+    assert len(diverted) <= 6, f"too many tickets below the review threshold: {diverted}"

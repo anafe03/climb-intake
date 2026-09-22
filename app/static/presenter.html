@@ -31,6 +31,11 @@ body.long .beat.extra{display:block}
   font:700 10px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--coral-deep)}
 body.long .extra-only{display:block}
 .extra-only{display:none}
+.cov{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+.cov th{text-align:left;font:700 10px var(--sans);letter-spacing:.08em;text-transform:uppercase;
+  color:var(--faint);padding:0 0 8px;border-bottom:1px solid var(--line)}
+.cov td{padding:8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.cov td:last-child{text-align:right;color:var(--dim);padding-left:16px}
 .tag{font:700 9.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;
   background:var(--sunken);color:var(--faint);padding:3px 7px;border-radius:5px;border:1px solid var(--line)}
 .cmd{position:relative}
@@ -102,7 +107,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   <div class="status" id="status">checking the running service…</div>
 
   <div class="beat">
-    <div class="top"><span class="n">0</span><h2>What the problem is</h2><span class="time" data-sec="45" data-short="45">45 sec</span></div>
+    <div class="top"><span class="n">0</span><h2>What the problem is</h2><span class="time" data-sec="45" data-short="40">45 sec</span></div>
     <div class="say">
       <p>"Requests arrive as freeform text. Nobody labels them. Somebody still has to read each one and
       decide who handles it and how fast — and get the dangerous ones in front of a person."</p>
@@ -112,7 +117,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   </div>
 
   <div class="beat">
-    <div class="top"><span class="n">1</span><h2>Type two tickets live</h2><span class="time" data-sec="150" data-short="120">2.5 min</span></div>
+    <div class="top"><span class="n">1</span><h2>Type two tickets live</h2><span class="time" data-sec="150" data-short="110">2.5 min</span></div>
     <div class="do"><b>Do</b>Paste into the box, one after the other:<br>
       <code>why was i charged 500 bucks</code><br>
       <code>why was i charged 5000 dollars</code></div>
@@ -126,7 +131,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   </div>
 
   <div class="beat">
-    <div class="top"><span class="n">2</span><h2>Open a ticket and walk the five boxes</h2><span class="time" data-sec="240" data-short="210">4 min</span></div>
+    <div class="top"><span class="n">2</span><h2>Open a ticket and walk the five boxes</h2><span class="time" data-sec="240" data-short="180">4 min</span></div>
     <div class="do"><b>Do</b>Open the security-researcher ticket, then click each box in turn.
       <div id="links-walk"></div></div>
     <div class="say">
@@ -142,7 +147,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   </div>
 
   <div class="beat">
-    <div class="top"><span class="n">3</span><h2>The escalation argument</h2><span class="time" data-sec="150" data-short="120">2.5 min</span></div>
+    <div class="top"><span class="n">3</span><h2>The escalation argument</h2><span class="time" data-sec="150" data-short="110">2.5 min</span></div>
     <div class="do"><b>Do</b>Click <b>Needs a human</b> in the toolbar to filter.</div>
     <div class="say">
       <p>"A missed escalation is the one failure their brief calls unacceptable. So escalation doesn't
@@ -160,8 +165,25 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
     </div>
   </div>
 
+<h2 class="section">4 · The queue board <span class="tag">always cover</span></h2>
   <div class="beat">
-    <div class="top"><span class="n">4</span><h2>The numbers</h2><span class="time" data-sec="90" data-short="60">1.5 min</span></div>
+    <div class="top"><span class="n">4</span><h2>Where everything actually went</h2><span class="time" data-sec="90" data-short="50">1.5 min</span></div>
+    <div class="do"><b>Do</b>Switch the toolbar from <b>Ticket list</b> to <b>Queue board</b>.</div>
+    <div class="say">
+      <p>"Same tickets, grouped by the queue they were routed to. Each queue says what it is for."</p>
+      <p>"Category picks the queue. Urgency can override it — critical bugs go to engineering-oncall,
+      not triage. And an escalated ticket is <i>copied</i> to the escalation desk, not moved, so the
+      owning team still sees it."</p>
+      <p>"The empty ones matter too. Nothing reached billing-oncall today, which is the correct answer,
+      not a gap."</p>
+    </div>
+    <p class="why"><b>This is the routing requirement, visible.</b> The table behind it is
+    <code>app/routing.yaml</code> — data, not code, because support leads change routing far more often
+    than engineers change logic.</p>
+  </div>
+
+    <div class="beat">
+    <div class="top"><span class="n">4</span><h2>The numbers</h2><span class="time" data-sec="90" data-short="50">1.5 min</span></div>
     <div class="do"><b>Do</b>Open <code>docs/EVAL-llm.md</code>, or just read from the sidebar.</div>
     <div class="say">
       <p>"31 tickets: the 10 they gave me, plus 21 edge cases I wrote to trap the failure modes —
@@ -178,7 +200,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   </div>
 
   <div class="beat">
-    <div class="top"><span class="n">5</span><h2>Close on the audit trail</h2><span class="time" data-sec="60" data-short="0">1 min</span></div>
+    <div class="top"><span class="n">5</span><h2>Close on the audit trail</h2><span class="time" data-sec="90" data-short="70">1.5 min</span></div>
     <div class="do"><b>Do</b>Expand <b>Full audit record</b> on any ticket.</div>
     <div class="say">
       <p>"Every decision is a row in SQLite and a JSON line on stdout: what the model said, what
@@ -188,9 +210,9 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   </div>
 
 
-  <h2 class="section">6 · The API, in a terminal <span class="tag">always cover</span></h2>
+  <h2 class="section">7 · The API, in a terminal <span class="tag">always cover</span></h2>
   <div class="beat">
-    <div class="top"><span class="n">6</span><h2>Show it is a service, not a web page</h2><span class="time" data-sec="150" data-short="90">2.5 min</span></div>
+    <div class="top"><span class="n">7</span><h2>Show it is a service, not a web page</h2><span class="time" data-sec="150" data-short="80">2.5 min</span></div>
     <p class="why">Have a terminal ready beside the browser. The point of this beat: <b>the UI is one
     client. Everything it does is an endpoint.</b></p>
 
@@ -225,9 +247,9 @@ curl -s -X POST localhost:8080/tickets/upload -F 'file=@/tmp/t.csv' | jq '.count
     without this a webhook retry puts a duplicate in the escalation desk.</p>
   </div>
 
-  <h2 class="section">7 · Containerisation and deployment <span class="tag">always cover</span></h2>
+  <h2 class="section">8 · Containerisation and deployment <span class="tag">always cover</span></h2>
   <div class="beat">
-    <div class="top"><span class="n">7</span><h2>How it ships</h2><span class="time" data-sec="180" data-short="90">3 min</span></div>
+    <div class="top"><span class="n">8</span><h2>How it ships</h2><span class="time" data-sec="180" data-short="90">3 min</span></div>
     <div class="do"><b>Start here</b>Show it is already the thing they're talking to.</div>
     <div class="cmd"><pre>docker compose ps
 docker exec $(docker compose ps -q) id -un</pre></div>
@@ -276,9 +298,9 @@ docker exec $(docker compose ps -q) id -un</pre></div>
     </div>
   </div>
 
-  <h2 class="section extra-only">8 · The audit trail <span class="tag">30 min only</span></h2>
-  <div class="beat extra">
-    <div class="top"><span class="n">8</span><h2>What you could answer six months later</h2><span class="time" data-sec="120" data-short="0">2 min</span></div>
+  <h2 class="section">9 · The audit trail <span class="tag">always cover</span></h2>
+  <div class="beat">
+    <div class="top"><span class="n">9</span><h2>What you could answer six months later</h2><span class="time" data-sec="120" data-short="0">2 min</span></div>
     <div class="do"><b>Do</b>Expand <b>Full audit record</b>, then show the same thing as a log line.</div>
     <div class="cmd"><pre>docker compose logs --tail 3 | grep routing_decision | jq</pre></div>
     <div class="say">
@@ -292,9 +314,9 @@ docker exec $(docker compose ps -q) id -un</pre></div>
     went where it went, the answer is a row, not an archaeology project."</p>
   </div>
 
-  <h2 class="section extra-only">9 · Where it was wrong <span class="tag">30 min only</span></h2>
+  <h2 class="section extra-only">10 · Where it was wrong <span class="tag">30 min only</span></h2>
   <div class="beat extra">
-    <div class="top"><span class="n">9</span><h2>Three things I got wrong and how I found them</h2><span class="time" data-sec="180" data-short="0">3 min</span></div>
+    <div class="top"><span class="n">10</span><h2>Three things I got wrong and how I found them</h2><span class="time" data-sec="180" data-short="0">3 min</span></div>
     <p class="why">Volunteer this. It is the strongest material you have and it is the part nobody else
     will offer. Keep each one to three sentences.</p>
     <div class="say">
@@ -316,9 +338,9 @@ docker exec $(docker compose ps -q) id -un</pre></div>
     is a number, and I write down what changed it."</p>
   </div>
 
-  <h2 class="section extra-only">10 · Design decisions <span class="tag">30 min only</span></h2>
+  <h2 class="section extra-only">11 · Design decisions <span class="tag">30 min only</span></h2>
   <div class="beat extra">
-    <div class="top"><span class="n">10</span><h2>Open the decision log</h2><span class="time" data-sec="120" data-short="0">2 min</span></div>
+    <div class="top"><span class="n">11</span><h2>Open the decision log</h2><span class="time" data-sec="120" data-short="0">2 min</span></div>
     <div class="do"><b>Do</b>Open <code>docs/DECISIONS.md</code>. Don't read it — scroll it, then pick two.</div>
     <div class="say">
       <p>"33 entries. Each one says what I chose, what I rejected, and what I'd say if pushed. The top
@@ -334,6 +356,28 @@ docker exec $(docker compose ps -q) id -un</pre></div>
     </div>
   </div>
 
+
+  <h2 class="section">Requirement coverage</h2>
+  <div class="beat">
+    <p class="why">If someone asks "where does this meet requirement X", this is the answer. Every line
+    of their brief, and the beat that shows it.</p>
+    <table class="cov">
+      <tr><th>Their requirement</th><th>Shown in</th></tr>
+      <tr><td>Accept tickets via API or batch upload</td><td>Beat 1 (typed live) · Beat 7 (curl, CSV upload)</td></tr>
+      <tr><td>Extract customer, category, urgency, escalation flag</td><td>Beat 2 — the four boxes, each openable</td></tr>
+      <tr><td>Route to a correct simulated downstream queue</td><td>Beat 4 — the queue board</td></tr>
+      <tr><td>Flag escalations, low tolerance for misses</td><td>Beat 3 — the two-layer argument + 100% recall</td></tr>
+      <tr><td>A view to see how a ticket was classified and why</td><td>Beat 2 — the whole point of the pop-outs</td></tr>
+      <tr><td>Containerize + cloud deploy plan</td><td>Beat 8 — compose, Dockerfile, Terraform</td></tr>
+      <tr><td>Log every routing decision and its reasoning for audit</td><td>Beat 6 and Beat 9 — audit record + JSON log lines</td></tr>
+      <tr><td>Runs in a local dev environment</td><td>Beat 8 — it is the container you have been clicking</td></tr>
+      <tr><td>Source in a git repository</td><td>33 commits; the log is a record of what changed and why</td></tr>
+      <tr><td>IaC to stand it up in a cloud</td><td>Beat 8 — <code>infra/terraform</code>, validated not applied</td></tr>
+      <tr><td>README with a deploy plan</td><td>Point at it; do not read it aloud</td></tr>
+    </table>
+    <p class="why"><b>The one thing you cannot claim:</b> the Terraform has never been applied. Say so
+    before they ask.</p>
+  </div>
   <h2 class="section">If they ask you to break it</h2>
   <div class="beat">
     <div class="say"><p><b>"What if the model is down?"</b></p></div>

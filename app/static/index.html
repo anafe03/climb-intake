@@ -78,6 +78,16 @@ input[type=file]{display:none}
 
 /* ── list ──────────────────────────────────────────────────────────────── */
 .list{padding-bottom:70px}
+.qgroup{margin-bottom:22px}
+.qhead{display:flex;align-items:baseline;gap:10px;padding:9px 0 8px;border-bottom:2px solid var(--line2);margin-bottom:10px}
+.qhead .name{font:700 13.5px var(--mono)}
+.qhead .n{font:700 12px var(--sans);background:var(--sunken);border:1px solid var(--line);
+  padding:2px 9px;border-radius:999px;color:var(--dim)}
+.qhead .desc{font-size:12px;color:var(--faint);margin-left:auto;text-align:right}
+.qgroup.esc .qhead{border-bottom-color:var(--danger)}
+.qgroup.esc .qhead .name{color:var(--danger)}
+.qgroup.esc .qhead .n{background:var(--wash);border-color:var(--wash-line);color:var(--danger)}
+.qempty{font-size:12.5px;color:var(--faint);padding:8px 0 4px;font-style:italic}
 .tk{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line-2);
   border-radius:9px;padding:13px 16px;margin-bottom:8px;cursor:pointer;
   display:grid;grid-template-columns:1fr auto;gap:4px 18px;align-items:start}
@@ -259,6 +269,10 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
     <button id="f-all" class="on">All</button>
     <button id="f-esc">Needs a human</button>
   </div>
+  <div class="seg">
+    <button id="v-list" class="on">Ticket list</button>
+    <button id="v-queue">Queue board</button>
+  </div>
   <select id="sort">
     <option value="newest">Sort: most recent</option>
     <option value="urgency">Sort: most urgent</option>
@@ -284,7 +298,24 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const cap=s=>{s=String(s).replace(/_/g,' ');return s[0].toUpperCase()+s.slice(1)};
-let rows=[], escOnly=false, sortBy='newest', openId=null;
+let rows=[], escOnly=false, sortBy='newest', openId=null, view='list';
+
+// What each simulated downstream queue is for. Shown on the board so a reviewer can see the
+// routing table's intent, not just its output.
+const QUEUE_PURPOSE={
+  'billing-support':'billing team, normal queue',
+  'billing-oncall':'billing, paged — money moving wrongly',
+  'engineering-triage':'product bugs, normal queue',
+  'engineering-oncall':'paged — critical defects',
+  'security-incident-response':'security team, always paged',
+  'legal-and-account-management':'legal + the account owner',
+  'customer-success':'the account team',
+  'product-feedback':'product, no SLA',
+  'spam-review':'discarded after a glance',
+  'general-support':'front line',
+  'human-review':'a person decides — the classifier was unsure',
+  'human-escalation-desk':'a human must see this, on top of its own team',
+};
 
 const CATEGORY={billing:'A billing question',bug:'Something is broken',security:'A security problem',
   legal_contract:'A contract or legal matter',onboarding:'An onboarding or delivery issue',
@@ -475,9 +506,46 @@ const SORTS={
 };
 const visible=()=>(escOnly?rows.filter(d=>d.extraction.escalate):rows).slice().sort(SORTS[sortBy]);
 
+function ticketCard(d){
+  const x=d.extraction;
+  return `<div class="tk ${x.urgency} ${x.escalate?'esc':''}" data-id="${d.id}">
+      <div class="m"><span class="c">${esc(cap(x.category))}</span>
+        <span class="u ${x.urgency}">${esc(x.urgency)}</span>
+        ${x.escalate?'<span class="flag">Needs a human</span>':''}</div>
+      <div class="t">${esc(d.ticket.text)}</div>
+      <div class="q">→ ${esc(d.queue)}${d.escalation_queue?' + '+esc(d.escalation_queue):''}</div>
+      <div class="side">
+        <span class="when">${esc(ago(d.created_at))}</span>
+        <span class="took">${esc(took(d.latency_ms))}</span>
+        <span class="open">Open ↗</span>
+      </div>
+    </div>`;
+}
+
+function renderQueueBoard(){
+  const v=visible();
+  const byQueue={};
+  Object.keys(QUEUE_PURPOSE).forEach(q=>byQueue[q]=[]);
+  v.forEach(d=>{
+    (byQueue[d.queue] = byQueue[d.queue] || []).push(d);
+    if(d.escalation_queue) (byQueue[d.escalation_queue] = byQueue[d.escalation_queue] || []).push(d);
+  });
+  const names=Object.keys(byQueue).sort((a,b)=>byQueue[b].length-byQueue[a].length||a.localeCompare(b));
+  $('#list').innerHTML=names.map(q=>`
+    <div class="qgroup ${q.includes('escalation')?'esc':''}">
+      <div class="qhead"><span class="name">${esc(q)}</span>
+        <span class="n">${byQueue[q].length}</span>
+        <span class="desc">${esc(QUEUE_PURPOSE[q]||'')}</span></div>
+      ${byQueue[q].length ? byQueue[q].map(ticketCard).join('')
+        : '<div class="qempty">empty — nothing routed here</div>'}
+    </div>`).join('');
+  document.querySelectorAll('.tk').forEach(t=>t.onclick=()=>openModal(t.dataset.id));
+}
+
 function renderList(){
   const v=visible(), n=rows.filter(d=>d.extraction.escalate).length;
   $('#count').innerHTML=rows.length?`<b>${rows.length}</b> tickets · <i>${n} need a human</i>`:'';
+  if(view==='queue' && rows.length) return renderQueueBoard();
   if(!v.length){
     $('#list').innerHTML=rows.length
       ?`<div class="empty"><h3>Nothing here</h3><p>No tickets match this filter.</p></div>`
@@ -694,6 +762,8 @@ $('#clear').onclick=()=>{if(!confirm('Delete every decision from the audit log?'
 $('#f-all').onclick=()=>{escOnly=false;$('#f-all').classList.add('on');$('#f-esc').classList.remove('on');renderList()};
 $('#f-esc').onclick=()=>{escOnly=true;$('#f-esc').classList.add('on');$('#f-all').classList.remove('on');renderList()};
 $('#sort').onchange=e=>{sortBy=e.target.value;renderList()};
+$('#v-list').onclick=()=>{view='list';$('#v-list').classList.add('on');$('#v-queue').classList.remove('on');renderList()};
+$('#v-queue').onclick=()=>{view='queue';$('#v-queue').classList.add('on');$('#v-list').classList.remove('on');renderList()};
 
 const ta=$('#text');
 ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,150)+'px'});
