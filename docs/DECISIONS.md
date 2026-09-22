@@ -428,6 +428,32 @@ docker compose build --no-cache && docker compose up -d --force-recreate
 diff <(curl -s localhost:8080/) app/static/index.html && echo "serving current code"
 ```
 
+### D31. A list of five permanently empty radio buttons
+The urgency panel listed the five cues we infer urgency from, each with a circle beside it. The
+circle was filled when the criterion's first word appeared in the model's cited signal — so
+"Deadlines" was checked against a phrase like "due Friday". It never matched. Five empty circles
+sat there on every ticket, reading as a broken control.
+**Austin spotted it and asked whether the radio buttons were needed at all.** They were not, in that
+list, because nothing is being selected: those five cues are reference material.
+**Rule applied across the whole panel:** a marker only appears where something genuinely applies to
+this ticket, and it is a tick rather than a circle, because these are read-only statements about
+what happened, not controls to choose from. Lists with no selection render as a plain two-column
+reference table. Every remaining marker was audited: the confidence rung and the category band are
+arithmetic from the score; the chosen category, the urgency level, the escalation topics that fired
+and the routing rules that applied are all real per-ticket facts.
+
+### D32. The build kept failing on the network, and the verification is what caught it
+Three consecutive `--no-cache` builds failed with `No matching distribution found` for a different
+package each time — a symptom of the Colima VM losing its connection to PyPI mid-build, not of a bad
+lockfile (every version resolved fine and supports the container's Python). Adding pip retries made
+it worse in the moment, because editing that `RUN` line invalidates the cached dependency layer and
+forces the whole download over the same flaky link; reverting restored the cache and the build
+succeeded immediately.
+**What matters here is not the flakiness, it is that I knew.** The
+`diff <(curl -s localhost:8080/) app/static/index.html` check from D30 reported MISMATCH on every
+failed attempt, so no screenshot or claim was ever made against a stale container. Without it, three
+broken builds would have looked identical to three successful ones.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

@@ -167,12 +167,22 @@ input[type=file]{display:none}
 .m2body p{margin:0 0 10px;font-size:13px;line-height:1.65}
 .crit{list-style:none;margin:0;padding:0}
 .crit li{padding:7px 0 7px 22px;position:relative;font-size:12.5px;line-height:1.55;
-  border-bottom:1px solid var(--line)}
+  border-bottom:1px solid var(--line);color:var(--dim)}
+.crit li.hit{color:var(--text)}
 .crit li:last-child{border-bottom:0}
-.crit li::before{content:"○";position:absolute;left:4px;top:7px;color:var(--faint);font-size:11px}
-.crit li.hit::before{content:"●";color:var(--primary)}
+/* A tick, not a radio: these are read-only statements of what applied, not controls to pick from. */
+.crit li::before{content:"";position:absolute;left:6px;top:14px;width:8px;height:1px;
+  background:var(--line-2)}
+.crit li.hit::before{content:"✓";top:6px;left:3px;width:auto;height:auto;background:none;
+  color:var(--primary);font-size:12px;font-weight:700}
 .crit li.hit{background:var(--sunken);margin:0 -10px;padding-left:32px;padding-right:10px;border-radius:5px;font-weight:600}
 .crit li b{font-weight:700}
+.ref{list-style:none;margin:0;padding:0;display:grid;gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.ref li{background:var(--card);padding:9px 13px;font-size:12.5px;line-height:1.5}
+.ref li b{display:inline-block;min-width:112px;font-weight:700}
+.ref li span{color:var(--dim)}
+@media (max-width:560px){.ref li b{display:block;min-width:0;margin-bottom:2px}}
 .crit li span{font-weight:400;color:var(--dim)}
 .judg{background:var(--sunken);border-left:3px solid var(--climb-sage);border-radius:0 7px 7px 0;
   padding:11px 14px;font-size:12.5px;line-height:1.65;margin-top:14px}
@@ -320,7 +330,11 @@ const ESC_DEFS=[
   ['executive_mention','a C-level, VP, founder, board or leadership team named on either side'],
 ];
 
+// A dot means "this one applies to this ticket". Lists where nothing is selected get no dots —
+// five permanently empty circles read as a broken control, which is worse than no control.
 function li(label,desc,hit){return `<li class="${hit?'hit':''}"><b>${esc(label)}</b> <span>— ${esc(desc)}</span></li>`}
+function ref(items){return `<ul class="ref">${items.map(([k,v])=>
+  `<li><b>${esc(k)}</b><span>${esc(v)}</span></li>`).join('')}</ul>`}
 
 function explainer(key,d){
   const x=d.extraction, c=x.customer;
@@ -382,9 +396,9 @@ function explainer(key,d){
   if(key==='urgency') return head('How urgent',
       'Never stated in the ticket. Always inferred, which is the part a keyword matcher cannot do.')
     + why(x.urgency_reason)
-    + `<h5>What we infer it from</h5><ul class="crit">${URGENCY_CRITERIA.map(([k,v])=>
-        li(k,v,x.urgency_signals.some(sg=>new RegExp(k.split(' ')[0],'i').test(sg)))).join('')}</ul>`
-    + `<h5>The levels</h5><ul class="crit">${URGENCY_DEFS.map(([k,v])=>li(cap(k),v,k===x.urgency)).join('')}</ul>`
+    + `<h5>The five things we read it from</h5>${ref(URGENCY_CRITERIA)}`
+    + `<h5>The levels <span style="text-transform:none;letter-spacing:0;font-weight:400">— the filled one is this ticket</span></h5>`
+    + `<ul class="crit">${URGENCY_DEFS.map(([k,v])=>li(cap(k),v,k===x.urgency)).join('')}</ul>`
     + found(x.urgency_signals.length
         ? `Read <b>${esc(x.urgency)}</b> from: ${x.urgency_signals.map(g=>`“${esc(g)}”`).join(', ')}.`
         : `Read <b>${esc(x.urgency)}</b> with no explicit cue in the text.`)
