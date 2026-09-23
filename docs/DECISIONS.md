@@ -547,6 +547,35 @@ looked plausible, with every automated check green.
 **The lesson I keep relearning:** shadowing is cheap to introduce in a long function and invisible in
 review. Both variables are now named for what they measure.
 
+### D37. Asking for a share of opinion made the score useful and less stable. That is the trade.
+D34 changed `category_confidence` from a grade to a share, and said the effect was unmeasured. It has
+now been measured: four tickets, three runs each, three setups.
+
+| setup | escalation flag | category label | confidence sd | discriminates? |
+|---|---|---|---|---|
+| gpt-5, old prompt | 100% | 100% | 0.021 | no — 0.92 on ambiguous and on borderline alike |
+| gpt-5, share prompt | 100% | 100% | 0.046 | yes — 0.98 spam, 0.80 clear bug, 0.67 ambiguous |
+| gpt-5-nano, share prompt | 100% | 75% | 0.073 | yes, but a label flipped |
+
+**The escalation flag was unanimous in every run of every setup.** That is the claim the system is
+judged on and it did not move.
+
+**The share framing doubled the variance and was still right.** A score that reads 0.92 whether the
+ticket is obvious or genuinely arguable is stable and useless. One that moves ±0.05 but separates
+0.98 from 0.67 is worth the noise, because only the second kind can drive the 0.50 routing threshold.
+**If pushed — "so your confidence got less reliable":** less repeatable, more informative. Those are
+different properties and only one of them was ever the point.
+
+### D38. The bake-off's recommendation needed the repeatability run to be safe
+`MODEL-BAKEOFF.md` measured ten tickets once and found gpt-5-nano equal to gpt-5 on escalation
+recall, category accuracy and urgency, at six percent of the cost. Read alone, that says use nano.
+
+Running the same tickets three times says something the bake-off could not: nano flipped a category
+label and carried roughly three times the confidence spread. **Accuracy measured once is not
+stability.** The recommendation survives, with a condition attached — nano for volume, and keep the
+human-review queue, because an unstable label is exactly what it is there to catch.
+**Worth saying in review:** two cheap experiments disagreed, and the disagreement was the finding.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

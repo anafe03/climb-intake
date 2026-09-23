@@ -363,6 +363,10 @@ const ESC_DEFS=[
 
 // A dot means "this one applies to this ticket". Lists where nothing is selected get no dots —
 // five permanently empty circles read as a broken control, which is worse than no control.
+const DEFAULT_QUEUE={billing:'billing-support',bug:'engineering-triage',security:'security-incident-response',
+  legal_contract:'legal-and-account-management',onboarding:'customer-success',
+  feature_request:'product-feedback',spam:'spam-review',other:'general-support'};
+const routeDefault=c=>DEFAULT_QUEUE[c];
 function li(label,desc,hit){return `<li class="${hit?'hit':''}"><b>${esc(label)}</b> <span>— ${esc(desc)}</span></li>`}
 function ref(items){return `<ul class="ref">${items.map(([k,v])=>
   `<li><b>${esc(k)}</b><span>${esc(v)}</span></li>`).join('')}</ul>`}
@@ -457,18 +461,34 @@ function explainer(key,d){
         that is unacceptable, a keyword layer runs over the raw text afterwards and may only ever <i>raise</i> this
         flag, never lower it. False positives are tolerated by design; both layers score 100% recall on the gold set.`);
 
-  if(key==='route') return head('Where it goes',
-      'A lookup, not a judgment — category plus urgency against a table kept in YAML.')
-    + `<h5>How the table works</h5><ul class="crit">
-        ${li('Category picks the queue','billing → billing-support, bug → engineering-triage, and so on',true)}
-        ${li('Urgency can override it','critical bugs go to engineering-oncall, not triage',x.urgency==='critical')}
-        ${li('Escalated tickets are copied, not moved','the owning team still sees it; the escalation desk also gets it',x.escalate)}
-        ${li('Low confidence diverts','under 0.50 and not escalated → human-review',d.queue==='human-review')}
+  if(key==='route'){
+    const cc=x.category_confidence, diverted=d.queue==='human-review';
+    const step=(n,label,val,note)=>`<li class="hit"><b>${esc(label)}</b> <span>${esc(note)}</span>
+      <div style="margin-top:4px;font:600 12.5px var(--mono);color:var(--text)">${val}</div></li>`;
+    return head('Where it goes',
+      'No judgment here. It is a table lookup, and you can follow it line by line for this ticket.')
+    + `<h5>What happened to this ticket</h5><ul class="crit">
+        ${step(1,'Start with the category','<code>'+esc(x.category)+'</code>','every category has a default queue')}
+        ${step(2,'Look it up in the table',
+          '<code>'+esc(x.category)+'</code> \u2192 <code>'+esc(diverted?(routeDefault(x.category)||'\u2014'):d.queue)+'</code>',
+          'from app/routing.yaml')}
+        ${step(3,'Does urgency change it?',
+          x.urgency==='critical' ? 'critical \u2192 the on-call queue instead' : esc(x.urgency)+' \u2192 no change',
+          'only critical reroutes, and only for categories that have an on-call queue')}
+        ${step(4,'Is the classifier confident enough?',
+          diverted ? cc.toFixed(2)+' is below 0.50 \u2192 <code>human-review</code>'
+                   : cc.toFixed(2)+' is above 0.50 \u2192 keep the queue',
+          'an unsure ticket goes to a person, not a team')}
+        ${step(5,'Does a human need a copy?',
+          x.escalate ? 'yes \u2192 also <code>'+esc(d.escalation_queue)+'</code>' : 'no \u2192 nothing added',
+          'escalated tickets are copied, never moved \u2014 the owning team still sees them')}
        </ul>`
-    + found(`<b>${esc(cap(x.category))}</b> + <b>${esc(x.urgency)}</b> → <code>${esc(d.queue)}</code>${
-        d.escalation_queue?` , plus a copy to <code>${esc(d.escalation_queue)}</code>`:''}.`)
-    + judg(`The table is data, not code, because support leads change routing far more often than engineers change
-        logic. It lives at <code>app/routing.yaml</code> and needs no deploy to edit.`);
+    + found(`Final: <code>${esc(d.queue)}</code>${d.escalation_queue?` and <code>${esc(d.escalation_queue)}</code>`:''}.`)
+    + judg(`Copying rather than moving matters. If an escalated security ticket were moved to the
+        escalation desk, the security team would never see it. Both get it, and whoever acts first owns it.
+        The table itself lives in <code>app/routing.yaml</code> as data, not code, because support leads
+        change routing far more often than engineers change logic.`);
+  }
   return '';
 }
 

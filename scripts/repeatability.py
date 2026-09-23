@@ -55,7 +55,7 @@ def main() -> int:
         "times and see whether the decision moves. It matters because somebody eventually has to",
         "defend a routing decision, and \"it depends what day you asked\" is not a defence.",
         "",
-        "| ticket | category (agreement) | confidence mean / sd / range | urgency | escalate |",
+        "| ticket | escalate | category | confidence: mean / sd / min-max | urgency |",
         "|---|---|---|---|---|",
     ]
     all_sd, label_unanimous, esc_unanimous = [], 0, 0
@@ -78,9 +78,8 @@ def main() -> int:
         esc_unanimous += esc_agree == 1.0
 
         lines.append(
-            f"| `{row['id']}` | {cat} ({cat_agree:.0%}) | {st.mean(cfs):.2f} / {sd:.3f} / "
-            f"{min(cfs):.2f}–{max(cfs):.2f} | {urg} ({urg_agree:.0%}) | "
-            f"{'yes' if esc else 'no'} ({esc_agree:.0%}) |"
+            f"| `{row['id']}` | **{'yes' if esc else 'no'}** ({esc_agree:.0%}) | {cat} ({cat_agree:.0%}) | "
+            f"{st.mean(cfs):.2f} / {sd:.3f} / {min(cfs):.2f}–{max(cfs):.2f} | {urg} ({urg_agree:.0%}) |"
         )
 
     n = len(rows)

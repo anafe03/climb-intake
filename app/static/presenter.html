@@ -357,6 +357,24 @@ docker exec $(docker compose ps -q) id -un</pre></div>
   </div>
 
 
+<h2 class="section extra-only">12 · What it costs to run <span class="tag">30 min only</span></h2>
+  <div class="beat extra">
+    <div class="top"><span class="n">12</span><h2>Does this job need the expensive model?</h2><span class="time" data-sec="150" data-short="0">2.5 min</span></div>
+    <div class="do"><b>Do</b>Open <code>docs/MODEL-BAKEOFF.md</code>.</div>
+    <div class="say">
+      <p>"Same prompt, same schema, same guardrails. Only the model changes."</p>
+      <p>"All three hit 100% escalation recall and 100% category accuracy on the ten tickets. Nano
+      costs six percent of what the top model does."</p>
+      <p>"So the answer for this workload is: don't buy the expensive model. Run the cheap one in
+      production, and spend the difference on the human-review queue — the tickets where the
+      classifier already told you it was unsure."</p>
+    </div>
+    <p class="why"><b>Give the caveats before they do.</b> Ten tickets, so one disagreement moves a
+    column ten points. And the guardrail layer sits under every row — a model that missed an
+    escalation here would still have been caught before the ticket shipped. That is the argument for
+    the two-layer design, priced.</p>
+  </div>
+
   <h2 class="section">Requirement coverage</h2>
   <div class="beat">
     <p class="why">If someone asks "where does this meet requirement X", this is the answer. Every line
