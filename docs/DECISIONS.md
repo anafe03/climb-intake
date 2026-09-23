@@ -576,6 +576,40 @@ stability.** The recommendation survives, with a condition attached — nano for
 human-review queue, because an unstable label is exactly what it is there to catch.
 **Worth saying in review:** two cheap experiments disagreed, and the disagreement was the finding.
 
+### D39. "Needs a human?" was the wrong question, and the label was doing damage
+Austin looked at a ticket reading *critical, money moving wrongly, 1,900 customers double-charged,
+still happening* and saw **Needs a human? No**. His reaction was the correct one: that cannot be
+right.
+
+**The routing was right and the label was wrong.** That ticket goes to `engineering-oncall`, which
+pages a person within minutes. "Needs a human? No" reads as *nobody is looking at this*, which is the
+opposite of what happens. There are four different ways a person gets involved and the label
+collapsed them:
+
+| Route | When | Is it a person? |
+|---|---|---|
+| Its own team's queue | always | yes |
+| On-call, paged | urgency is critical | yes, immediately |
+| The escalation desk, **on top of** its team | security, legal, compliance, executive | yes, an extra one |
+| Human review **instead of** a team | the classifier was too unsure to pick | yes, deciding the category |
+
+The field is now **Escalate?**, and its explainer opens by saying what it is not: *this is not "does
+anyone look at it" — every ticket goes to people; this asks whether it also needs someone outside the
+team that owns it.* The four routes are listed with the ones that applied ticked.
+**The general lesson:** a field name is an explanation whether or not you intended it to be one. This
+one was quietly teaching everybody who read it the wrong model of the system.
+
+### D40. Degraded output was sitting in the demo pretending to be model output
+The same ticket also showed **billing 0.60**, when the model calls it **bug 0.85** with billing as a
+0.15 alternative. It had been classified during the credit outage, so it carried the keyword
+fallback's answer — and nothing on the ticket row said so. Mode was only visible after opening the
+ticket.
+
+The fallback being visibly worse is fine; that is what degraded means. Presenting its output as the
+system's answer is not. Rows and the ticket header now carry a **keyword rules** badge, and
+`preflight.sh` fails if any loaded ticket was classified by the fallback, because the one place that
+must never happen is five minutes before a demo.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

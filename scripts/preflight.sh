@@ -62,6 +62,10 @@ for label, good in checks:
     print(("  \033[32mPASS\033[0m  " if good else "  \033[31mFAIL\033[0m  ")+label)
 PYEOF
 
+LOADED_FALLBACK=$(curl -s "$BASE/tickets?limit=300" | $PY -c 'import json,sys;print(sum(1 for r in json.load(sys.stdin) if r["mode"]!="llm"))')
+[ "$LOADED_FALLBACK" = "0" ] && ok "no keyword-fallback tickets sitting in the demo data" \
+  || no "$LOADED_FALLBACK loaded tickets were classified by the fallback — Clear all and reload"
+
 echo "── idempotency + audit"
 B=$(curl -s $BASE/queues | $PY -c 'import json,sys;print(json.load(sys.stdin)["total"])')
 curl -s -X POST "$BASE/tickets/load-samples?fixture=samples" -o /dev/null

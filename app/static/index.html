@@ -101,6 +101,8 @@ input[type=file]{display:none}
 .tk .m .c{color:var(--dim)}
 .tk .m .u.high{color:var(--warn)} .tk .m .u.critical{color:var(--danger)}
 .tk .m .flag{color:#fff;background:var(--danger);padding:2px 7px;border-radius:4px;letter-spacing:.06em}
+.tk .m .degraded{color:#6b4a12;background:#fdf0d8;border:1px solid #e8cea9;padding:1px 7px;
+  border-radius:4px;letter-spacing:.05em}
 .tk .t{grid-column:1;font-size:13.5px;line-height:1.45;color:var(--text);
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .tk .q{grid-column:1;font:11px var(--mono);color:var(--faint);margin-top:2px}
@@ -267,7 +269,7 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
   <span class="count" id="count"></span>
   <div class="seg">
     <button id="f-all" class="on">All</button>
-    <button id="f-esc">Needs a human</button>
+    <button id="f-esc">Escalated</button>
   </div>
   <div class="seg">
     <button id="v-list" class="on">Ticket list</button>
@@ -448,8 +450,18 @@ function explainer(key,d){
         double-charging 1,900 end customers is critical. That distinction is the whole reason there is a model here
         and not just a word list.`);
 
-  if(key==='human') return head('Does a human need to see it',
-      'Decided by topic, not by severity — and deliberately biased toward escalating.')
+  if(key==='human') return head('Escalate beyond the owning team?',
+      'This is not "does anyone look at it". Every ticket goes to people. This asks whether it also needs someone outside the team that owns it.')
+    + `<h5>Three different people can end up involved \u2014 they are not the same thing</h5><ul class="crit">
+        ${li('Its own team','always. Every ticket is routed to a queue a person works.',true)}
+        ${li('On-call, paged now','when urgency is critical. This ticket: '+esc(x.urgency)+'.',x.urgency==='critical')}
+        ${li('The escalation desk, on top of its team','only for the five topics below.',x.escalate)}
+        ${li('Human review instead of a team','only when the classifier was too unsure to pick one.',d.queue==='human-review')}
+       </ul>
+       <p style="font-size:11.5px;color:var(--faint);margin:9px 0 0">A checkout bug double-charging
+       customers is critical and gets paged to engineering on-call within minutes \u2014 and still does
+       not escalate, because it is a product defect, not a security or legal matter. Speed and
+       escalation are separate dials.</p>`
     + why(x.escalation_reason_text)
     + `<h5>The five escalation topics</h5><ul class="crit">${ESC_DEFS.map(([k,v])=>
         li(cap(k),v,x.escalation_reasons.includes(k))).join('')}</ul>`
@@ -531,7 +543,8 @@ function ticketCard(d){
   return `<div class="tk ${x.urgency} ${x.escalate?'esc':''}" data-id="${d.id}">
       <div class="m"><span class="c">${esc(cap(x.category))}</span>
         <span class="u ${x.urgency}">${esc(x.urgency)}</span>
-        ${x.escalate?'<span class="flag">Needs a human</span>':''}</div>
+        ${x.escalate?'<span class="flag">Escalated</span>':''}
+        ${d.mode!=='llm'?'<span class="degraded" title="Classified by keyword rules, not the model">keyword rules</span>':''}</div>
       <div class="t">${esc(d.ticket.text)}</div>
       <div class="q">→ ${esc(d.queue)}${d.escalation_queue?' + '+esc(d.escalation_queue):''}</div>
       <div class="side">
@@ -583,7 +596,8 @@ function renderList(){
     <div class="tk ${x.urgency} ${x.escalate?'esc':''}" data-id="${d.id}">
       <div class="m"><span class="c">${esc(cap(x.category))}</span>
         <span class="u ${x.urgency}">${esc(x.urgency)}</span>
-        ${x.escalate?'<span class="flag">Needs a human</span>':''}</div>
+        ${x.escalate?'<span class="flag">Escalated</span>':''}
+        ${d.mode!=='llm'?'<span class="degraded" title="Classified by keyword rules, not the model">keyword rules</span>':''}</div>
       <div class="t">${esc(d.ticket.text)}</div>
       <div class="q">→ ${esc(d.queue)}${d.escalation_queue?' + '+esc(d.escalation_queue):''}</div>
       <div class="side">
@@ -642,7 +656,8 @@ async function openModal(id){
     <div class="mhead">
       <span class="b">${esc(cap(x.category))}</span>
       <span class="b u-${x.urgency}">${esc(x.urgency)}</span>
-      ${x.escalate?'<span class="b esc">Needs a human</span>':''}
+      ${x.escalate?'<span class="b esc">Escalated</span>':''}
+      ${d.mode!=='llm'?'<span class="b" style="background:#fdf0d8;color:#6b4a12">read by keyword rules, not the model</span>':''}
       <button class="x" id="mx" aria-label="Close">×</button>
     </div>
     <div class="mnav">
@@ -667,10 +682,10 @@ async function openModal(id){
             ${x.urgency_signals.length?`<div class="s">From the text:</div>${x.urgency_signals.slice(0,3).map(g=>{
               const t=g.length>44?g.slice(0,42).trim()+'…':g;return `<span class="sig" title="${esc(g)}">${esc(t)}</span>`}).join('')}`:''}
             ${moved('urgency')?`<div class="s">model first said “${esc(L.urgency)}”</div>`:''}</div>
-          <div class="f" data-x="human"><div class="how">How?</div><div class="k">Needs a human?</div>
+          <div class="f" data-x="human"><div class="how">How?</div><div class="k">Escalate?</div>
             <div class="v ${x.escalate?'yes':'none'}">${x.escalate?'Yes':'No'}</div>
             <div class="s">${x.escalate?'Because '+x.escalation_reasons.map(r=>REASON[r]||cap(r)).join(', and ')+'.'
-              :'Nothing here is a security, legal, or executive matter.'}
+              :'Not a security, legal or executive matter — it goes to its own team.'}
               ${moved('escalate')?` Model first said ${L.escalate?'yes':'no'}.`:''}</div></div>
           <div class="f" data-x="route"><div class="how">How?</div><div class="k">Where it goes</div>
             <div class="v"><code class="qp">${esc(d.queue)}</code></div>
@@ -694,7 +709,7 @@ async function openModal(id){
     </div>`;
   // Clicking a box opens a second-level pop-out for that one field, closable on its own.
   const TITLES={who:'Who sent it',what:'What kind of request',urgency:'How urgent it is',
-                human:'Does a human need to see it',route:'Where it goes'};
+                human:'Escalate beyond the owning team?',route:'Where it goes'};
   window.openField=(key)=>{
     $('#modal2').innerHTML=`<div class="m2head"><span class="t">${esc(TITLES[key]||key)}</span>
         <button class="x" id="m2x" aria-label="Close">&times;</button></div>
