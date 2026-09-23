@@ -125,6 +125,52 @@ has not been applied. Stated plainly in the README.
 
 ---
 
+### D12. The model path is tested without the network
+**Chose:** `tests/test_llm_path_mocked.py` monkeypatches `llm.classify` to return a wrong answer,
+raise an API error, or raise a refusal, and asserts what the pipeline ships in each case. A schema
+test checks the Pydantic model uses no JSON Schema keywords structured outputs reject.
+**Why:** The two stories the panel will ask about ("what if the model is wrong" and "what if the API
+is down") should be provable in CI, not narrated. The real-model eval is a separate, key-gated test.
+
+### D13. System prompt is a cached prefix, and we log whether it hits
+**Chose:** `cache_control: ephemeral` on the system block; `cache_read_input_tokens` recorded in the
+audit `usage`. Opus 5's minimum cacheable prefix is 512 tokens and the prompt is close to that.
+**Why:** Cheap to add, and logging the hit count means we claim only what the numbers show.
+
+### D14. Measure the audit path before trusting it: WAL + busy timeout + exactly-once rows
+**Chose:** `scripts/loadtest.py` fires concurrent `POST /tickets` and checks `rows == accepted`.
+First run: 0 errors but p99 455 ms at 16 writers (sqlite default journal, DDL on every connection).
+After WAL + `synchronous=NORMAL` + schema-once: p99 165 ms, same load, rows still exact.
+**Why:** "Log every ticket's routing decision" is a correctness requirement, so it gets a
+measurement, not an assumption. Numbers in `docs/LOADTEST.md`.
+**If pushed:** SQLite is single-writer; the test shows where the ceiling is (hundreds of rps on one
+box), which is the evidence for *when* Cloud SQL is needed rather than *that* it is.
+
+### D15. Resubmits are idempotent on (source, external_id)
+**Chose:** If a ticket carries an `external_id` and the same `(source, external_id)` was already
+decided, return the original decision. No re-classification, no double count.
+**Why:** Upstream systems retry. Without this, a CRM webhook retry creates two tickets in two queues
+and the escalation desk chases a duplicate. Also makes "Load 10 samples" safe to click twice.
+
+### D16. Low-confidence tickets go to a human-review queue instead of a guessed category
+**Chose:** `routing.yaml` has `low_confidence: {threshold: 0.5, queue: human-review}`. Applied only
+when the ticket is *not* escalated, since escalated tickets already have a human via the escalation
+desk. `edge-17` ("help") lands there.
+**Why:** The sample notes say #5 should be "spam/low-confidence rather than forced into a category".
+Forcing a guess into a team's queue costs that team time and hides the classifier's uncertainty. A
+review queue makes the uncertainty visible and gives labelers a stream of hard cases for the gold set.
+
+**Follow-up (same day):** the WAL change introduced a cold-start race. `PRAGMA journal_mode=WAL`
+needs an exclusive lock; a thread-pool burst on a fresh DB file raced through the "not initialised"
+check and one thread got `database is locked`. The load test missed it because `/health` had already
+initialised the file before the burst. Caught by the per-test fresh DB in `tests/test_api.py`, fixed
+with a process-level init lock. The race is not reproducible on demand (0 of 15 runs of the old code
+failed the new concurrency test), so the fix is argued by construction: init runs on one connection
+under a lock before any other thread opens the file. `tests/test_audit_concurrency.py` (5 cold files
+x 16 threads x 64 writes) pins the scenario. Two lessons for the panel: the measurement that motivated
+the change did not cover the change's own failure mode, and "the test fails without the fix" is a
+claim to verify, not assume. I checked, it didn't, and the docstring says so.
+
 ### D17. Provider is a transport detail: Anthropic or OpenAI behind one `classify()` contract
 **Chose:** `llm.provider()` picks Anthropic if its key is present, else OpenAI, else rules. Both
 adapters take the same system prompt and the same Pydantic schema and return the same
@@ -612,36 +658,6 @@ must never happen is five minutes before a demo.
 
 ### D41. Escalation is a topic, not a severity threshold — and the brief says so
 Asked twice whether a sufficiently urgent ticket eventually escalates. It does not, and the reason is
-in the brief's own wording: *"flag anything that looks like it needs human escalation (security
-issues, legal/contract threats, executive mentions)"*. That sentence names three subjects. It does
-not name a severity.
-
-**Both directions prove the separation.** A checkout defect double-charging 1,900 customers is the
-most urgent thing this system produces: `critical`, paged to engineering on-call in minutes, and it
-does not escalate, because engineering already owns a product defect and nobody outside needs pulling
-in. A CEO writing to say thank you escalates at `low` urgency: nothing needs doing quickly, someone
-senior just needs to know.
-
-**If severity escalated, the escalation desk would receive every outage and stop being a signal.**
-That is the whole argument, and the failure mode is that the flag becomes noise exactly when it
-matters.
-
-**"Why not a security on-call queue?"** There is one — `security-incident-response`. A security
-ticket routes there like any ticket routes to its team. It is *also* copied to the escalation desk,
-and the copy is what the brief asks for. Routing alone cannot answer "did we miss one", because a
-ticket sitting in the security queue looks the same whether it arrived through normal triage or
-because someone's credentials were never revoked. A separate flag is what makes missed escalations a
-countable thing.
-
-### D42. Three pages, because one page cannot hold the argument
-`/` is the product. `/notes` is the timed walkthrough. `/architecture` is the reasoning: the pipeline
-with model steps and deterministic steps coloured differently, a diagram of the guardrail asymmetry,
-the four-route table, what the prompt asks for, and direct answers to the two questions above.
-**Why a page and not slides:** it is served by the same container, so it cannot drift from the code,
-and `preflight.sh` diffs all three against the working tree.
-
-### D41. Escalation is a topic, not a severity threshold — and the brief says so
-Asked twice whether a sufficiently urgent ticket eventually escalates. It does not, and the reason is
 the brief's own wording: *"flag anything that looks like it needs human escalation (security issues,
 legal/contract threats, executive mentions)"*. Three subjects, no severity.
 
@@ -717,6 +733,32 @@ live: 1.0. Pinned by a mocked test.
 and passed every test. The only thing that found it was writing down what the number should be for a
 specific ticket and letting the eval disagree.
 
+### D46. Connection errors get their own retry budget, separate from the deadline
+During prep the badge read *gpt-5 unreachable — keyword rules only* while the same API call
+succeeded from the host. DNS and TCP from inside the container both tested fine seconds later: the
+VM's link had dropped briefly, and one attempt was enough to demote that ticket to the fallback.
+
+**The two failure modes needed different budgets.** D24 deliberately bounded the per-attempt deadline
+at 30 s with one retry, because a slow model response is genuinely slow and a synchronous handler
+must not hang. A connection error is the opposite — it fails in well under a second, so retrying it
+is nearly free. They were sharing one budget, which meant protecting against the slow case left no
+room for the cheap one.
+
+Connection errors now get three retries with exponential backoff (0.4 s, 0.8 s, 1.6 s), configurable
+via `LLM_CONNECTION_RETRIES`, while the deadline still bounds the slow case. Worst case for a
+genuinely dead network is about three seconds, then the keyword fallback, and the ticket still routes.
+**Pinned by:** a test where the third attempt succeeds, and one where nothing ever does.
+
+### D47. The decision log had drifted out of order, and the reader would have hit it first
+Preparing a reading list surfaced two problems in this file: `D41` and `D42` each appeared twice, and
+`D12`–`D16` sat *after* the closing section, because new entries had been inserted at a marker that
+was no longer at the end. Forty-five entries, numbered correctly, in the wrong order.
+
+Fixed by rebuilding the file in numeric order, and `preflight.sh` now fails on duplicate or
+out-of-order decision numbers.
+**Worth noting:** this is a document whose whole purpose is being read by someone else, and the
+defect was invisible to every check until somebody planned to actually read it end to end.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the
@@ -726,49 +768,3 @@ specific ticket and letting the eval disagree.
   API for backfills and a queue worker for live traffic.
 - Multi-tenant audit: the current audit table has no tenant column because the samples have no
   customer identity. First thing to add when there's an auth context.
-
-### D12. The model path is tested without the network
-**Chose:** `tests/test_llm_path_mocked.py` monkeypatches `llm.classify` to return a wrong answer,
-raise an API error, or raise a refusal, and asserts what the pipeline ships in each case. A schema
-test checks the Pydantic model uses no JSON Schema keywords structured outputs reject.
-**Why:** The two stories the panel will ask about ("what if the model is wrong" and "what if the API
-is down") should be provable in CI, not narrated. The real-model eval is a separate, key-gated test.
-
-### D13. System prompt is a cached prefix, and we log whether it hits
-**Chose:** `cache_control: ephemeral` on the system block; `cache_read_input_tokens` recorded in the
-audit `usage`. Opus 5's minimum cacheable prefix is 512 tokens and the prompt is close to that.
-**Why:** Cheap to add, and logging the hit count means we claim only what the numbers show.
-
-### D14. Measure the audit path before trusting it: WAL + busy timeout + exactly-once rows
-**Chose:** `scripts/loadtest.py` fires concurrent `POST /tickets` and checks `rows == accepted`.
-First run: 0 errors but p99 455 ms at 16 writers (sqlite default journal, DDL on every connection).
-After WAL + `synchronous=NORMAL` + schema-once: p99 165 ms, same load, rows still exact.
-**Why:** "Log every ticket's routing decision" is a correctness requirement, so it gets a
-measurement, not an assumption. Numbers in `docs/LOADTEST.md`.
-**If pushed:** SQLite is single-writer; the test shows where the ceiling is (hundreds of rps on one
-box), which is the evidence for *when* Cloud SQL is needed rather than *that* it is.
-
-### D15. Resubmits are idempotent on (source, external_id)
-**Chose:** If a ticket carries an `external_id` and the same `(source, external_id)` was already
-decided, return the original decision. No re-classification, no double count.
-**Why:** Upstream systems retry. Without this, a CRM webhook retry creates two tickets in two queues
-and the escalation desk chases a duplicate. Also makes "Load 10 samples" safe to click twice.
-
-### D16. Low-confidence tickets go to a human-review queue instead of a guessed category
-**Chose:** `routing.yaml` has `low_confidence: {threshold: 0.5, queue: human-review}`. Applied only
-when the ticket is *not* escalated, since escalated tickets already have a human via the escalation
-desk. `edge-17` ("help") lands there.
-**Why:** The sample notes say #5 should be "spam/low-confidence rather than forced into a category".
-Forcing a guess into a team's queue costs that team time and hides the classifier's uncertainty. A
-review queue makes the uncertainty visible and gives labelers a stream of hard cases for the gold set.
-
-**Follow-up (same day):** the WAL change introduced a cold-start race. `PRAGMA journal_mode=WAL`
-needs an exclusive lock; a thread-pool burst on a fresh DB file raced through the "not initialised"
-check and one thread got `database is locked`. The load test missed it because `/health` had already
-initialised the file before the burst. Caught by the per-test fresh DB in `tests/test_api.py`, fixed
-with a process-level init lock. The race is not reproducible on demand (0 of 15 runs of the old code
-failed the new concurrency test), so the fix is argued by construction: init runs on one connection
-under a lock before any other thread opens the file. `tests/test_audit_concurrency.py` (5 cold files
-x 16 threads x 64 writes) pins the scenario. Two lessons for the panel: the measurement that motivated
-the change did not cover the change's own failure mode, and "the test fails without the fix" is a
-claim to verify, not assume. I checked, it didn't, and the docstring says so.

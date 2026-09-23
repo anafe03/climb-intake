@@ -211,3 +211,35 @@ def test_a_stated_name_means_full_identification_confidence(llm_mode, monkeypatc
     c = pipeline.process(TicketIn(text="… — Carlos Mendoza, Grupo Andino"), persist=False).extraction.customer
     assert c.name == "Grupo Andino"
     assert c.confidence >= 0.9, "a verbatim name is an identification, not a guess"
+
+
+def test_connection_errors_are_retried_then_give_up_cleanly(llm_mode, monkeypatch):
+    """A brief network drop should not demote a ticket to the keyword fallback. A sustained one
+    should, without hanging: connection errors fail fast, so their retry budget is separate from
+    the per-attempt deadline that bounds a slow model."""
+    import anthropic, httpx
+    from app import llm_openai
+    monkeypatch.setenv("LLM_CONNECTION_RETRIES", "2")
+
+    calls = {"n": 0}
+    def flaky(text):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise anthropic.APIConnectionError(request=httpx.Request("POST", "https://x/y"))
+        return _model_answer(), {"model": "mock"}
+    monkeypatch.setattr(llm_openai, "classify", flaky)
+    monkeypatch.setattr(llm, "classify_anthropic", flaky)
+    d = pipeline.process(TicketIn(text="The export is broken."), persist=False)
+    assert d.mode == "llm", "should have recovered on the third attempt"
+    assert calls["n"] == 3
+
+    calls["n"] = 0
+    def always_down(text):
+        calls["n"] += 1
+        raise anthropic.APIConnectionError(request=httpx.Request("POST", "https://x/y"))
+    monkeypatch.setattr(llm_openai, "classify", always_down)
+    monkeypatch.setattr(llm, "classify_anthropic", always_down)
+    d2 = pipeline.process(TicketIn(text="The export is broken."), persist=False)
+    assert d2.mode == "llm_fallback_rules"
+    assert calls["n"] == 3, "2 retries means 3 attempts, then give up"
+    assert d2.queue, "still routed"

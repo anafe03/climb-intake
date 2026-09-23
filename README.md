@@ -181,6 +181,9 @@ three resources.
 
 ## Presenting this
 
+**Start with [docs/PREP.md](docs/PREP.md)** — an ordered checklist for getting ready, including what
+to read and in what order.
+
 [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md) answers the architecture questions directly — which
 fields the model produces, which are deterministic, who assigns the confidence score in each mode,
 and what runs in what order. Presenter notes live at **`/notes`** on the running service — a timed walkthrough that deep-links

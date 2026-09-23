@@ -108,6 +108,11 @@ want=f"| Urgency exact / within tolerance | {rul['urgency_exact']:.0%} / {rul['u
 docs=[pathlib.Path(f).read_text() for f in ("README.md","docs/HOW-IT-WORKS.md")]
 sys.exit(0 if all(want in d for d in docs) and llm["n"]==rul["n"] else 1)
 PYEOF
+$PY - <<'PYEOF' && ok "decision log numbering is clean" || no "duplicate or out-of-order decision numbers in docs/DECISIONS.md"
+import re, pathlib, sys
+ns = [int(m) for m in re.findall(r"^### D(\d+)\.", pathlib.Path("docs/DECISIONS.md").read_text(), re.M)]
+sys.exit(0 if len(ns) == len(set(ns)) and ns == sorted(ns) else 1)
+PYEOF
 [ -z "$(git status --porcelain)" ] && ok "working tree clean" || no "uncommitted changes: $(git status --porcelain | wc -l | tr -d ' ') files"
 git remote -v | grep -q . && ok "git remote configured" || no "no git remote — the 'source code in a git repository' deliverable"
 

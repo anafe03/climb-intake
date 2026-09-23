@@ -4,9 +4,13 @@ from __future__ import annotations
 import os
 import time
 
+import logging
+
 import anthropic
 
 from .models import Extraction
+
+log = logging.getLogger("climb.llm")
 
 SYSTEM_PROMPT = """You are the intake classifier for Climb's customer support system. You read one freeform
 customer ticket and produce a structured routing decision.
@@ -177,12 +181,34 @@ def active_model() -> str | None:
     return None
 
 
+def connection_retries() -> int:
+    return int(os.environ.get("LLM_CONNECTION_RETRIES", "3"))
+
+
 def classify(text: str) -> tuple[Extraction, dict]:
-    """Return (extraction, meta) from the active provider. Raises provider errors for the caller."""
-    if provider() == "openai":
-        from . import llm_openai
-        return llm_openai.classify(text)
-    return classify_anthropic(text)
+    """Return (extraction, meta) from the active provider. Raises provider errors for the caller.
+
+    Connection errors get their own retry budget, separate from the per-attempt deadline. They fail
+    in well under a second, so retrying them is nearly free — unlike a slow response, which the
+    timeout deliberately bounds (D24). Observed on this machine: the container's link drops briefly
+    and a single attempt turns a healthy service into the keyword fallback for that ticket.
+    """
+    import anthropic as _anthropic
+    import openai as _openai
+
+    last: Exception | None = None
+    for attempt in range(connection_retries() + 1):
+        try:
+            if provider() == "openai":
+                from . import llm_openai
+                return llm_openai.classify(text)
+            return classify_anthropic(text)
+        except (_anthropic.APIConnectionError, _openai.APIConnectionError) as e:
+            last = e
+            if attempt < connection_retries():
+                time.sleep(0.4 * (2 ** attempt))  # 0.4s, 0.8s, 1.6s
+                log.warning("connection error talking to the model, retry %d/%d", attempt + 1, connection_retries())
+    raise last  # type: ignore[misc]
 
 
 def classify_anthropic(text: str) -> tuple[Extraction, dict]:
