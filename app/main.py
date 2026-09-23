@@ -51,6 +51,12 @@ def presenter_notes():
     return FileResponse(STATIC / "presenter.html")
 
 
+@app.get("/architecture", include_in_schema=False)
+def architecture():
+    """Diagrams and decision rules — the page to open when someone asks how it works."""
+    return FileResponse(STATIC / "architecture.html")
+
+
 @app.get("/health")
 def health():
     last = pipeline.LAST_MODEL_CALL

@@ -174,10 +174,10 @@ requirement.
 | Escalation recall | 100% | 100% |
 | False escalations | none | none |
 | Category accuracy | 100% | 100% |
-| Urgency exact / within tolerance | 77% / 97% | 77% / 97% |
-| Sender-confidence calibration | 100% | 100% |
+| Urgency exact / within tolerance | 76% / 97% | 88% / 100% |
+| Sender-confidence calibration | 100% | 88% |
 | Overclaimed sender confidence | none | none |
-| p50 latency per ticket | under 5 ms | 15.3 s |
+| p50 latency per ticket | under 5 ms | 15.8 s |
 
 **These are a single run, not an average.** Escalation recall, category accuracy and the confidence
 checks have been stable across every run. Urgency exact has moved between 77% and 83% run to run, on
@@ -185,7 +185,7 @@ tickets where gold pins one level and the model picks the neighbouring one — `
 worded double-billing refund, is the usual mover. Re-run `scripts/eval.py` to see the current figure
 rather than quoting one from memory.
 
-31 gold tickets: the 10 provided, plus 21 edge cases written to trap the failure modes — false
+33 gold tickets: the 10 provided, plus 23 edge cases written to trap the failure modes — false
 positives like "send this invoice to our legal department", a positive executive mention, a prompt
 injection, a password reset that looks security-adjacent but isn't.
 

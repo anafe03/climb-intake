@@ -147,3 +147,24 @@ def test_no_gold_ticket_falls_below_the_review_threshold_by_accident():
     low = [(r["id"], rules_only_extraction(r["text"]).category_confidence) for r in load_gold()]
     diverted = [(i, c) for i, c in low if c < 0.5]
     assert len(diverted) <= 6, f"too many tickets below the review threshold: {diverted}"
+
+
+def test_exposure_to_the_wrong_audience_escalates_not_just_exposure_to_us():
+    """Found by gold edge-33. The original pattern only caught "someone else's data reached us" and
+    required "exposed" and "data" to be adjacent, so "exposed our internal cost data to everyone in
+    the workspace" matched nothing and the escalation was missed in keyword mode.
+    """
+    leak_out = "A permissions change we made last week seems to have exposed our internal cost data to everyone in the workspace, including contractors."
+    out, hits, _ = apply_escalation_rules(leak_out, _base())
+    assert out.escalate and EscalationReason.data_exposure in out.escalation_reasons
+
+    leak_in = "I was able to see another company's customer records when I exported our data."
+    out2, _, _ = apply_escalation_rules(leak_in, _base())
+    assert out2.escalate
+
+    # The widened pattern must not turn every mention of permissions into an incident.
+    for benign in ["Where do I change permissions for a new teammate?",
+                   "Can you document how role permissions inherit?",
+                   "We were double-billed for March on invoice #88213."]:
+        clean, hits, _ = apply_escalation_rules(benign, _base())
+        assert not clean.escalate, f"false positive on: {benign}"

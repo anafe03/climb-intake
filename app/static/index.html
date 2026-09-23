@@ -210,6 +210,11 @@ input[type=file]{display:none}
 .score.mid{background:#fdf0d8;border-color:#e8cea9;color:#6b4a12}
 .score.lo{background:var(--wash);border-color:var(--wash-line);color:var(--climb-coral-deep)}
 .guess{font-weight:600}
+.share{display:flex;height:7px;border-radius:4px;overflow:hidden;margin:7px 0 5px;
+  background:var(--sunken);border:1px solid var(--line)}
+.share i{display:block;background:var(--line-2)}
+.share i.main{background:var(--climb-coral)}
+.share i+i{border-left:1px solid var(--card)}
 .sig{display:inline-block;font:10.5px/1.5 var(--mono);background:var(--sunken);border:1px solid var(--line);
   border-radius:4px;padding:2px 7px;margin:4px 4px 0 0;color:var(--dim);max-width:100%;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:top}
@@ -369,6 +374,18 @@ const DEFAULT_QUEUE={billing:'billing-support',bug:'engineering-triage',security
   legal_contract:'legal-and-account-management',onboarding:'customer-success',
   feature_request:'product-feedback',spam:'spam-review',other:'general-support'};
 const routeDefault=c=>DEFAULT_QUEUE[c];
+// The category split as a proportional bar. A number people have to compare in their head is a
+// number they do not compare; a bar they read in one glance.
+function shareBar(x){
+  const alts=(x.category_alternatives||[]);
+  if(!alts.length) return '';
+  const parts=[{c:x.category,v:x.category_confidence,main:true},
+               ...alts.map(a=>({c:a.category,v:a.confidence,main:false}))];
+  const total=parts.reduce((s,p)=>s+p.v,0)||1;
+  return `<div class="share" title="${esc(parts.map(p=>cap(p.c)+' '+p.v.toFixed(2)).join(' · '))}">
+    ${parts.map(p=>`<i class="${p.main?'main':''}" style="width:${(p.v/total*100).toFixed(1)}%"></i>`).join('')}
+  </div><div class="s">${parts.map(p=>`${p.main?'<b>':''}${esc(cap(p.c))} ${Math.round(p.v/total*100)}%${p.main?'</b>':''}`).join(' · ')}</div>`;
+}
 function li(label,desc,hit){return `<li class="${hit?'hit':''}"><b>${esc(label)}</b> <span>— ${esc(desc)}</span></li>`}
 function ref(items){return `<ul class="ref">${items.map(([k,v])=>
   `<li><b>${esc(k)}</b><span>${esc(v)}</span></li>`).join('')}</ul>`}
@@ -422,7 +439,8 @@ function explainer(key,d){
         ${li('below 0.50','not confident enough to send to a team \u2014 goes to human-review instead',rung===3)}
        </ul>`
     + ((x.category_alternatives||[]).length
-        ? `<h5>What else was in contention</h5><ul class="crit">
+        ? `<h5>How the weight splits</h5>${shareBar(x)}
+           <h5>What else was in contention</h5><ul class="crit">
             ${li(cap(x.category)+' — chosen', `${cc.toFixed(2)} of the weight`, true)}
             ${x.category_alternatives.map(a=>li(cap(a.category), `${a.confidence.toFixed(2)} — ${a.why_not}`, false)).join('')}
            </ul><p style="font-size:11.5px;color:var(--faint);margin:9px 0 0">Read it as: if ten support
@@ -675,8 +693,7 @@ async function openModal(id){
           <div class="f" data-x="what"><div class="how">How?</div><div class="k">What kind</div>
             <div class="v">${esc(CATEGORY[x.category]||cap(x.category))}</div>
             <div class="s">confidence ${x.category_confidence.toFixed(2)}${moved('category')?` · model first said “${esc(cap(L.category))}”`:''}</div>
-            ${(x.category_alternatives||[]).length?`<div class="s">also weighed ${
-              x.category_alternatives.map(a=>`${esc(cap(a.category))} ${a.confidence.toFixed(2)}`).join(', ')}</div>`:''}</div>
+            ${shareBar(x)}</div>
           <div class="f" data-x="urgency"><div class="how">How?</div><div class="k">How urgent</div>
             <div class="v ${x.urgency}">${esc(URGENCY[x.urgency]||x.urgency)}</div>
             ${x.urgency_signals.length?`<div class="s">From the text:</div>${x.urgency_signals.slice(0,3).map(g=>{

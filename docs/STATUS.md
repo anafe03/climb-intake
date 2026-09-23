@@ -9,7 +9,7 @@ Updated 2026-09-22. `./scripts/preflight.sh` is the live version of the top half
 | All 10 Climb samples classify correctly | The 6 design-note cases are asserted by ticket number in preflight |
 | Extract customer, category, urgency, escalation | Plus a scored sender inference and per-field reasoning |
 | Route to simulated downstream queues | 12 queues, YAML table, visible on the **Queue board** |
-| Escalation with low tolerance for misses | 100% recall in **both** modes, zero false escalations, 31 gold tickets |
+| Escalation with low tolerance for misses | 100% recall in **both** modes, zero false escalations, 33 gold tickets |
 | View showing how and why | Web app, `/tickets/{id}`, `/tickets/{id}/explain`, per-field pop-outs |
 | Audit every decision with its reasoning | SQLite + JSON log lines; keeps model output *and* shipped output |
 | Containerized, runs locally | Built, run, health green, non-root, audit survives restart |
@@ -34,7 +34,7 @@ Updated 2026-09-22. `./scripts/preflight.sh` is the live version of the top half
 
 ## Worth doing next, in order
 
-1. **Run the bake-off over all 31 gold tickets, not 10.** Ten tickets means one disagreement moves a
+1. **Run the bake-off over all 33 gold tickets, not 10.** Ten tickets means one disagreement moves a
    column by ten points. About 90 calls.
 2. **Split the gold set.** It has been used to tune prompts, so its numbers are optimistic. Reporting
    only an untouched half would be the honest version. Costs nothing but a re-run.

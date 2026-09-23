@@ -27,6 +27,10 @@ diff <(curl -s $BASE/) app/static/index.html >/dev/null \
   && ok "served page matches the working tree" || no "SERVING STALE CODE — rebuild"
 diff <(curl -s $BASE/notes) app/static/presenter.html >/dev/null \
   && ok "presenter notes current at /notes" || no "/notes stale or missing"
+diff <(curl -s $BASE/architecture) app/static/architecture.html >/dev/null \
+  && ok "architecture page current at /architecture" || no "/architecture stale or missing"
+diff <(curl -s $BASE/architecture) app/static/architecture.html >/dev/null \
+  && ok "architecture page current at /architecture" || no "/architecture stale or missing"
 
 echo "── api"
 MODE=$(curl -s $BASE/health | $PY -c 'import json,sys;print(json.load(sys.stdin)["mode"])')

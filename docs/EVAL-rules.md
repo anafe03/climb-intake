@@ -1,6 +1,6 @@
 # Eval scorecard: mode=rules
 
-Generated 2026-09-22 16:29 on 31 gold tickets (10 Climb samples + 21 edge cases).
+Generated 2026-09-22 19:33 on 33 gold tickets (10 Climb samples + 23 edge cases).
 
 | Metric | Value |
 |---|---|
@@ -9,7 +9,7 @@ Generated 2026-09-22 16:29 on 31 gold tickets (10 Climb samples + 21 edge cases)
 | False escalations (not tolerated by gold) | none |
 | Escalation reason accuracy | 100% |
 | Category accuracy (ambiguity-aware) | 100% |
-| Urgency exact / within tolerance | 77% / 97% |
+| Urgency exact / within tolerance | 76% / 97% |
 | Customer name accuracy (incl. correctly null) | 100% |
 | Identifier extraction | 100% |
 | Overclaimed sender confidence (safety: must be none) | none |
@@ -55,6 +55,8 @@ Generated 2026-09-22 16:29 on 31 gold tickets (10 Climb samples + 21 edge cases)
 | edge-29 | spam/low/- | spam/low/-  | ✅ | ✅ | ✅ | spam-review |
 | edge-30 | security/medium/ESC | security/high/ESC [security_incident] | ✅ | ✅ | ✅ | security-incident-response |
 | edge-31 | billing/medium/- | billing/medium/-  | ✅ | ✅ | ✅ | billing-support |
+| edge-32 | bug/medium/- | other/medium/-  | ✅ | ✅ | ✅ | human-review |
+| edge-33 | security/high/ESC | security/critical/ESC [data_exposure] | ✅ | ✅ | ✅ | security-incident-response |
 
 ## Rationales (model output, verbatim)
 
@@ -129,3 +131,8 @@ Generated 2026-09-22 16:29 on 31 gold tickets (10 Climb samples + 21 edge cases)
   - overrides: security.unauthorized_access forced escalate=true (matched 'offboarded'); security.unauthorized_access lifted urgency medium -> high
 
 **edge-31** — Keyword-rules mode (no model available): category 'billing' by cue words, urgency 'medium'. Escalation is decided by the guardrail layer.
+
+**edge-32** — Keyword-rules mode (no model available): category 'other' by cue words, urgency 'medium'. Escalation is decided by the guardrail layer.
+
+**edge-33** — Keyword-rules mode (no model available): category 'security' by cue words, urgency 'medium'. Escalation is decided by the guardrail layer.
+  - overrides: security.data_exposure forced escalate=true (matched 'permissions change'); security.data_exposure lifted urgency medium -> critical

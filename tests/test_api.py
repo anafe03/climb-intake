@@ -82,3 +82,8 @@ def test_unknown_fixture_is_rejected():
 def test_presenter_notes_are_served():
     r = client.get("/notes")
     assert r.status_code == 200 and "Presenter notes" in r.text
+
+
+def test_architecture_page_is_served():
+    r = client.get("/architecture")
+    assert r.status_code == 200 and "Urgency is speed" in r.text

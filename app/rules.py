@@ -52,7 +52,21 @@ ESCALATION_RULES: list[EscalationRule] = [
     EscalationRule(
         "security.data_exposure",
         EscalationReason.data_exposure,
-        _rx(r"(another (company|customer|tenant|org(anization)?)'?s?|other (companies|customers|tenants|orgs)'?|someone else'?s|not our) (customer )?(records|data|accounts?|information|invoices?|users?)|data (leak|breach|exposure)|leaked|exposed (data|records|pii)|permissions? issue"),
+        _rx(
+            # someone else's data reached us
+            r"(another (company|customer|tenant|org(anization)?)'?s?|other (companies|customers|tenants|orgs)'?"
+            r"|someone else'?s|not our) (customer )?(records|data|accounts?|information|invoices?|users?)"
+            # ...or ours reached the wrong audience. Found by gold edge-33: "exposed our internal cost
+            # data to everyone in the workspace" matched nothing, because the old pattern required
+            # "exposed" and "data" to be adjacent.
+            r"|expos(ed|ing|ure)\s+(?:\w+\s+){0,4}(data|records|information|documents|pii|files)"
+            r"|(data|records|information)\s+(?:\w+\s+){0,3}(was|were|got|is|are)\s+expos(ed|ing)"
+            r"|data (leak|breach|exposure)|leaked"
+            # a permissions mistake, however it is phrased
+            r"|permissions? (issue|change|problem|error|misconfigur\w+|bug)"
+            # ...or the audience named explicitly
+            r"|(visible|available|accessible|open) to (everyone|all staff|all users|the whole|anyone|contractors)"
+        ),
         Urgency.critical,
     ),
     EscalationRule(

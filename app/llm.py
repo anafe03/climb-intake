@@ -39,6 +39,11 @@ customer: Two separate jobs — keep them apart.
        0.1-0.3  weak — only that they are an existing customer of some kind
        0.0  genuinely nothing; leave best_guess null
 
+     `confidence` scores the IDENTIFICATION, not whatever else you wrote about them. If you filled
+     `name` from the text, confidence is 1.0 — you are not guessing who they are, and it stays 1.0
+     even if `best_guess` goes on to add something inferred about their plan or situation. Only when
+     `name` is null does the number describe how sure you are about who is writing.
+
      Write `best_guess` as the claim itself, not a hedge. Good: "Enterprise Databricks customer,
      roughly 140 analysts, likely regulated industry." Bad: "Possibly maybe some kind of customer."
      Put the hedging in `confidence`, where a machine can act on it.
@@ -67,6 +72,19 @@ The categories:
 - bug: something in the product is broken or behaving wrongly, including product defects that cause
   wrong charges to the customer's own customers
 - security: unauthorized access, credentials, data exposure, vulnerabilities, phishing, access reviews
+
+  The bug/security boundary is the one that matters most, because the two route to different teams
+  and only one of them escalates. Decide it on the KIND OF HARM, not on whether something is broken:
+
+    * If the harm is that the wrong person can see or do something — access, credentials, exposure,
+      a tenant boundary crossed — it is **security**, even when the cause is plainly a code defect.
+      A permissions bug that leaks another company's records is security, not a bug.
+    * If the harm is functional or financial with no access or confidentiality dimension, it is a
+      **bug**, however severe. Double-charging 1,900 customers is a bug.
+    * A vulnerability report from a researcher is security even though nothing has gone wrong yet,
+      because the thing to do about it is a security response.
+
+  When a ticket genuinely sits on the line, say so in the split rather than picking a side at 0.95.
 - legal_contract: contract disputes, breach claims, legal threats, compliance/regulatory demands (GDPR)
 - onboarding: implementation, setup, go-live progress for an account
 - feature_request: asking for capability that does not exist, limit increases, roadmap

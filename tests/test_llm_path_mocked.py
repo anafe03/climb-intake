@@ -197,3 +197,17 @@ def test_health_reports_the_model_as_failing_after_an_error(llm_mode, monkeypatc
     assert body["last_model_call"] == "failing"
     assert body["ok"] is False
     assert "APIConnectionError" in body["last_model_error"]
+
+
+def test_a_stated_name_means_full_identification_confidence(llm_mode, monkeypatch):
+    """Found by gold edge-31: the model extracted 'Grupo Andino' correctly but scored 0.70, because
+    it was rating the characterisation it wrote ('existing paying customer on a subscription plan')
+    rather than the identification. The schema now says confidence scores the identification."""
+    from app.models import Customer
+    named = _model_answer(customer=Customer(name="Grupo Andino", contact_name="Carlos Mendoza",
+                                            best_guess="Grupo Andino, an existing subscriber",
+                                            confidence=1.0, basis=["signed off with name and company"]))
+    monkeypatch.setattr(llm, "classify", lambda t: (named, {"model": "mock"}))
+    c = pipeline.process(TicketIn(text="… — Carlos Mendoza, Grupo Andino"), persist=False).extraction.customer
+    assert c.name == "Grupo Andino"
+    assert c.confidence >= 0.9, "a verbatim name is an identification, not a guess"

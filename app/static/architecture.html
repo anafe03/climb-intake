@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works — Climb Intake</title>
+<style>
+:root{
+  --teal:#03323a; --teal-mid:#006172; --coral:#f27557; --coral-deep:#92351e; --cyan:#a2f1f8;
+  --sage:#87a48c; --mint:#c6f0cd;
+  --paper:#f9f9f5; --card:#fff; --sunken:#f2f2ea; --line:#e4e4d8; --line2:#cdcdc0;
+  --ink:#121d1f; --dim:#5d6a6b; --faint:#949c9c;
+  --mono:"SF Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.65 var(--sans);-webkit-font-smoothing:antialiased}
+header{background:var(--teal);color:#fff;padding:22px 0}
+.wrap{max-width:1000px;margin:0 auto;padding:0 26px}
+header h1{margin:0;font-size:20px;font-weight:650}
+header p{margin:5px 0 0;color:var(--cyan);font-size:13.5px}
+nav{background:var(--teal-mid);padding:0}
+nav .wrap{display:flex;gap:2px}
+nav a{color:#cfe9ed;text-decoration:none;font:600 13px var(--sans);padding:11px 16px}
+nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+nav a.on{background:var(--paper);color:var(--teal)}
+main{padding:30px 0 90px}
+h2{font:700 12px var(--sans);letter-spacing:.09em;text-transform:uppercase;
+  margin:42px 0 16px;padding-bottom:9px;border-bottom:2px solid var(--coral)}
+h2:first-of-type{margin-top:6px}
+h3{font-size:17px;font-weight:650;margin:26px 0 8px}
+p{margin:0 0 13px}
+.lead{font-size:16px;color:var(--dim);margin-bottom:22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:16px 0}
+figure{margin:18px 0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;overflow-x:auto}
+figcaption{font-size:13px;color:var(--dim);margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+svg{display:block;margin:0 auto;max-width:100%;height:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0}
+th{text-align:left;font:700 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;
+  color:var(--faint);padding:0 12px 9px 0;border-bottom:1px solid var(--line2)}
+td{padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{font-weight:600;white-space:nowrap}
+code{font:13px var(--mono);background:var(--sunken);padding:2px 6px;border-radius:4px}
+.key{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--dim);margin-top:14px}
+.key span{display:flex;align-items:center;gap:7px}
+.key i{width:13px;height:13px;border-radius:3px;display:inline-block}
+.note{border-left:3px solid var(--sage);background:var(--sunken);border-radius:0 9px 9px 0;
+  padding:13px 16px;margin:16px 0;font-size:14px}
+.note b{display:block;margin-bottom:3px}
+.q{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--coral);
+  border-radius:0 11px 11px 0;padding:16px 20px;margin:16px 0}
+.q h3{margin:0 0 7px;font-size:16px}
+.q p:last-child{margin-bottom:0}
+@media print{nav{display:none}body{font-size:11pt}figure{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>How it works</h1>
+  <p>The pipeline, the decision rules, and why urgency and escalation are separate things</p>
+</div></header>
+<nav><div class="wrap">
+  <a href="/">← The app</a>
+  <a href="/notes">Presenter notes</a>
+  <a href="/architecture" class="on">How it works</a>
+  <a href="/docs">API docs</a>
+</div></nav>
+
+<main class="wrap">
+
+<p class="lead">One ticket, start to finish. Coral steps are the model. Teal steps are ordinary code
+that behaves the same way every time.</p>
+
+<h2>The pipeline</h2>
+<figure>
+<svg viewBox="0 0 900 260" role="img" aria-label="Pipeline from ticket text to queue">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#949c9c"/>
+    </marker>
+  </defs>
+  <rect x="8" y="92" width="120" height="66" rx="9" fill="#f2f2ea" stroke="#cdcdc0"/>
+  <text x="68" y="119" text-anchor="middle" font-size="13" font-weight="650" fill="#121d1f">Ticket text</text>
+  <text x="68" y="137" text-anchor="middle" font-size="11" fill="#5d6a6b">unlabelled</text>
+
+  <line x1="132" y1="125" x2="166" y2="125" stroke="#949c9c" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <rect x="170" y="92" width="130" height="66" rx="9" fill="#03323a"/>
+  <text x="235" y="117" text-anchor="middle" font-size="12.5" font-weight="650" fill="#fff">1 · Already seen?</text>
+  <text x="235" y="135" text-anchor="middle" font-size="10" fill="#a2f1f8">unique index, not a lookup</text>
+
+  <line x1="304" y1="125" x2="338" y2="125" stroke="#949c9c" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <rect x="342" y="60" width="150" height="72" rx="9" fill="#f27557"/>
+  <text x="417" y="86" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3a1004">2 · Read it</text>
+  <text x="417" y="103" text-anchor="middle" font-size="10.5" fill="#5a2510">one model call</text>
+  <text x="417" y="118" text-anchor="middle" font-size="10.5" fill="#5a2510">customer · category</text>
+  <text x="417" y="131" text-anchor="middle" font-size="10.5" fill="#5a2510">urgency · escalate</text>
+
+  <rect x="342" y="152" width="150" height="56" rx="9" fill="#fdf0d8" stroke="#e8cea9" stroke-dasharray="4 3"/>
+  <text x="417" y="175" text-anchor="middle" font-size="11.5" font-weight="650" fill="#6b4a12">keyword rules</text>
+  <text x="417" y="192" text-anchor="middle" font-size="10" fill="#6b4a12">if the model fails or times out</text>
+  <line x1="417" y1="136" x2="417" y2="148" stroke="#c9a961" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#a)"/>
+
+  <line x1="496" y1="125" x2="530" y2="125" stroke="#949c9c" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <rect x="534" y="92" width="150" height="66" rx="9" fill="#03323a"/>
+  <text x="609" y="114" text-anchor="middle" font-size="12.5" font-weight="650" fill="#fff">3 · Guardrails</text>
+  <text x="609" y="131" text-anchor="middle" font-size="10.5" fill="#a2f1f8">regex on the raw text</text>
+  <text x="609" y="146" text-anchor="middle" font-size="10.5" fill="#a2f1f8">may only raise</text>
+
+  <line x1="688" y1="125" x2="722" y2="125" stroke="#949c9c" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <rect x="726" y="92" width="120" height="66" rx="9" fill="#03323a"/>
+  <text x="786" y="114" text-anchor="middle" font-size="12.5" font-weight="650" fill="#fff">4 · Route</text>
+  <text x="786" y="131" text-anchor="middle" font-size="10.5" fill="#a2f1f8">YAML lookup</text>
+  <text x="786" y="146" text-anchor="middle" font-size="10.5" fill="#a2f1f8">+ audit row</text>
+
+  <text x="609" y="184" text-anchor="middle" font-size="11" fill="#92351e" font-weight="600">runs on the original text,</text>
+  <text x="609" y="199" text-anchor="middle" font-size="11" fill="#92351e" font-weight="600">not on what the model said</text>
+</svg>
+<div class="key">
+  <span><i style="background:#f27557"></i> model — judgment</span>
+  <span><i style="background:#03323a"></i> deterministic code — same answer every time</span>
+  <span><i style="background:#fdf0d8;border:1px solid #e8cea9"></i> fallback path</span>
+</div>
+<figcaption>Step 3 reads the customer's original words rather than the model's output. If the model
+misread the ticket, the guardrail still sees what was actually written.</figcaption>
+</figure>
+
+<h2>Why the guardrail can only push one way</h2>
+<figure>
+<svg viewBox="0 0 640 220" role="img" aria-label="Rules may raise urgency and escalation but never lower them">
+  <text x="60" y="26" font-size="11" font-weight="700" fill="#949c9c" letter-spacing="1">URGENCY</text>
+  <rect x="56" y="38" width="150" height="34" rx="7" fill="#f2f2ea" stroke="#cdcdc0"/>
+  <text x="131" y="60" text-anchor="middle" font-size="12.5" fill="#121d1f">critical</text>
+  <rect x="56" y="78" width="150" height="34" rx="7" fill="#f2f2ea" stroke="#cdcdc0"/>
+  <text x="131" y="100" text-anchor="middle" font-size="12.5" fill="#121d1f">high</text>
+  <rect x="56" y="118" width="150" height="34" rx="7" fill="#f2f2ea" stroke="#cdcdc0"/>
+  <text x="131" y="140" text-anchor="middle" font-size="12.5" fill="#121d1f">medium</text>
+  <rect x="56" y="158" width="150" height="34" rx="7" fill="#f2f2ea" stroke="#cdcdc0"/>
+  <text x="131" y="180" text-anchor="middle" font-size="12.5" fill="#121d1f">low</text>
+
+  <path d="M232,176 L232,58" stroke="#3d7a50" stroke-width="2.5" marker-end="url(#a)" fill="none"/>
+  <text x="246" y="104" font-size="12.5" font-weight="650" fill="#3d7a50">rules may</text>
+  <text x="246" y="121" font-size="12.5" font-weight="650" fill="#3d7a50">raise</text>
+
+  <path d="M368,58 L368,176" stroke="#92351e" stroke-width="2.5" stroke-dasharray="6 5" fill="none"/>
+  <line x1="352" y1="105" x2="384" y2="130" stroke="#92351e" stroke-width="2.5"/>
+  <line x1="384" y1="105" x2="352" y2="130" stroke="#92351e" stroke-width="2.5"/>
+  <text x="396" y="104" font-size="12.5" font-weight="650" fill="#92351e">no code path</text>
+  <text x="396" y="121" font-size="12.5" font-weight="650" fill="#92351e">lowers either</text>
+
+  <text x="520" y="26" font-size="11" font-weight="700" fill="#949c9c" letter-spacing="1">ESCALATE</text>
+  <rect x="516" y="38" width="108" height="34" rx="7" fill="#fdeee9" stroke="#f0d3c8"/>
+  <text x="570" y="60" text-anchor="middle" font-size="12.5" fill="#92351e" font-weight="650">yes</text>
+  <rect x="516" y="158" width="108" height="34" rx="7" fill="#f2f2ea" stroke="#cdcdc0"/>
+  <text x="570" y="180" text-anchor="middle" font-size="12.5" fill="#121d1f">no</text>
+  <path d="M570,152 L570,80" stroke="#3d7a50" stroke-width="2.5" marker-end="url(#a)" fill="none"/>
+</svg>
+<figcaption>A missed escalation is the one failure the brief calls unacceptable, so recall does not
+rest on a probabilistic component. Both layers independently catch 100% of the must-escalate tickets
+in the gold set. False positives are tolerated by design.</figcaption>
+</figure>
+
+<h2>Urgency, escalation and review are three different dials</h2>
+
+<p>This is the thing most worth being precise about, because one label can teach the wrong model of
+the system. <strong>Urgency is speed. Escalation is topic. Human review is uncertainty.</strong></p>
+
+<table>
+  <tr><th>Route</th><th>Triggered by</th><th>What it means</th></tr>
+  <tr><td>Its own team's queue</td><td>always</td><td>Every ticket lands somewhere a person works. There is no "nobody sees this" outcome.</td></tr>
+  <tr><td>On-call, paged now</td><td>urgency is <code>critical</code></td><td>Same team, woken up. A checkout bug double-charging customers goes here within minutes.</td></tr>
+  <tr><td>Escalation desk, <em>on top of</em> its team</td><td>security, legal/contract, compliance, executive</td><td>Someone outside the owning team needs to know. The ticket is copied, never moved.</td></tr>
+  <tr><td>Human review, <em>instead of</em> a team</td><td>category confidence under 0.50</td><td>The classifier was too unsure to pick a team, so a person picks instead.</td></tr>
+</table>
+
+<div class="q">
+  <h3>"Does high enough urgency get escalated?"</h3>
+  <p><strong>No, and that is deliberate.</strong> A checkout bug double-charging 1,900 customers is as
+  urgent as this system gets. It is <code>critical</code>, it pages engineering on-call, and it does
+  <em>not</em> escalate — because escalation is about <em>who else needs to know</em>, not <em>how
+  bad it is</em>. Engineering owns a product defect. Nobody outside engineering needs to be pulled in
+  to own it.</p>
+  <p>If severity escalated things, the escalation desk would receive every outage and stop being a
+  signal. And the inverse case proves the point: a CEO writing to say thank you escalates at
+  <code>low</code> urgency. Nothing needs doing quickly; somebody senior just needs to know.</p>
+</div>
+
+<div class="q">
+  <h3>"Why not a security on-call queue?"</h3>
+  <p><strong>There is one — that is what <code>security-incident-response</code> is.</strong> A
+  security ticket goes there like any other ticket goes to its team.</p>
+  <p>It <em>also</em> gets copied to the escalation desk, and the copy is the point. The brief asks
+  for an escalation <em>flag</em>, separate from routing: a thing a human can filter on, count, and be
+  held to. Routing alone cannot do that job, because a ticket sitting in the security queue looks
+  identical whether it arrived through normal triage or because somebody's credentials were not
+  revoked. The flag is what makes "did we miss one" a question with an answer.</p>
+</div>
+
+<div class="note">
+  <b>Where the brief's wording lands</b>
+  "Flag anything that looks like it needs human escalation (security issues, legal/contract threats,
+  executive mentions)" names three topics, not a severity threshold. That sentence is the reason
+  escalation is modelled as a topic and urgency as a separate scale.
+</div>
+
+<h2>The bug / security boundary</h2>
+
+<p>This is the hardest line to draw, and it is worth drawing because the two categories
+<strong>route to different teams and only one of them escalates</strong>. A vulnerability is a
+defect; a permissions leak is a defect. Deciding on "is something broken" would put everything in
+one bucket.</p>
+
+<p>So the rule is <strong>what kind of harm</strong>, not whether something is broken:</p>
+
+<table>
+  <tr><th>If the harm is…</th><th>Category</th><th>Because</th></tr>
+  <tr><td>the wrong person can see or do something</td><td>security</td><td>access, credentials, exposure, a tenant boundary crossed — even when the cause is plainly a code defect</td></tr>
+  <tr><td>functional or financial, with no access dimension</td><td>bug</td><td>however severe. Double-charging 1,900 customers is a bug.</td></tr>
+  <tr><td>nothing yet, but it could be</td><td>security</td><td>a researcher's vulnerability report needs a security response, not a bug triage</td></tr>
+</table>
+
+<h3>Measured on the cases that sit near the line</h3>
+<table>
+  <tr><th>Ticket</th><th>Called</th><th>Split</th><th>Escalates</th></tr>
+  <tr><td>Saw another company's records in an export</td><td>security 0.90</td><td>bug 0.10</td><td>yes</td></tr>
+  <tr><td>Confirm an offboarded engineer's keys are revoked</td><td>security 0.97</td><td>—</td><td>yes</td></tr>
+  <tr><td>Researcher reports an IDOR</td><td>security 0.90</td><td>bug 0.10</td><td>yes</td></tr>
+  <tr><td>Checkout double-charging on orders over $200</td><td>bug 0.85</td><td>billing 0.15</td><td>no</td></tr>
+  <tr><td>SSO bounces one user back to login</td><td>bug 0.65</td><td>onboarding 0.20 · security 0.15</td><td>no</td></tr>
+</table>
+
+<div class="note">
+  <b>The last row is the interesting one</b>
+  A single user failing SSO is authentication-adjacent but nothing unauthorised happened, so it is a
+  bug — and the system says so at 0.65 with security still on the board at 0.15, rather than
+  pretending to be certain. That is what the split is for: the genuinely ambiguous tickets are
+  visibly ambiguous instead of being rounded off.
+</div>
+
+<h2>What the model is asked for</h2>
+
+<p>One call per ticket, with a schema it must fill. Every field carries its own reasoning, because
+the question a reviewer actually asks is "why did you decide <em>that</em>", not "why this ticket".</p>
+
+<table>
+  <tr><th>Field</th><th>What the prompt asks for</th></tr>
+  <tr><td>customer</td><td>Name only if stated verbatim. Separately, a best guess with a confidence score and the cues it rests on. A guess never enters the name field.</td></tr>
+  <tr><td>category</td><td>One of eight, plus the runner-up categories and their share. Confidence is framed as <em>if ten support leads read this, how many file it here</em>.</td></tr>
+  <tr><td>urgency</td><td>Never stated, always inferred — from deadlines, financial size, scope, recurrence, and whether harm is ongoing. Tone is explicitly not urgency.</td></tr>
+  <tr><td>escalate</td><td>Five topics, each defined. The prompt says the cost of a miss is far higher than the cost of a false positive.</td></tr>
+  <tr><td>reasoning</td><td>One per field. The category reason must name the alternative it rejected; the escalation reason must name the topics it ruled out.</td></tr>
+</table>
+
+<p>Ticket text is wrapped in tags and declared as data, never instructions. A gold-set row is a prompt
+injection attempt that must still land in a real queue.</p>
+
+<h2>What gets written down</h2>
+
+<p>Every decision produces a SQLite row and a JSON line on stdout. The record keeps <em>both</em>
+answers — what the model said and what shipped after the guardrails ran — plus every rule that fired
+with the exact text it matched, token counts, latency, and which mode produced it.</p>
+
+<div class="note">
+  <b>The test that matters</b>
+  If a customer asks in March why their February ticket went where it went, the answer is a row, not
+  an archaeology project.
+</div>
+
+</main>
+</body>
+</html>

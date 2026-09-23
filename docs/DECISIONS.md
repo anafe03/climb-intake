@@ -610,6 +610,113 @@ system's answer is not. Rows and the ticket header now carry a **keyword rules**
 `preflight.sh` fails if any loaded ticket was classified by the fallback, because the one place that
 must never happen is five minutes before a demo.
 
+### D41. Escalation is a topic, not a severity threshold — and the brief says so
+Asked twice whether a sufficiently urgent ticket eventually escalates. It does not, and the reason is
+in the brief's own wording: *"flag anything that looks like it needs human escalation (security
+issues, legal/contract threats, executive mentions)"*. That sentence names three subjects. It does
+not name a severity.
+
+**Both directions prove the separation.** A checkout defect double-charging 1,900 customers is the
+most urgent thing this system produces: `critical`, paged to engineering on-call in minutes, and it
+does not escalate, because engineering already owns a product defect and nobody outside needs pulling
+in. A CEO writing to say thank you escalates at `low` urgency: nothing needs doing quickly, someone
+senior just needs to know.
+
+**If severity escalated, the escalation desk would receive every outage and stop being a signal.**
+That is the whole argument, and the failure mode is that the flag becomes noise exactly when it
+matters.
+
+**"Why not a security on-call queue?"** There is one — `security-incident-response`. A security
+ticket routes there like any ticket routes to its team. It is *also* copied to the escalation desk,
+and the copy is what the brief asks for. Routing alone cannot answer "did we miss one", because a
+ticket sitting in the security queue looks the same whether it arrived through normal triage or
+because someone's credentials were never revoked. A separate flag is what makes missed escalations a
+countable thing.
+
+### D42. Three pages, because one page cannot hold the argument
+`/` is the product. `/notes` is the timed walkthrough. `/architecture` is the reasoning: the pipeline
+with model steps and deterministic steps coloured differently, a diagram of the guardrail asymmetry,
+the four-route table, what the prompt asks for, and direct answers to the two questions above.
+**Why a page and not slides:** it is served by the same container, so it cannot drift from the code,
+and `preflight.sh` diffs all three against the working tree.
+
+### D41. Escalation is a topic, not a severity threshold — and the brief says so
+Asked twice whether a sufficiently urgent ticket eventually escalates. It does not, and the reason is
+the brief's own wording: *"flag anything that looks like it needs human escalation (security issues,
+legal/contract threats, executive mentions)"*. Three subjects, no severity.
+
+**Both directions prove the separation.** A checkout defect double-charging 1,900 customers is the
+most urgent thing this system produces — `critical`, paged to engineering on-call in minutes — and it
+does not escalate, because engineering already owns a product defect and nobody outside needs pulling
+in. A CEO writing to say thank you escalates at `low` urgency: nothing needs doing quickly, someone
+senior just needs to know. **If severity escalated, the escalation desk would receive every outage
+and stop being a signal**, exactly when it matters most.
+
+**"Why not a security on-call queue?"** There is one: `security-incident-response`. A security ticket
+routes there like any ticket routes to its team. It is *also* copied to the escalation desk, and the
+copy is the point. Routing alone cannot answer "did we miss one", because a ticket in the security
+queue looks the same whether it arrived through normal triage or because credentials were never
+revoked. A separate flag is what makes missed escalations countable.
+
+### D42. The bug/security boundary is decided by kind of harm
+A vulnerability is a defect and a permissions leak is a defect, so "is something broken" puts
+everything in one bucket. The two categories route to different teams and only one escalates, so the
+line has to be drawn on **what the harm is**: if the wrong person can see or do something it is
+security, even when the cause is plainly code; if the harm is functional or financial with no access
+dimension it is a bug, however severe.
+
+Measured on the cases that sit near the line:
+
+| Ticket | Called | Split | Escalates |
+|---|---|---|---|
+| Saw another company's records in an export | security 0.90 | bug 0.10 | yes |
+| Confirm an offboarded engineer's keys are revoked | security 0.97 | — | yes |
+| Researcher reports an IDOR | security 0.90 | bug 0.10 | yes |
+| Checkout double-charging over $200 | bug 0.85 | billing 0.15 | no |
+| SSO bounces one user back to login | bug 0.65 | onboarding 0.20 · security 0.15 | no |
+
+The last row is the one worth showing: authentication-adjacent, nothing unauthorised happened, so a
+bug — stated at 0.65 with security still on the board rather than rounded to certainty.
+
+### D43. Writing two harder gold tickets broke the 100% recall claim, which is the point
+Adding `edge-33` — *"a permissions change ... exposed our internal cost data to everyone in the
+workspace, including contractors"* — dropped keyword-mode escalation recall from 100% to 91%.
+
+**The pattern only knew one direction.** It caught *someone else's data reaching us* and required
+"exposed" and "data" to be adjacent. It had nothing for *our data reaching the wrong audience*, which
+is the same incident seen from the other side. Widened to cover exposure with words in between, a
+permissions change rather than only a "permissions issue", and an explicitly named wrong audience.
+Recall is back to 100% over 33 tickets, with three benign permissions sentences asserted not to fire.
+
+**What this says about the number.** "100% escalation recall" was always *on the tickets I wrote*.
+Two new realistic ones found a hole in ten minutes. The honest version of the claim is: 100% on 33
+gold tickets, and the way to keep it meaningful is to keep writing tickets that try to break it.
+
+### D44. Three pages, because one cannot hold the argument
+`/` is the product, `/notes` is the timed walkthrough, `/architecture` is the reasoning: the pipeline
+with model and deterministic steps coloured differently, the guardrail asymmetry, the four-route
+table, the bug/security boundary with the measured table above, and direct answers to the two
+questions that kept recurring. Served by the same container so it cannot drift from the code, and
+`preflight.sh` diffs all three against the working tree.
+
+### D45. `confidence` was scoring the wrong thing, and only a gold band caught it
+Gold `edge-31` is a Spanish billing ticket signed *"— Carlos Mendoza, Grupo Andino"*. The model
+extracted `name: "Grupo Andino"` and `contact_name: "Carlos Mendoza"` perfectly — and scored
+confidence **0.70**, against a gold band of 0.9–1.0.
+
+**It was not wrong, it was answering a different question.** Its `best_guess` read *"existing paying
+customer on a subscription plan"*, and 0.70 was its confidence in **that characterisation** — a
+reasonable inference about their plan — not in having identified who was writing. The schema never
+said which of the two the number described, so the model picked one.
+
+The prompt now says it outright: confidence scores the *identification*. A name taken verbatim from
+the text is 1.0 and stays 1.0 even when `best_guess` goes on to add something inferred. Re-measured
+live: 1.0. Pinned by a mocked test.
+
+**Why this is worth the entry:** the field had been in use for two days, read correctly in the UI,
+and passed every test. The only thing that found it was writing down what the number should be for a
+specific ticket and letting the eval disagree.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the
