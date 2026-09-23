@@ -5,6 +5,7 @@ import os
 import time
 
 import logging
+from functools import lru_cache
 
 import anthropic
 
@@ -133,18 +134,34 @@ Plain sentences, no jargon, no restating the field name back.
 
 
 def timeout_s() -> float:
-    """Per-attempt deadline. Measured: model p50 ~15 s with a tail past 40 s even unloaded, so a
-    generous-but-bounded timeout plus one retry keeps worst-case response time predictable, and the
-    rules layer catches whatever times out. See docs/LOADTEST.md."""
-    return float(os.environ.get("LLM_TIMEOUT_S", "30"))
+    """Per-attempt deadline.
+
+    Measured in D24: p50 ~15 s, with a tail reaching 41 s even with a single request in flight. A
+    30 s deadline therefore clipped genuine work — one ticket in a 32-ticket batch timed out and
+    fell back to keyword rules for no reason other than being a slow ticket. Set above the measured
+    tail, still bounded so a synchronous handler cannot hang indefinitely.
+    """
+    return float(os.environ.get("LLM_TIMEOUT_S", "50"))
 
 
 def max_retries() -> int:
     return int(os.environ.get("LLM_MAX_RETRIES", "1"))
 
 
+@lru_cache(maxsize=4)
+def _client_cached(timeout: float, retries: int) -> anthropic.Anthropic:
+    """One client per (timeout, retries), reused across tickets.
+
+    A client owns a connection pool. Constructing one per request meant a fresh TLS handshake for
+    every ticket, and a batch of four opened four of them at once — which the container's network
+    stack could not sustain: every concurrent call failed with APIConnectionError while sequential
+    calls succeeded. Reusing the client reuses the connections.
+    """
+    return anthropic.Anthropic(timeout=timeout, max_retries=retries)
+
+
 def _client() -> anthropic.Anthropic:
-    return anthropic.Anthropic(timeout=timeout_s(), max_retries=max_retries())
+    return _client_cached(timeout_s(), max_retries())
 
 
 def model_name() -> str:

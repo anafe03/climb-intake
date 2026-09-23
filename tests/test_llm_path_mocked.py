@@ -139,7 +139,7 @@ def test_openai_adapter_parses_and_reports_usage(monkeypatch):
                                       input_tokens_details=SimpleNamespace(cached_tokens=512)),
             )
 
-    monkeypatch.setattr(llm_openai.openai, "OpenAI", lambda **kw: SimpleNamespace(responses=FakeResponses()))
+    monkeypatch.setattr(llm_openai, "_client", lambda t, r: SimpleNamespace(responses=FakeResponses()))
     extraction, meta = llm_openai.classify("A former employee still has access.")
 
     assert extraction.category == Category.security and extraction.escalate
@@ -162,7 +162,7 @@ def test_openai_adapter_raises_when_nothing_parsed(monkeypatch):
         def parse(self, **kw):
             return SimpleNamespace(output_parsed=None, model="gpt-mock", status="incomplete", usage=None)
 
-    monkeypatch.setattr(llm_openai.openai, "OpenAI", lambda **kw: SimpleNamespace(responses=FakeResponses()))
+    monkeypatch.setattr(llm_openai, "_client", lambda t, r: SimpleNamespace(responses=FakeResponses()))
     with pytest.raises(ValueError, match="no parsed output"):
         llm_openai.classify("anything")
 
@@ -243,3 +243,16 @@ def test_connection_errors_are_retried_then_give_up_cleanly(llm_mode, monkeypatc
     assert d2.mode == "llm_fallback_rules"
     assert calls["n"] == 3, "2 retries means 3 attempts, then give up"
     assert d2.queue, "still routed"
+
+
+def test_the_http_client_is_shared_not_rebuilt_per_ticket(monkeypatch):
+    """Constructing a client per request meant a new TLS handshake per ticket. A batch of four
+    opened four at once and every concurrent call failed with APIConnectionError while sequential
+    calls succeeded. The client is cached so concurrent tickets reuse connections."""
+    from app import llm_openai
+    monkeypatch.setenv("OPENAI_API_KEY", "test-not-a-real-key")
+    llm_openai._client.cache_clear()
+    a = llm_openai._client(30.0, 1)
+    b = llm_openai._client(30.0, 1)
+    assert a is b, "the same settings must hand back the same client"
+    assert llm_openai._client(5.0, 1) is not a, "different settings get their own client"

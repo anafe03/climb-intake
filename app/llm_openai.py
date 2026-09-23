@@ -3,11 +3,18 @@ from __future__ import annotations
 
 import os
 import time
+from functools import lru_cache
 
 import openai
 
 from .llm import SYSTEM_PROMPT, max_retries, timeout_s
 from .models import Extraction
+
+
+@lru_cache(maxsize=4)
+def _client(timeout: float, retries: int) -> openai.OpenAI:
+    """Shared client, so concurrent tickets reuse connections instead of each opening a new one."""
+    return openai.OpenAI(timeout=timeout, max_retries=retries)
 
 
 def model_name() -> str:
@@ -16,7 +23,7 @@ def model_name() -> str:
 
 def classify(text: str) -> tuple[Extraction, dict]:
     started = time.perf_counter()
-    client = openai.OpenAI(timeout=timeout_s(), max_retries=max_retries())
+    client = _client(timeout_s(), max_retries())
     response = client.responses.parse(
         model=model_name(),
         instructions=SYSTEM_PROMPT,

@@ -759,6 +759,32 @@ out-of-order decision numbers.
 **Worth noting:** this is a document whose whole purpose is being read by someone else, and the
 defect was invisible to every check until somebody planned to actually read it end to end.
 
+### D48. A new HTTP client per ticket, and the container could not take four at once
+Loading the 10 samples put every ticket on the keyword fallback with `APIConnectionError`, while
+single tickets submitted one at a time succeeded every time. Sequential fine, concurrent dead — which
+rules out credentials, DNS and the key, and points at the connection itself.
+
+**The cause was in my code.** Both adapters constructed a fresh SDK client per call. A client owns a
+connection pool, so every ticket opened its own TLS handshake, and a batch at concurrency 4 opened
+four simultaneously. The container's network stack could not sustain that; the host, tested with the
+same key at the same moment, could.
+
+Clients are now cached per (timeout, retries) and shared. The batch that failed **10 of 10** now
+fails **0 of 10**, and a 32-ticket batch fails 1 — a timeout, not a connection error.
+
+**Worth saying plainly:** constructing a client per request is wasteful on any infrastructure — no
+connection reuse, a handshake per call. This environment just made an ordinary inefficiency fatal
+instead of merely expensive. The retry budget added in D46 was treating the symptom.
+
+### D49. The deadline was set below the measured tail
+D24 measured p50 ~15 s with a tail reaching 41 s at concurrency 1, then set the per-attempt deadline
+to 30 s. That number was below the tail it had just measured, so slow-but-healthy tickets were being
+cut off and demoted to keyword rules for no reason other than being slow — which is exactly the
+outcome the fallback exists to avoid, triggered by the wrong cause.
+
+Raised to 50 s: above the measured tail, still bounded. **The lesson is small and annoying:** having
+the measurement is not the same as using it. The tail was in the doc the whole time.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the
