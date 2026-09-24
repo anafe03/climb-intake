@@ -525,6 +525,11 @@ const FAQ={
     ['Then why guess at all?',
      '"Unknown" routes nowhere and tells a human nothing. "Enterprise account using the export feature" is '
      +'enough for someone to pick the ticket up, and it is labelled as an inference so nobody treats it as fact.'],
+    ['Is there a number behind "it does not invent customers"?',
+     'Yes. On the 33-ticket gold set: customer-name accuracy <b>100%</b>, counting the tickets where the '
+     +'right answer is null, and <b>zero overclaimed sender confidence</b> — a scored safety check that '
+     +'fails if a guess is priced above the band its evidence supports. Every guess carried its basis. '
+     +'<code>docs/EVAL-llm.md</code>.'],
     ['Is that number a probability?',
      'No. It is a band read off the rubric above, self-reported by the model. It has never been validated '
      +'against outcomes, so it is a statement of how much the text supports the guess — not a frequency.'],
@@ -539,6 +544,10 @@ const FAQ={
     ['Why is spam a category rather than a failure?',
      'Because it is a real answer. If spam were "could not classify", every genuine miss would hide in the '
      +'same bucket as the junk, and the review queue would be useless.'],
+    ['How often is the category right?',
+     '<b>100%</b> on the 33-ticket gold set, in both modes — scored ambiguity-aware, meaning a ticket the '
+     +'gold set marks as legitimately two categories counts as correct for either. Eight of the 33 are marked '
+     +'ambiguous on category, so the headline is not 33 easy calls.'],
     ['Who chose 0.50?',
      'I did. It is the only number in the system that changes behaviour, and it lives in '
      +'<code>app/routing.yaml</code> as one line a support lead can move without an engineer.'],
@@ -554,8 +563,17 @@ const FAQ={
      'It is a judgment, which is why the criteria are written down and the cues are quoted from the ticket. '
      +'You can disagree with the call and still audit how it was reached.'],
     ['Could an angry customer inflate it?',
-     'Tone is not one of the criteria. Shouting about a cosmetic bug stays low; a calm note about 1,900 '
-     +'double-charged end customers is critical. The signals are facts about impact, not temperature.'],
+     'Tone is not one of the criteria, and the gold set checks it. <code>edge-21</code> — "This is '
+     +'ridiculous. Third month in a row the invoice total doesn\u2019t match our plan!!!" — is scored '
+     +'medium, carried there by the recurrence, not the shouting. <code>climb-10</code> is the mirror: a calm '
+     +'report of a checkout charging customers twice is critical. The signals are facts about impact, not '
+     +'temperature.'],
+    ['How accurate is the urgency call?',
+     'It is the weakest field, and the scorecard says so: 82% exact on the model path, 100% once one level of '
+     +'tolerance is allowed, against 76% / 97% for rules-only (<code>docs/EVAL-llm.md</code>). Urgency is the '
+     +'one field where the gold set marks ambiguity on most tickets, because reasonable people disagree about '
+     +'low versus medium — 20 of the 33 tickets carry an ambiguity mark on urgency, against 8 on category '
+     +'and 5 on escalate.'],
   ],
   human:[
     ['Why not let the model decide escalation on its own?',
@@ -566,9 +584,17 @@ const FAQ={
      'Rules cannot read "our data reached the wrong audience" without the word breach in it. The model catches '
      +'meaning; the regexes catch words. Neither alone covers both.'],
     ['What is the false-positive rate?',
-     '100% escalation recall with zero false escalations across the 30-row gold set, in both model and '
-     +'rules-only mode. The gold set includes traps: a SOC 2 questionnaire and an RCA request that read like '
-     +'incidents and are not.'],
+     'Zero, on 22 chances. The 33-ticket gold set splits 11 must-escalate / 22 must-not, and both the model '
+     +'path and rules-only mode score <b>100% escalation recall with zero false escalations</b> — the '
+     +'must-not half is where a false positive would show up. The traps are deliberate: a SOC 2 report '
+     +'request (<code>edge-28</code>), a contract-renewal pricing question (<code>edge-25</code>) and an '
+     +'invoice copied to a legal department (<code>edge-11</code>) all carry the vocabulary and none of them '
+     +'escalate. Numbers in <code>docs/EVAL-llm.md</code> and <code>docs/EVAL-rules.md</code>.'],
+    ['Does the flag hold still between runs?',
+     'Measured, not assumed: <code>scripts/repeatability.py</code> ran four tickets three times each and the '
+     +'escalation flag and category label were unanimous 4/4, with confidence standard deviation averaging '
+     +'0.046. Nothing is pinned — no seed, no temperature control — so that is the natural spread. '
+     +'The <b>Read it again</b> button lower down runs the same check live on this ticket.'],
     ['Why escalate a security ticket that already goes to security?',
      'Countability. A ticket sitting in the security queue looks identical whether it is a breach or a '
      +'question about the SOC 2 report. Without the flag, "did we miss one" has no answer.'],

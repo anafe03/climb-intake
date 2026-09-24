@@ -59,10 +59,12 @@ literally in the text, and the gold set scores "correctly null" on 9 of 10 Climb
 
 ## Evaluation
 
-**How did you test it?** 30-row gold set: the 10 Climb tickets plus 20 edge cases I wrote (false-
+**How did you test it?** 33-row gold set: the 10 Climb tickets plus 23 edge cases I wrote (false-
 positive traps, positive exec mention, phishing, IDOR, GDPR, outage, non-English, injection, spam).
-Each row lists which fields are ambiguous so scoring doesn't punish defensible alternatives.
-Escalation recall is never ambiguous for must-escalate rows.
+It splits 11 must-escalate / 22 must-not, and the must-not half is where a false positive would show.
+Each row lists which fields are ambiguous so scoring doesn't punish defensible alternatives: 20 rows
+are marked ambiguous on urgency, 8 on category, 5 on escalate. Escalation recall is never ambiguous
+for must-escalate rows.
 
 **What are the numbers?** Both modes hit 100% escalation recall with zero false escalations. The
 model wins on urgency (80% exact, 100% within tolerance vs 77% / 97%) and on the 8 unambiguous rows

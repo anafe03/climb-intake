@@ -48,7 +48,8 @@ uv run python scripts/loadtest.py --n 300 --c 16
 
 # Model latency: the tail is the model, not rate limiting
 
-Running the 30-ticket gold set through the model produced a p50 of 12.5 s and a p95 of 77.8 s. Four
+Running the gold set through the model — 30 rows at the time of this measurement, 33 today —
+produced a p50 of 12.5 s and a p95 of 77.8 s. Four
 tickets with consecutive ids all landed between 75 s and 95 s, which looked exactly like 429 backoff
 from running six requests in parallel.
 

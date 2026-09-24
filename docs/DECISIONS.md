@@ -35,7 +35,7 @@ probabilistic and can also be refused, time out, or return malformed output).
 property, so it should not depend solely on a probabilistic component. The rules layer is the floor;
 the model is the ceiling.
 **Evidence:** `tests/test_gold_rules_mode.py` asserts the rules layer alone catches 100% of
-must-escalate tickets on the 30-ticket gold set. That test runs with no network.
+must-escalate tickets on the gold set (33 rows today). That test runs with no network.
 **If pushed:** "What if rules over-escalate?" — They do, on purpose. Gold marks tolerated false
 positives as `ambiguous`. We measure false escalations separately and report them; today it's zero on
 the gold set, but the design accepts some.
@@ -1132,6 +1132,32 @@ you know it is not inventing a customer", "does high urgency escalate", "is this
 as collapsed items. Content is sourced from `docs/PANEL-QA.md` so the page and the prep doc cannot
 drift. Collapsed by default: a reader who does not have the question should not have to read past
 the answer.
+
+### D74. Auditing the FAQ against the measurements — three claims did not survive
+Austin asked whether there are metrics behind what the FAQ says. Checking every claim against the
+gold set and the scorecards found three that were wrong, all of them the kind a panel finds by
+opening one file:
+
+1. **"30-row gold set"** — it is 33 (10 Climb + 23 edge), and had been for some time. The stale
+   number was also in `docs/PANEL-QA.md`, `docs/LOADTEST.md` and one decision entry. All corrected;
+   the loadtest line now says 30 *at the time of measurement*, because that one was true when
+   written and rewriting history would be the wrong fix.
+2. **"the gold set includes an RCA request"** — it does not. That ticket is in
+   `data/demo_tickets.json`. The claim now names three traps that are genuinely in gold:
+   `edge-28` (SOC 2 report request), `edge-25` (contract renewal pricing), `edge-11` (invoice copied
+   to a legal department).
+3. **"shouting about a cosmetic bug stays low"** — no such gold row. The real one is `edge-21`,
+   an angry billing complaint scored *medium*, carried there by recurrence rather than tone. The
+   example now cites it by id.
+
+What the audit also showed is that the FAQ was under-claiming. Zero false escalations is now stated
+with its denominator — 22 must-not-escalate tickets, which is where a false positive would show
+up — and the answers cite customer-name accuracy including correct nulls (100%), overclaimed
+sender confidence (none), the repeatability run (4/4 unanimous, confidence sd 0.046) and the one
+weak field, urgency at 82% exact.
+
+**Rule adopted:** every number in the product names the file it came from. A claim a reader cannot
+trace is a claim that goes stale silently, which is exactly what happened here.
 
 ## Open questions to raise with the panel (or answer if asked)
 
