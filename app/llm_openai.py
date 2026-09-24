@@ -18,7 +18,13 @@ def _client(timeout: float, retries: int) -> openai.OpenAI:
 
 
 def model_name() -> str:
-    return os.environ.get("OPENAI_MODEL", "gpt-5")
+    """Default from the bake-off, not from habit.
+
+    On the 10 Climb tickets, `gpt-5-mini` matched `gpt-5` on escalation recall and category accuracy,
+    beat it on urgency, ran in roughly half the time, and cost a fifth as much. Override with
+    OPENAI_MODEL. See docs/MODEL-BAKEOFF.md and DECISIONS.md D50.
+    """
+    return os.environ.get("OPENAI_MODEL", "gpt-5-mini")
 
 
 def classify(text: str) -> tuple[Extraction, dict]:

@@ -785,6 +785,33 @@ outcome the fallback exists to avoid, triggered by the wrong cause.
 Raised to 50 s: above the measured tail, still bounded. **The lesson is small and annoying:** having
 the measurement is not the same as using it. The tail was in the doc the whole time.
 
+### D50. The default model is gpt-5-mini, chosen by measurement rather than reflex
+Re-running the bake-off after the prompt had grown (7.4k characters, four reasoning fields, the
+alternatives split) changed the picture:
+
+| model | escalation recall | category | urgency exact | p50 | cost / ticket |
+|---|---|---|---|---|---|
+| gpt-5 | 100% | 100% | 80% | 28.4 s | 1.72¢ |
+| **gpt-5-mini** | **100%** | **100%** | **90%** | **15.8 s** | **0.33¢** |
+| gpt-5-nano | 100% | 100% | 90% | 21.0 s | 0.12¢ |
+
+**Mini is equal or better on every axis measured, at a fifth of the cost and roughly half the wall
+time.** It is now the default; `OPENAI_MODEL` overrides it.
+
+**The honest caveats.** Ten tickets, so the urgency column is one ticket's worth of difference, not a
+real gap — the claim is parity, not superiority. Nano is cheaper still and D38 already showed it
+flips a label on repeat, which is why mini rather than nano. And a bigger model may well pull ahead
+on tickets harder than anything in this set.
+
+**Why this is the interesting slide for a consulting audience:** the reflex is to reach for the
+largest model. The measurement says this workload does not need it, and the money is better spent on
+the human-review queue. That is a recommendation with a number behind it rather than a preference.
+
+### D51. The design rationale is a disclosure, not a wall
+Each field explainer ended with a paragraph of design reasoning. Useful when someone asks why, in the
+way when they are trying to read what the system decided. It is now a collapsed "Why it was designed
+this way" toggle: one click when a panellist asks, invisible otherwise.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

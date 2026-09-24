@@ -18,6 +18,11 @@ header{background:var(--teal);color:#fff;padding:20px 0}
 .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
 header h1{margin:0;font-size:19px;font-weight:650}
 header p{margin:4px 0 0;color:var(--cyan);font-size:13px}
+nav{background:#006172}
+nav .wrap{display:flex;gap:2px}
+nav a{color:#cfe9ed;text-decoration:none;font:600 12.5px var(--sans);padding:10px 15px}
+nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+nav a.on{background:var(--paper);color:var(--teal)}
 .plan{display:flex;gap:8px;align-items:center;margin-top:13px}
 .plan button{font:600 12.5px var(--sans);background:rgba(255,255,255,.12);color:#fff;border:0;
   padding:6px 14px;border-radius:7px;cursor:pointer}
@@ -95,13 +100,19 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
 <header><div class="wrap">
   <h1>Presenter notes — Climb Intake</h1>
   <p>Open the app in another tab. Links below jump straight to the ticket for each beat.
-     <a href="/architecture" style="color:#fff;margin-left:10px">How it works →</a></p>
+</p>
   <div class="plan">
     <button id="p15" class="on">15 minutes</button>
     <button id="p30">30 minutes</button>
     <span id="runtime"></span>
   </div>
 </div></header>
+<nav><div class="wrap">
+  <a href="/">Intake</a>
+  <a href="/architecture">How it works</a>
+  <a href="/notes" class="on">Presenter notes</a>
+  <a href="/docs">API</a>
+</div></nav>
 
 <div class="wrap layout">
 <main>
