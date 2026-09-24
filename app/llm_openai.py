@@ -18,13 +18,15 @@ def _client(timeout: float, retries: int) -> openai.OpenAI:
 
 
 def model_name() -> str:
-    """Default from the bake-off, not from habit.
+    """`gpt-5` by default. Override with OPENAI_MODEL.
 
-    On the 10 Climb tickets, `gpt-5-mini` matched `gpt-5` on escalation recall and category accuracy,
-    beat it on urgency, ran in roughly half the time, and cost a fifth as much. Override with
-    OPENAI_MODEL. See docs/MODEL-BAKEOFF.md and DECISIONS.md D50.
+    A bake-off over the 10 Climb samples said `gpt-5-mini` was equal-or-better at a fifth of the
+    cost. That bake-off was wrong, because those 10 tickets contain no false-positive traps — every
+    one of them has a correct answer of "escalate" or "don't", but none is designed to *tempt* a
+    spurious escalation. Measured against the traps in the edge set, mini escalates a SOC 2 document
+    request and an RCA request, and is unstable between runs. gpt-5 gets both right, twice. D52.
     """
-    return os.environ.get("OPENAI_MODEL", "gpt-5-mini")
+    return os.environ.get("OPENAI_MODEL", "gpt-5")
 
 
 def classify(text: str) -> tuple[Extraction, dict]:

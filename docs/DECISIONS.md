@@ -785,7 +785,7 @@ outcome the fallback exists to avoid, triggered by the wrong cause.
 Raised to 50 s: above the measured tail, still bounded. **The lesson is small and annoying:** having
 the measurement is not the same as using it. The tail was in the doc the whole time.
 
-### D50. The default model is gpt-5-mini, chosen by measurement rather than reflex
+### D50. The default model is gpt-5-mini, chosen by measurement rather than reflex — **wrong, see D52**
 Re-running the bake-off after the prompt had grown (7.4k characters, four reasoning fields, the
 alternatives split) changed the picture:
 
@@ -811,6 +811,42 @@ the human-review queue. That is a recommendation with a number behind it rather 
 Each field explainer ended with a paragraph of design reasoning. Useful when someone asks why, in the
 way when they are trying to read what the system decided. It is now a collapsed "Why it was designed
 this way" toggle: one click when a panellist asks, invisible otherwise.
+
+### D52. The bake-off could not see false escalations, so it recommended a model that makes them
+D50 switched the default to `gpt-5-mini` on the strength of a bake-off: equal escalation recall,
+equal category accuracy, better urgency, half the latency, a fifth of the cost. Reloading the demo
+set on mini immediately showed a SOC 2 document request and an RCA request sitting in the list with
+**Escalated** badges. Neither should escalate.
+
+**The bake-off ran the 10 provided samples and nothing else.** Every one of those has a correct
+answer of escalate or don't — but not one of them is *designed to tempt* a spurious escalation. The
+traps are all in the 23 edge rows I wrote: the invoice sent to a legal department, the contract
+renewal pricing question, the password reset, the SOC 2 request. **A test set with no traps can only
+measure missed escalations. It is structurally blind to the opposite failure**, and that is exactly
+the direction a smaller model errs.
+
+Measured directly, two runs each:
+
+| Ticket | gpt-5 | gpt-5-mini |
+|---|---|---|
+| SOC 2 report + subprocessor list before renewal | no, no | **no, yes** |
+| SOC 2 report before renewal (gold `edge-28`) | no, no | **yes, yes** |
+| Written RCA for an internal risk committee | no, no | **yes, yes** (once as `executive_mention`) |
+
+Mini escalates all three and is unstable on the first. gpt-5 gets them right, twice.
+
+**Two things changed.** The default is back to `gpt-5`. And `scripts/model_bakeoff.py` now runs the
+**whole** gold set by default, with false escalations as their own column next to recall —
+`--climb10` is available for the narrow run, and the flag exists so choosing it is deliberate.
+
+**What nearly hid it.** A full 33-ticket gold eval on mini reported *zero* false escalations, because
+mini's answer on `edge-28` varies between runs and that run happened to come back clean. One eval
+pass cannot detect instability; `docs/REPEATABILITY.md` is the tool for that and I had not pointed it
+at mini. **Two measurements disagreed and the cheaper one was flattering.**
+
+**The line worth saying out loud:** I recommended a model on a number I had generated myself, from a
+test I had built, that could not see the failure mode that mattered. The fix is not a better model —
+it is a test set that tries to make the system wrong.
 
 ## Open questions to raise with the panel (or answer if asked)
 

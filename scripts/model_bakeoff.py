@@ -36,6 +36,10 @@ PRICES = {
     "gpt-5-nano":  {"in": 0.05, "cached_in": 0.005, "out": 0.40},
 }
 CLIMB_10 = [f"climb-{i:02d}" for i in range(1, 11)]
+# Default to the WHOLE gold set. Running only the 10 provided samples measures missed escalations
+# and nothing else: none of them is designed to tempt a false one. The traps live in the edge rows,
+# and leaving them out is how a bake-off recommends a model that over-escalates. See D52.
+ALL_GOLD = None  # resolved at runtime
 
 
 def run(model: str, rows: list[dict], workers: int) -> dict:
@@ -64,12 +68,16 @@ def run(model: str, rows: list[dict], workers: int) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", nargs="*", default=["gpt-5", "gpt-5-mini", "gpt-5-nano"])
-    ap.add_argument("--ids", nargs="*", default=CLIMB_10)
+    ap.add_argument("--ids", nargs="*", default=None,
+                    help="default: every gold ticket. Pass --climb10 for the provided samples only.")
+    ap.add_argument("--climb10", action="store_true", help="only the 10 provided samples (see D52)")
     ap.add_argument("--workers", type=int, default=4)
     a = ap.parse_args()
 
     gold = {r["id"]: r for r in load_gold()}
-    rows = [gold[i] for i in a.ids if i in gold]
+    ids = a.ids or (CLIMB_10 if a.climb10 else list(gold))
+    rows = [gold[i] for i in ids if i in gold]
+    a.ids = ids
     print(f"{len(rows)} tickets x {len(a.models)} models = {len(rows)*len(a.models)} calls\n")
 
     results = []
@@ -90,7 +98,7 @@ def main() -> int:
         "metric that decides this.** A cheaper model is only interesting if it never misses one; every",
         "other number is a trade you can discuss.",
         "",
-        "| model | escalation recall | missed | category | urgency exact | p50 | cost / ticket | vs top |",
+        "| model | escalation recall | missed | **false escalations** | category | urgency exact | p50 | cost / ticket |",
         "|---|---|---|---|---|---|---|---|",
     ]
     top = results[0]["cost_per_ticket"] if results and results[0]["cost_per_ticket"] else None
@@ -100,7 +108,8 @@ def main() -> int:
         rel = f"{r['cost_per_ticket']/top:.2f}x" if (top and r["cost_per_ticket"]) else "—"
         lines.append(
             f"| `{r['model']}` | **{s['escalation_recall']:.0%}** | {s['missed_escalations'] or 'none'} | "
-            f"{s['category_accuracy']:.0%} | {s['urgency_exact']:.0%} | {r['p50']/1000:.1f} s | {cost} | {rel} |")
+            f"**{s['false_escalations'] or 'none'}** | {s['category_accuracy']:.0%} | "
+            f"{s['urgency_exact']:.0%} | {r['p50']/1000:.1f} s | {cost} |")
 
     lines += ["", "## Tokens measured per ticket", "",
               "| model | input | of which cached | output |", "|---|---|---|---|"]

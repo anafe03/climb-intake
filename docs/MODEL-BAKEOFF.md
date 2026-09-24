@@ -1,3 +1,7 @@
+> **Stale and known-misleading.** This table was produced over the 10 provided samples only, which
+> contain no false-positive traps, so it has no view of spurious escalations — and on that basis it
+> recommended a model that escalates a SOC 2 document request. See `DECISIONS.md` D52. Re-run with
+> `python scripts/model_bakeoff.py` (now the full gold set) before quoting anything here.
 # Model bake-off: what does this job actually need?
 
 `scripts/model_bakeoff.py` · 10 tickets (climb-01, climb-02, climb-03…) · 2026-09-24 11:01
