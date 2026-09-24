@@ -955,6 +955,28 @@ count and a clear button beside it. The urgency and category bars are clickable 
 Critical and reading the four that come back is evidence, and it takes one second. The views are now
 named **Dashboard** and **Queues**, because that is what they are.
 
+### D59. The pop-outs led with prose and buried the answer
+Every field explainer opened with a line of scene-setting — *"One of eight categories. Spam is a real
+answer, not a failure to classify."* — before saying anything about the ticket in front of you.
+Austin's read: it sounds like filler, and it pushes the one thing he needs below the fold.
+
+Four changes, all in the same direction:
+
+- **The ticket text now sits at the top of every pop-out.** You should never be reading an
+  explanation with the thing it explains hidden behind a modal.
+- **"Why it read this ticket that way" comes first**, before any reference material. The specific
+  answer, then the general rubric.
+- **The lead-in lines are gone.** All three of them.
+- **The confidence bands are shown as bands** in the "who sent it" pop-out, with the one this ticket
+  landed on ticked, and a line underneath saying where the score came from. Previously the score was
+  stated and the reader had to know what 0.60 meant.
+
+Also: urgency levels now read most-severe-first everywhere, including the dashboard breakdown, which
+had been sorting by count so "Critical 4, Low 2, Medium 2, High 2" appeared in that order.
+
+**The general rule this settles:** reference material is what you show *after* the answer, not
+before. Escalate and route get the same treatment next.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the
