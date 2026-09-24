@@ -42,6 +42,29 @@ Austin's feedback, 2026-09-24. Doing the first block now; escalate and route aft
       choice buys, how secrets reach the container, what changes for real traffic, and a
       what-to-check-when-it-breaks table. The Terraform was OpenAI-blind; fixed (D66).
 
+## Block 4 — the order, and the landing view  (1 of 6 left)
+
+Austin, reading it as a demo: "the decision should always be first, then the criteria and evidence
+for that decision." Correct, and it invalidated the rule from block 1 — reason-first was an
+improvement but still put a rubric ahead of the answer.
+
+- [x] **Every pop-out reads: ticket -> the decision -> the evidence -> the rubric.** The answer is
+      styled as the answer, not left as a footnote at the bottom (D67).
+- [x] **Queues opens by default** and sits first in the toolbar (D68).
+- [x] **Dashboard is only the numbers**; Queues is only the tickets. They were showing the same
+      list twice under two names. Every dashboard number filters through to Queues (D69).
+- [x] **The safety net says what it is before what it did** — twenty-odd regexes in `app/rules.py`,
+      no model, run over the original ticket text, allowed only to raise the flag and lift urgency
+      to a floor (D70).
+- [x] **The five urgency signals explain themselves** — what each one means and which way it moves
+      the level, plus why tone is deliberately not among them (D70).
+- [ ] **Show consistency on repeat reads, live.** Austin: "i want to show this is consistent for
+      each ticket when read multiple times." `scripts/repeatability.py` and `docs/REPEATABILITY.md`
+      measure this offline, but a panel cannot see it. Proposed: a **Read it again** button in the
+      ticket dialog that re-runs the same text and shows the two answers side by side, with the
+      fields that matched marked. Re-running in front of them beats citing a number from a doc.
+      *Waiting on Austin to confirm the shape before building.*
+
 ## Found while doing the above
 
 - [x] The routing walkthrough claimed "critical -> the on-call queue instead" on tickets that were
