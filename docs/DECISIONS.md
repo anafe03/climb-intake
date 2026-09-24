@@ -1100,6 +1100,39 @@ Same treatment for the urgency criteria, which were a two-word label and a quote
 They now say what the signal means and which way it moves the level, with the point that tone is
 deliberately not among them.
 
+### D71. Repeatability is demonstrated, not asserted
+"Is this consistent?" was answerable only by pointing at `docs/REPEATABILITY.md`, which is a number
+a panel has to take on faith. `POST /tickets/{id}/recheck` re-reads the stored ticket text and
+compares the answers field by field; the dialog has a button that runs it live.
+
+The design decision is **what counts as agreement**. Only the fields that change where a ticket
+goes are scored: category, urgency, the escalation flag, its reasons, and the queue. Confidence and
+free text are reported but explicitly not scored, because they *do* move — a live run on the
+cross-tenant ticket held all five routing fields identical while customer confidence went
+0.50 / 0.35 / 0.30 and the reason was reworded every time. Scoring prose as a failure would either
+make the check always fail or force a claim about reproducibility that would not survive the first
+counter-example. Showing the movement is the stronger answer.
+
+Recheck persists nothing and routes nothing. It is a probe, not a decision, so it never enters a
+queue or the audit store — asserted in `tests/test_api.py`. Runs are capped at three and run
+concurrently, because sequentially this is the sum of three model calls with someone watching.
+
+### D72. Why every ticket is not read several times
+Asked directly. Running every intake three times triples the bill for a number that does not change
+the routing: on the gold set the decisive fields are stable, so the second and third reads buy
+confidence in the *system*, not a better answer for the *ticket*. Consistency is a property you
+measure on a sample — offline across the gold set in `scripts/repeatability.py`, or on demand
+from the dialog — not a tax paid on every request. The same reasoning as D54: output tokens are
+the cost, and spending them needs a reason per ticket.
+
+### D73. The questions a panel asks, answered where the question occurs
+Austin wanted the explanations clickable, "like a FAQ for each type of classification". Each
+pop-out now ends with the three or four questions people actually ask about that field — "how do
+you know it is not inventing a customer", "does high urgency escalate", "is this a real queue" —
+as collapsed items. Content is sourced from `docs/PANEL-QA.md` so the page and the prep doc cannot
+drift. Collapsed by default: a reader who does not have the question should not have to read past
+the answer.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

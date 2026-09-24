@@ -242,6 +242,87 @@ def explain(decision_id: str):
     return "\n".join(lines)
 
 
+class FieldAgreement(BaseModel):
+    field: str
+    label: str
+    decisive: bool  # does this field change where the ticket goes?
+    values: list[str]  # index 0 is the original decision, then one per re-read
+    agree: bool
+
+
+class RecheckOut(BaseModel):
+    decision_id: str
+    runs: int
+    fields: list[FieldAgreement]
+    stable: bool  # every decisive field agreed
+    models: list[str]
+    latency_ms: list[int]
+
+
+def _who(x) -> str:
+    c = x.customer
+    if c.name:
+        return c.name
+    return f"(not stated) {c.best_guess}" if c.best_guess else "(not stated)"
+
+
+# What must be identical is what changes where the ticket goes. Confidence and prose are allowed to
+# move, and the response shows that movement rather than scoring it as a failure — claiming a model
+# reproduces its own wording is a claim that would not survive the first counter-example.
+RECHECK_FIELDS = [
+    ("category", "What kind of request", True, lambda d: d.extraction.category.value),
+    ("urgency", "How urgent", True, lambda d: d.extraction.urgency.value),
+    ("escalate", "Escalate?", True, lambda d: "yes" if d.extraction.escalate else "no"),
+    ("escalation_reasons", "Escalated for", True,
+     lambda d: ", ".join(sorted(r.value for r in d.extraction.escalation_reasons)) or "—"),
+    ("queue", "Where it goes", True,
+     lambda d: d.queue + (f" + {d.escalation_queue}" if d.escalation_queue else "")),
+    ("customer", "Who sent it", False, lambda d: _who(d.extraction)),
+    ("category_confidence", "Category confidence", False,
+     lambda d: f"{d.extraction.category_confidence:.2f}"),
+    ("customer_confidence", "Customer confidence", False,
+     lambda d: f"{d.extraction.customer.confidence:.2f}"),
+    ("category_reason", "The wording of the reason", False, lambda d: d.extraction.category_reason),
+]
+
+
+@app.post("/tickets/{decision_id}/recheck", response_model=RecheckOut, tags=["read"],
+          summary="Read the same ticket again and compare")
+def recheck(decision_id: str, runs: int = 2):
+    """Re-runs the classifier on a stored ticket's text and compares the answers field by field.
+
+    Nothing is persisted and nothing is routed: a recheck is a consistency probe, not a decision,
+    so it never enters a queue or the audit store. `stable` is true when every field that decides
+    where the ticket goes agreed across all reads. Confidence and free text are reported but not
+    scored — they are expected to move, and pretending otherwise would be a claim this system
+    cannot support.
+    """
+    original = audit.get(decision_id)
+    if not original:
+        raise HTTPException(404, "unknown ticket id")
+    runs = max(1, min(runs, 3))
+    ticket = TicketIn(text=original.ticket.text, source="recheck", external_id=None)
+    # Concurrent, because this runs while someone is watching. Sequentially it is the sum of three
+    # model calls; in parallel it is the slowest one.
+    with ThreadPoolExecutor(max_workers=runs) as ex:
+        fresh = list(ex.map(lambda _: pipeline.process(ticket, persist=False), range(runs)))
+    everything = [original] + fresh
+
+    fields = []
+    for name, label, decisive, get in RECHECK_FIELDS:
+        values = [get(d) for d in everything]
+        fields.append(FieldAgreement(field=name, label=label, decisive=decisive,
+                                     values=values, agree=len(set(values)) == 1))
+    return RecheckOut(
+        decision_id=decision_id,
+        runs=runs,
+        fields=fields,
+        stable=all(f.agree for f in fields if f.decisive),
+        models=[d.model or "keyword rules" for d in everything],
+        latency_ms=[d.latency_ms for d in everything],
+    )
+
+
 @app.get("/queues", tags=["read"], summary="Every queue and how deep it is")
 def queues():
     """All configured queues, including the ones nothing routed to — an empty queue is a fact

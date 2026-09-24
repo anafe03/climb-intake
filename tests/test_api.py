@@ -87,3 +87,34 @@ def test_presenter_notes_are_served():
 def test_architecture_page_is_served():
     r = client.get("/architecture")
     assert r.status_code == 200 and "Urgency is speed" in r.text
+
+
+def test_recheck_compares_fields_and_persists_nothing():
+    """A recheck is a probe, not a decision: it must not route or land in the audit store."""
+    r = client.post("/tickets", json={"text": "A former employee still has admin credentials. Our CTO wants answers."})
+    d = r.json()
+    before = client.get("/queues").json()["total"]
+    rows_before = len(client.get("/tickets?limit=100").json())
+
+    rc = client.post(f"/tickets/{d['id']}/recheck?runs=2").json()
+    assert rc["runs"] == 2
+    # In rules mode the classifier is deterministic, so every field must agree.
+    assert rc["stable"] is True
+    by = {f["field"]: f for f in rc["fields"]}
+    assert by["queue"]["decisive"] and by["queue"]["agree"]
+    assert by["category_reason"]["decisive"] is False
+    # original + two re-reads
+    assert len(by["category"]["values"]) == 3
+
+    assert client.get("/queues").json()["total"] == before
+    assert len(client.get("/tickets?limit=100").json()) == rows_before
+
+
+def test_recheck_unknown_id_is_404():
+    assert client.post("/tickets/nope/recheck").status_code == 404
+
+
+def test_recheck_run_count_is_capped():
+    d = client.post("/tickets", json={"text": "The dark mode toggle resets on refresh."}).json()
+    rc = client.post(f"/tickets/{d['id']}/recheck?runs=99").json()
+    assert rc["runs"] == 3

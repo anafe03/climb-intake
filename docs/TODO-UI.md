@@ -58,12 +58,19 @@ improvement but still put a rubric ahead of the answer.
       to a floor (D70).
 - [x] **The five urgency signals explain themselves** — what each one means and which way it moves
       the level, plus why tone is deliberately not among them (D70).
-- [ ] **Show consistency on repeat reads, live.** Austin: "i want to show this is consistent for
+- [x] **Show consistency on repeat reads, live.** Austin: "i want to show this is consistent for
       each ticket when read multiple times." `scripts/repeatability.py` and `docs/REPEATABILITY.md`
       measure this offline, but a panel cannot see it. Proposed: a **Read it again** button in the
       ticket dialog that re-runs the same text and shows the two answers side by side, with the
       fields that matched marked. Re-running in front of them beats citing a number from a doc.
-      *Waiting on Austin to confirm the shape before building.*
+      **Built.** `POST /tickets/{id}/recheck`, plus a button in section 3 of the dialog. Only the
+      fields that change routing are scored; confidence and wording are shown moving rather than
+      marked wrong (D71). A live run held all five routing fields identical while customer
+      confidence went 0.50 / 0.35 / 0.30.
+- [x] **Say why every ticket is not read several times** — it triples the bill for a number that
+      does not change the routing. Answered in the dialog, under the button (D72).
+- [x] **A clickable FAQ per classification type** — the three or four questions people ask about
+      that field, collapsed, at the end of each pop-out, sourced from `docs/PANEL-QA.md` (D73).
 
 ## Found while doing the above
 

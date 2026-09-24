@@ -288,6 +288,26 @@ input[type=file]{display:none}
 .sec{margin-bottom:22px}
 .sec h3{font:700 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:0 0 9px}
 .subh{font:700 11.5px var(--sans);color:var(--dim);margin:0 0 7px}
+.faq details{border-bottom:1px solid var(--line);padding:0}
+.faq details:last-child{border-bottom:0}
+.faq summary{cursor:pointer;padding:9px 2px;font:600 12.5px var(--sans);color:var(--text);list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"+";color:var(--climb-coral-deep);font-weight:700;margin-right:8px}
+.faq details[open] summary::before{content:"\2212"}
+.faq summary:hover{color:var(--climb-coral-deep)}
+.faq details > div{padding:0 2px 11px 20px;font-size:12.5px;line-height:1.65;color:var(--dim)}
+.rc{margin-top:4px}
+.rc table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
+.rc th{text-align:left;font:700 9.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;
+  color:var(--faint);padding:0 8px 6px 0;border-bottom:1px solid var(--line)}
+.rc td{padding:8px 8px 8px 0;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+.rc tr.soft td{color:var(--dim)}
+.rc .fname{font-weight:650;color:var(--text);width:150px}
+.rc .mk{font:700 11px var(--mono);white-space:nowrap}
+.rc .same{color:var(--ok,#3f7d52)} .rc .diff{color:var(--dim)}
+.rc .verdict{border-radius:8px;padding:12px 14px;font-size:13.5px;line-height:1.6}
+.rc .verdict.ok{background:var(--wash);border:1px solid var(--wash-line)}
+.rc .verdict b{display:block;margin-bottom:3px}
 .ssec{font:700 12px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--text);
   margin:26px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--climb-coral)}
 .ssec:first-of-type{margin-top:8px}
@@ -494,6 +514,84 @@ function liTrig(label,desc,trig,hit){return `<li class="${hit?'hit':''}"><b>${es
 function ref(items){return `<ul class="ref">${items.map(([k,v])=>
   `<li><b>${esc(k)}</b><span>${v}</span></li>`).join('')}</ul>`}
 
+// The questions a panel actually asks about each field, answered in the place the question occurs
+// to them. Sourced from docs/PANEL-QA.md so the page and the prep doc cannot drift apart.
+const FAQ={
+  who:[
+    ['How do you know it is not inventing a customer?',
+     'The schema forbids it. <code>name</code> is null unless the company is written in the ticket verbatim; '
+     +'anything inferred goes in <code>best_guess</code> with its own score and the cues it rests on. A guess '
+     +'has no path to becoming a name — they are different fields all the way through the audit record.'],
+    ['Then why guess at all?',
+     '"Unknown" routes nowhere and tells a human nothing. "Enterprise account using the export feature" is '
+     +'enough for someone to pick the ticket up, and it is labelled as an inference so nobody treats it as fact.'],
+    ['Is that number a probability?',
+     'No. It is a band read off the rubric above, self-reported by the model. It has never been validated '
+     +'against outcomes, so it is a statement of how much the text supports the guess — not a frequency.'],
+    ['Two tickets from the same company — would you know?',
+     'Not yet. The audit table has no tenant column because the sample tickets carry no customer identity. '
+     +'It is the first thing to add the moment there is an auth context.'],
+  ],
+  what:[
+    ['What if a ticket is genuinely two categories?',
+     'It says so. The runner-up is named with its share and a clause on what rules it out. Below 0.50 the '
+     +'ticket goes to <code>human-review</code> instead of being forced into a team’s queue.'],
+    ['Why is spam a category rather than a failure?',
+     'Because it is a real answer. If spam were "could not classify", every genuine miss would hide in the '
+     +'same bucket as the junk, and the review queue would be useless.'],
+    ['Who chose 0.50?',
+     'I did. It is the only number in the system that changes behaviour, and it lives in '
+     +'<code>app/routing.yaml</code> as one line a support lead can move without an engineer.'],
+    ['Would you trust the confidence number?',
+     'As a share of opinion, yes. As a calibrated probability, no — and the interface never calls it one. '
+     +'Calibrating it would need labelled outcomes this system has not collected.'],
+  ],
+  urgency:[
+    ['Does high urgency escalate?',
+     'No, and that is deliberate. Urgency is speed; escalation is topic. A full outage is critical and pages '
+     +'on-call without escalating. A CEO thank-you note escalates at low urgency.'],
+    ['Is urgency not just subjective?',
+     'It is a judgment, which is why the criteria are written down and the cues are quoted from the ticket. '
+     +'You can disagree with the call and still audit how it was reached.'],
+    ['Could an angry customer inflate it?',
+     'Tone is not one of the criteria. Shouting about a cosmetic bug stays low; a calm note about 1,900 '
+     +'double-charged end customers is critical. The signals are facts about impact, not temperature.'],
+  ],
+  human:[
+    ['Why not let the model decide escalation on its own?',
+     'Because a missed escalation is the one failure that is unacceptable, and a prompt change can quietly '
+     +'move a model’s behaviour. The keyword layer is a floor that cannot drift: it is version-controlled, '
+     +'testable, and only ever raises.'],
+    ['Then why not just rules?',
+     'Rules cannot read "our data reached the wrong audience" without the word breach in it. The model catches '
+     +'meaning; the regexes catch words. Neither alone covers both.'],
+    ['What is the false-positive rate?',
+     '100% escalation recall with zero false escalations across the 30-row gold set, in both model and '
+     +'rules-only mode. The gold set includes traps: a SOC 2 questionnaire and an RCA request that read like '
+     +'incidents and are not.'],
+    ['Why escalate a security ticket that already goes to security?',
+     'Countability. A ticket sitting in the security queue looks identical whether it is a breach or a '
+     +'question about the SOC 2 report. Without the flag, "did we miss one" has no answer.'],
+  ],
+  route:[
+    ['Is this a real queue?',
+     'Simulated, as the brief asks. A queue is a name in <code>app/routing.yaml</code> and a field on the '
+     +'decision. Pointing it at Zendesk, Jira or PagerDuty is one adapter behind the same call — the '
+     +'routing logic does not change.'],
+    ['Why copy an escalated ticket instead of moving it?',
+     'If it moved, the owning team would never see it. Both get it, and whoever acts first owns it. Moving '
+     +'would turn an escalation into a handoff, which is how things get dropped.'],
+    ['Who changes routing?',
+     'Support leads, in YAML, without an engineer. That is why the table is data and not code — routing '
+     +'changes far more often than logic does.'],
+  ],
+};
+function faq(key){
+  const qs=FAQ[key]; if(!qs) return '';
+  return `<h5>Questions people ask about this</h5><div class="faq">${qs.map(([q,a])=>
+    `<details><summary>${esc(q)}</summary><div>${a}</div></details>`).join('')}</div>`;
+}
+
 // Every pop-out reads in the same order, and the order is the one a reviewer asks in:
 //   1. the ticket, so the thing being explained is never off-screen
 //   2. THE DECISION — what this service concluded, stated first
@@ -529,7 +627,8 @@ function explainer(key,d){
        </ul>`
     + `<p class="foot">${d.model
         ? `The score came from <b>${esc(d.model)}</b>, following these bands as an instruction. The band above is read straight off it.`
-        : `No model ran. The score is a fixed constant in <code>app/rules.py</code> for whichever cue matched.`}</p>`;
+        : `No model ran. The score is a fixed constant in <code>app/rules.py</code> for whichever cue matched.`}</p>`
+    + faq('who');
   }
 
   if(key==='what'){
@@ -553,7 +652,8 @@ function explainer(key,d){
         ${li('0.50 – 0.69','defensible, and a reasonable person could pick the other one',rung===2)}
         ${li('below 0.50','not confident enough to send to a team — goes to human-review instead',rung===3)}
        </ul>`
-    + `<h5>The eight categories</h5><ul class="crit">${CATEGORY_DEFS.map(([k,v])=>li(cap(k),v,k===x.category)).join('')}</ul>`;
+    + `<h5>The eight categories</h5><ul class="crit">${CATEGORY_DEFS.map(([k,v])=>li(cap(k),v,k===x.category)).join('')}</ul>`
+    + faq('what');
   }
 
   if(key==='urgency') return head()
@@ -570,7 +670,8 @@ function explainer(key,d){
        ${ref(URGENCY_CRITERIA)}
        <p class="foot">Tone is not on the list, deliberately. An angry message about a routine billing
        error is still medium; a calm message about double-charging 1,900 end customers is critical.
-       Reading past the tone to the facts is the part a word list cannot do.</p>`;
+       Reading past the tone to the facts is the part a word list cannot do.</p>`
+    + faq('urgency');
 
   if(key==='human') return head()
     + call('Does it escalate', x.escalate
@@ -597,7 +698,8 @@ function explainer(key,d){
         ? `Security would treat this as an incident anyway, so the copy is belt-and-braces. What the flag adds here is <b>countability</b> — a ticket in the security queue looks the same whether it is a breach or a question about the SOC 2 report, and without a flag “did we miss one” has no answer.`
         : x.escalate
         ? `This is where the flag does real work: <code>${esc(d.queue)}</code> would handle it as ordinary ${esc(cap(x.category))} work, and nobody outside that team would learn about it. The copy is the only signal.`
-        : `Routing asks who handles it. The flag asks whether anyone outside that team needs to know. Here, no.`}</p>`;
+        : `Routing asks who handles it. The flag asks whether anyone outside that team needs to know. Here, no.`}</p>`
+    + faq('human');
 
   if(key==='route'){
     const cc=x.category_confidence, diverted=d.queue==='human-review';
@@ -637,7 +739,8 @@ function explainer(key,d){
           'escalated tickets are copied, never moved — the owning team still sees them')}
        </ul>`
     + `<p class="foot">The table lives in <code>app/routing.yaml</code> as data, not code, because support
-       leads change routing far more often than engineers change logic.</p>`;
+       leads change routing far more often than engineers change logic.</p>`
+    + faq('route');
   }
   return '';
 }
@@ -953,6 +1056,22 @@ async function openModal(id){
       <h2 class="ssec">2 &middot; The reasoning behind it</h2>
       <div class="sec"><h3>Why it read it that way, overall</h3><div class="prose">${esc(x.rationale)}</div></div>
       <div class="sec"><h3>The safety net</h3>${guardIntro}<h4 class="subh">What it did to this ticket</h4>${guard}</div>
+      <h2 class="ssec">3 &middot; Would it say the same thing again?</h2>
+      <div class="sec"><h3>Repeatability</h3>
+        <p class="prose" style="margin:0 0 11px">A model is sampled, not looked up, so the honest way to
+        answer this is to run it rather than assert it. This reads <b>the same ticket twice more</b>, right
+        now, and compares every field.
+        <br><br>
+        What has to match is what changes where the ticket goes — category, urgency, the escalation flag
+        and the queue. Confidence and wording are expected to move a little, and are shown moving rather
+        than scored as failures.</p>
+        <div class="rc" id="rc"></div>
+        <button class="tool" id="recheck">Read it again, twice</button>
+        <p class="foot" id="rcfoot">Not done on every ticket by default: it would triple the bill on every
+        intake for a number that does not change the routing. Consistency is a property you measure on a
+        sample, not a tax you pay on every request. Offline, the same check runs across the whole gold set
+        in <code>scripts/repeatability.py</code>.</p>
+      </div>
       ${d.error?`<div class="sec"><h3>The model call failed, so keyword rules handled it</h3>
         <div class="note"><code>${esc(d.error)}</code></div></div>`:''}
       <div class="meta">
@@ -978,6 +1097,46 @@ async function openModal(id){
     const u=new URL(location); u.searchParams.set('x',key); history.replaceState(null,'',u);
   };
   document.querySelectorAll('.f[data-x]').forEach(f=>f.onclick=()=>openField(f.dataset.x));
+
+  // Read the same ticket again, live. The endpoint persists nothing and routes nothing — a
+  // recheck is a consistency probe, not a decision, so it never lands in a queue.
+  $('#recheck').onclick=async()=>{
+    const btn=$('#recheck'), box=$('#rc');
+    btn.disabled=true; btn.textContent='Reading\u2026';
+    box.innerHTML=`<div class="note calm">Two fresh reads of the same text, in parallel. Takes about as
+      long as one ticket did.</div>`;
+    try{
+      const r=await api(`/tickets/${d.id}/recheck?runs=2`,{method:'POST'});
+      const cols=['As decided','Read again','And again'].slice(0,r.runs+1);
+      const row=f=>`<tr class="${f.decisive?'':'soft'}">
+        <td class="fname">${esc(f.label)}</td>
+        ${f.values.map(v=>`<td>${esc(v)}</td>`).join('')}
+        <td class="mk ${f.agree?'same':'diff'}">${f.agree?'\u2713 same':'moved'}</td></tr>`;
+      const decisive=r.fields.filter(f=>f.decisive), soft=r.fields.filter(f=>!f.decisive);
+      box.innerHTML=`
+        <div class="verdict ok"><b>${r.stable
+          ? 'Same decision all three times.'
+          : 'The decision moved between reads.'}</b>
+          ${r.stable
+            ? `Every field that decides where this ticket goes came back identical. What moved was the
+               confidence and the wording — shown below, because hiding it would be the dishonest
+               version of this answer.`
+            : `A field that changes routing did not reproduce. That is the number worth knowing, and it
+               is why this check exists.`}</div>
+        <table><thead><tr><th></th>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}<th></th></tr></thead>
+          <tbody>${decisive.map(row).join('')}
+            <tr><td colspan="${r.runs+3}" style="padding-top:14px;border:0">
+              <span class="subh">Allowed to move — not part of the routing decision</span></td></tr>
+            ${soft.map(row).join('')}</tbody></table>
+        <p class="foot">Read by ${esc(r.models.join(', '))} · ${r.latency_ms.map(m=>(m/1000).toFixed(1)+'s').join(' · ')}.
+          Nothing here was saved or routed.</p>`;
+      btn.textContent='Read it again, twice';
+    }catch(e){
+      box.innerHTML=`<div class="note changed"><b>The re-read failed.</b> <code>${esc(String(e.message||e))}</code></div>`;
+      btn.textContent='Try again';
+    }
+    btn.disabled=false;
+  };
   const wantX=new URL(location).searchParams.get('x');
   if(wantX&&TITLES[wantX]) openField(wantX);
 
