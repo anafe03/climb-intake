@@ -174,10 +174,10 @@ requirement.
 | Escalation recall | 100% | 100% |
 | False escalations | none | none |
 | Category accuracy | 100% | 100% |
-| Urgency exact / within tolerance | 76% / 97% | 88% / 100% |
-| Sender-confidence calibration | 100% | 88% |
+| Urgency exact / within tolerance | 76% / 97% | 82% / 100% |
+| Sender-confidence calibration | 100% | 100% |
 | Overclaimed sender confidence | none | none |
-| p50 latency per ticket | under 5 ms | 15.8 s |
+| p50 latency per ticket | under 5 ms | 16.1 s |
 
 **These are a single run, not an average.** Escalation recall, category accuracy and the confidence
 checks have been stable across every run. Urgency exact has moved between 77% and 83% run to run, on

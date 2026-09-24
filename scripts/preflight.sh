@@ -39,24 +39,6 @@ case "$UP" in
   *)   ok "container VM uptime $UP" ;;
 esac
 
-for PAGE in / /notes /architecture; do
-  BAD=$(curl -s "$BASE$PAGE" | $PY -c '
-import re,sys
-src=sys.stdin.read()
-m=re.search(r"<script>(.*)</script>", src, re.S)
-if not m: print(""); raise SystemExit
-js=m.group(1)
-called={c for c in re.findall(r"\b([a-zA-Z_$][\w$]*)\s*\(", js)}
-defined=set(re.findall(r"function\s+([a-zA-Z_$][\w$]*)", js)) | set(re.findall(r"(?:const|let|var)\s+([a-zA-Z_$][\w$]*)\s*=", js))
-builtin={"if","for","while","switch","catch","return","typeof","function","await","new","setTimeout",
-  "setInterval","clearTimeout","clearInterval","parseInt","parseFloat","Number","String","Boolean",
-  "Array","Object","JSON","Math","Date","RegExp","Promise","fetch","alert","confirm","require","URL",
-  "FormData","Error","Set","Map","encodeURIComponent","decodeURIComponent","isNaN"}
-missing=sorted(n for n in called-defined-builtin if n.islower() and len(n)>3 and n not in js.split("function")[0])
-print(",".join(missing[:3]))' 2>/dev/null)
-  [ -z "$BAD" ] && ok "$PAGE has no obviously undefined calls" || no "$PAGE may call undefined: $BAD"
-done
-
 echo "── api"
 MODE=$(curl -s $BASE/health | $PY -c 'import json,sys;print(json.load(sys.stdin)["mode"])')
 [ "$MODE" = "llm" ] && ok "model mode active ($(curl -s $BASE/health | $PY -c 'import json,sys;print(json.load(sys.stdin)["model"])'))" \

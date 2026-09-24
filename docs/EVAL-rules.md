@@ -1,6 +1,6 @@
 # Eval scorecard: mode=rules
 
-Generated 2026-09-22 19:33 on 33 gold tickets (10 Climb samples + 23 edge cases).
+Generated 2026-09-24 13:48 on 33 gold tickets (10 Climb samples + 23 edge cases).
 
 | Metric | Value |
 |---|---|
@@ -16,7 +16,7 @@ Generated 2026-09-22 19:33 on 33 gold tickets (10 Climb samples + 23 edge cases)
 | Sender-inference confidence within expected band | 100% |
 | Confidence misses | none |
 | Every guess carries its basis | yes |
-| Latency p50 / p95 per ticket | 0 ms / 0 ms |
+| Latency p50 / p95 per ticket | 0 ms / 6 ms |
 | Wall time (concurrency 4) | 0.0 s |
 | Tokens in / out | 0 / 0 |
 
