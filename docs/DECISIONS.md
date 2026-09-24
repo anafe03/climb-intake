@@ -977,6 +977,48 @@ had been sorting by count so "Critical 4, Low 2, Medium 2, High 2" appeared in t
 **The general rule this settles:** reference material is what you show *after* the answer, not
 before. Escalate and route get the same treatment next.
 
+### D60. The cards were repeating the pop-outs, and the safety net explained nothing
+Three separate places where the interface said less than it appeared to:
+
+**Duplication.** The "Who sent it" card printed the full evidence string — *"Inferred, not stated.
+From 'exported our data this morning'…"* — and then the pop-out printed the same thing again. The
+card now shows the answer and the score; the evidence lives in the pop-out, once. Same for the
+urgency cues.
+
+**The safety net said "a keyword rule matched and agreed — nothing changed"** and named the rule.
+That assumes the reader already knows what a guardrail rule is, why it ran, and what it was allowed
+to do. It now explains, in the panel: regexes run over the *original* ticket text rather than the
+model's output, they look for the five escalation topics, and they can only raise, never lower.
+
+**The audit record was a JSON dump.** It is now a table: every field with what it holds and who uses
+it — why `llm_extraction` is kept alongside `extraction`, what makes `external_id` half of the
+idempotency key, that `usage` is the cost of the decision. Raw JSON is still one click further in.
+
+### D61. A better answer to "the security team already gets it, why flag it too"
+The previous answer leaned on the brief asking for a flag. True, and thin. The real answer is that
+**routing and flagging answer different questions** — routing asks who handles this, the flag asks
+whether we caught it — and **the flag is worth a different amount depending on who owns the ticket**:
+
+| Owning team | What the flag adds |
+|---|---|
+| Security | Mostly governance. Security treats it as an incident regardless. The flag buys countability: a ticket in the security queue looks identical whether it is a breach or a question about the SOC 2 report, and without a flag "did we miss one" has no answer. |
+| Anyone else | It is the only signal. An executive mention on an onboarding ticket routes to customer success, who work it as ordinary onboarding — nobody senior ever learns a CEO is watching. |
+
+**Said plainly: for security it is belt-and-braces plus an audit trail; for everything else it is the
+mechanism.** One rule covers both, which is why it applies uniformly instead of being special-cased.
+The pop-out now says which of the two situations the ticket in front of you is in.
+
+### D62. A split, not a probability
+Asked whether the category should carry one confidence number or a split. The split, for three
+reasons in order: it makes the primary number honest, because a model that must name the runner-up
+cannot price it at zero for free (D34, D37); it tells a reader *what* to be careful about rather than
+just to be careful; and it costs two short fields on a call already being made.
+
+**What it is not is a probability distribution.** The shares sum to roughly 1.0 and look like one,
+which is the risk. They are self-reported and never validated against outcomes. The UI calls them a
+share of opinion because that is a claim the number can support. Full reasoning in
+`docs/HOW-IT-WORKS.md`.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

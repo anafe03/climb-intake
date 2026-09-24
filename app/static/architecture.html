@@ -189,14 +189,26 @@ the system. <strong>Urgency is speed. Escalation is topic. Human review is uncer
 </div>
 
 <div class="q">
-  <h3>"Why not a security on-call queue?"</h3>
-  <p><strong>There is one — that is what <code>security-incident-response</code> is.</strong> A
-  security ticket goes there like any other ticket goes to its team.</p>
-  <p>It <em>also</em> gets copied to the escalation desk, and the copy is the point. The brief asks
-  for an escalation <em>flag</em>, separate from routing: a thing a human can filter on, count, and be
-  held to. Routing alone cannot do that job, because a ticket sitting in the security queue looks
-  identical whether it arrived through normal triage or because somebody's credentials were not
-  revoked. The flag is what makes "did we miss one" a question with an answer.</p>
+  <h3>"The security team already gets it — why flag it as well?"</h3>
+  <p><strong>Because routing and flagging answer different questions.</strong> Routing asks <em>who
+  handles this</em>. The flag asks <em>did we catch it</em>. A security ticket goes to
+  <code>security-incident-response</code> the same way a billing ticket goes to billing. The flag is
+  a separate signal on top.</p>
+  <p>How much the flag adds depends on who owns the ticket, and it is worth being honest about that:</p>
+  <table>
+    <tr><th>Owning team</th><th>What the escalation flag adds</th></tr>
+    <tr><td>Security</td><td><strong>Mostly governance, not handling.</strong> Security will treat it
+      as an incident regardless. What the flag buys is countability: a ticket sitting in the security
+      queue looks identical whether it is a real breach or someone asking where the SOC 2 report
+      lives. Without the flag, "how many escalations did we get, and did we miss any" has no answer.</td></tr>
+    <tr><td>Anyone else</td><td><strong>It is the only signal.</strong> An executive mention on an
+      onboarding ticket routes to customer success, who would work it as ordinary onboarding. Nobody
+      senior would ever learn that a CEO is watching. Same for a legal threat arriving as a billing
+      question. Here the copy to the escalation desk is the entire point.</td></tr>
+  </table>
+  <p>So: for security it is belt-and-braces plus an audit trail. For everything else it is the
+  mechanism. One rule covers both, which is why it applies uniformly rather than being special-cased
+  per category.</p>
 </div>
 
 <div class="note">

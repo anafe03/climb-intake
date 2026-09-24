@@ -17,7 +17,23 @@ Austin's feedback, 2026-09-24. Doing the first block now; escalate and route aft
 - [x] **How urgent**: list the levels most severe first, not least
 - [x] **Dashboard**: order the urgency breakdown by severity (Critical, High, Medium, Low), not by count
 
-## Block 2 — escalate and route  (NEXT)
+## Block 2 — escalate, route, and the duplication  (IN PROGRESS)
 
-- [ ] Same treatment: reason first, reference after, no lead-in prose
+- [x] **Card subtitles repeat the pop-out.** The "Who sent it" card prints the full basis
+      ("Inferred, not stated. From …") and then the pop-out prints it again. The card should show
+      the answer and the score; the evidence belongs in the pop-out only.
+- [x] **The safety net line is too terse.** "A keyword rule matched and agreed — nothing changed"
+      plus a rule name does not explain what a guardrail rule *is* or why it ran. Expand it.
+- [x] **Answer "why does security escalate as well as route to the security team?"** properly. The
+      current answer leans on "the brief asks for a flag", which is true but thin. Say when the
+      escalation desk adds something and when it is belt-and-braces.
+- [x] **The audit record needs field-level explanation** — what each field is and where it is used,
+      on click rather than as a wall.
+- [ ] Same treatment as block 1: reason first, reference after, no lead-in prose
 - [ ] Decide whether the five escalation topics need their own rubric popup
+
+## Block 3 — questions to settle in the docs
+
+- [x] **Is a split better practice than one confidence number?** Write the answer down: what we have
+      is a self-reported share, not a calibrated probability, and the distinction matters.
+- [ ] **Docker**: Austin wants help with the deployment side.

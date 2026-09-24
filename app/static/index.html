@@ -289,6 +289,12 @@ input[type=file]{display:none}
 .steps .n{flex:none;width:18px;height:18px;border-radius:50%;background:var(--warn);color:#fff;
   font:700 10px var(--sans);display:flex;align-items:center;justify-content:center;margin-top:2px}
 .steps code{margin-top:0}
+.audit{width:100%;border-collapse:collapse;font-size:12px;margin-top:9px}
+.audit th{text-align:left;font:600 11.5px var(--mono);color:var(--text);padding:7px 10px 7px 0;
+  border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap;text-transform:none;letter-spacing:0}
+.audit td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.audit td.v{font:11.5px var(--mono);color:var(--dim);max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.audit td.d{color:var(--dim);line-height:1.5}
 .meta{display:flex;gap:18px;flex-wrap:wrap;font:11.5px var(--mono);color:var(--faint);
   border-top:1px solid var(--line);padding-top:14px}
 details{margin-top:12px}
@@ -541,8 +547,13 @@ function explainer(key,d){
     + `<h5>The five escalation topics</h5><ul class="crit">${ESC_DEFS.map(([k,v])=>
         li(cap(k),v,x.escalation_reasons.includes(k))).join('')}</ul>`
     + found(x.escalate
-        ? `Escalated for ${x.escalation_reasons.map(r=>`<b>${esc(cap(r))}</b>`).join(' and ')}, and copied to the escalation desk.`
-        : `None of the five applied, so it routes to its owning team without a human gate.`)
+        ? `Escalated for ${x.escalation_reasons.map(r=>`<b>${esc(cap(r))}</b>`).join(' and ')}, and copied to <code>${esc(d.escalation_queue||'the escalation desk')}</code> on top of <code>${esc(d.queue)}</code>.`
+        : `None of the five applied, so it goes to <code>${esc(d.queue)}</code> and nowhere else.`)
+    + `<p class="foot">${x.escalate && d.queue && d.queue.includes('security')
+        ? `Security would treat this as an incident anyway, so the copy is belt-and-braces. What the flag adds here is <b>countability</b> — a ticket in the security queue looks the same whether it is a breach or a question about the SOC 2 report, and without a flag "did we miss one" has no answer.`
+        : x.escalate
+        ? `This is where the flag does real work: <code>${esc(d.queue)}</code> would handle it as ordinary ${esc(cap(x.category))} work, and nobody outside that team would learn about it. The copy is the only signal.`
+        : `Routing asks who handles it. The flag asks whether anyone outside that team needs to know. Here, no.`}</p>`
     + judg(`Escalation and urgency are separate axes. A full outage is critical but does not escalate — it goes to
         on-call. A CEO thank-you note escalates at low urgency. And because a missed escalation is the one failure
         that is unacceptable, a keyword layer runs over the raw text afterwards and may only ever <i>raise</i> this
@@ -621,6 +632,33 @@ function matchesPick(d){
 }
 const visible=()=>(escOnly?rows.filter(d=>d.extraction.escalate):rows)
   .filter(matchesPick).slice().sort(SORTS[sortBy]);
+
+// What every field in the audit record is for. This is the thing an auditor reads six months later,
+// so each row says what it holds and who uses it.
+const AUDIT_FIELDS=[
+ ['id','The decision id. Appears in the JSON log line and in the shareable URL for this ticket.'],
+ ['created_at','When the decision was made, UTC. The audit table is indexed on it.'],
+ ['ticket.source','Where it came from — the web form, an upload, an API client. Half of the idempotency key.'],
+ ['ticket.external_id','The sending system\u2019s own id. The other half of the idempotency key: resubmitting returns this same decision rather than making a second one.'],
+ ['mode','Which path produced it: <code>llm</code>, or <code>llm_fallback_rules</code> when the model failed and keyword rules stepped in.'],
+ ['model','The exact model version. Pinned here so a decision can be reproduced against the model that made it.'],
+ ['extraction','What shipped — the fields the downstream queue acts on.'],
+ ['llm_extraction','What the model said <i>before</i> the guardrails ran. Keeping both is what makes "did a rule change this?" answerable.'],
+ ['rule_hits','Every guardrail that matched, with the exact text it matched on.'],
+ ['overrides','The changes those rules made, in order. Empty when nothing moved.'],
+ ['queue / escalation_queue','Where it was routed, and the human copy if there was one.'],
+ ['latency_ms','Wall time for the whole decision, including retries.'],
+ ['usage','Tokens in and out, how many were cached, and reasoning tokens — this is the cost of the decision.'],
+ ['error','Present only when the model call failed. The reason the fallback ran.'],
+];
+function auditTable(d){
+  const get=(k)=>{const v=k.split('.').reduce((o,p)=>o&&o[p],d);
+    return v===undefined||v===null?'—':(typeof v==='object'?`{${Object.keys(v).length} fields}`:String(v));};
+  return `<table class="audit">${AUDIT_FIELDS.map(([k,desc])=>{
+    const first=k.split(' / ')[0];
+    return `<tr><th>${esc(k)}</th><td class="v">${esc(get(first)).slice(0,60)}</td><td class="d">${desc}</td></tr>`;
+  }).join('')}</table>`;
+}
 
 function ticketCard(d){
   const x=d.extraction;
@@ -824,8 +862,7 @@ async function openModal(id){
             ${shareBar(x)}</div>
           <div class="f" data-x="urgency"><div class="how">How?</div><div class="k">How urgent</div>
             <div class="v ${x.urgency}">${esc(URGENCY[x.urgency]||x.urgency)}</div>
-            ${x.urgency_signals.length?`<div class="s">From the text:</div>${x.urgency_signals.slice(0,3).map(g=>{
-              const t=g.length>44?g.slice(0,42).trim()+'…':g;return `<span class="sig" title="${esc(g)}">${esc(t)}</span>`}).join('')}`:''}
+            ${x.urgency_signals.length?`<div class="s">${x.urgency_signals.length} cue${x.urgency_signals.length>1?'s':''} in the text</div>`:''}
             ${moved('urgency')?`<div class="s">model first said “${esc(L.urgency)}”</div>`:''}</div>
           <div class="f" data-x="human"><div class="how">How?</div><div class="k">Escalate?</div>
             <div class="v ${x.escalate?'yes':'none'}">${x.escalate?'Yes':'No'}</div>
@@ -850,7 +887,9 @@ async function openModal(id){
         ${d.usage&&d.usage.input_tokens?`<span>${d.usage.input_tokens} in / ${d.usage.output_tokens} out tokens</span>`:''}
         ${d.usage&&d.usage.cache_read_input_tokens?`<span>${d.usage.cache_read_input_tokens} cached</span>`:''}
       </div>
-      <details><summary>Full audit record</summary><pre>${esc(JSON.stringify(d,null,2))}</pre></details>
+      <details><summary>Full audit record</summary>${auditTable(d)}
+        <details style="margin-top:10px"><summary>Raw JSON</summary><pre>${esc(JSON.stringify(d,null,2))}</pre></details>
+      </details>
     </div>`;
   // Clicking a box opens a second-level pop-out for that one field, closable on its own.
   const TITLES={who:'Who sent it',what:'What kind of request',urgency:'How urgent it is',

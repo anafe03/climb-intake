@@ -55,6 +55,32 @@ many file it where the system did. The remainder is reported in `category_altern
 clause saying what argues for it and what rules it out — which is also what keeps the primary honest,
 since a model forced to name the runner-up cannot price it at zero for free.
 
+### Is a split better than one number?
+
+Asked directly: should the category carry one confidence score, or a split across the categories
+that were in contention?
+
+**The split, and not because it looks more sophisticated.** Three reasons, in order of how much they
+matter:
+
+1. **It makes the primary number honest.** A model asked only "how confident are you" can answer 0.9
+   for free. A model that must also name the runner-up and give it a share has to actually consider
+   the alternative before pricing it. That change alone moved an ambiguous ticket from 0.92 to 0.67
+   — see `DECISIONS.md` D34 and D37.
+2. **It is more actionable for a person.** "Bug 0.6" tells a reader to be careful. "Bug 60%, Billing
+   40%" tells them *what to be careful about*, and which queue it might belong in instead.
+3. **It costs almost nothing.** Two extra short fields on a call that is already being made.
+
+**What it is not: a probability distribution.** The shares sum to about 1.0 and look like one, which
+is precisely the risk. They are the model's self-reported opinion, never validated against outcomes.
+Calling them probabilities would claim calibration this system has not earned. The UI labels them as
+a share — *if ten support leads filed this ticket, roughly this is how they would split* — because
+that is a claim the number can actually support.
+
+**When one number would be enough:** if nothing downstream branched on the runner-up and no human
+ever read it. Here a human does read it, and `human-review` branches on the primary falling below
+0.50, so the shape of the uncertainty is worth knowing.
+
 ### Model mode (`mode: llm`) — the score is the model's, guided by an explicit ladder
 
 The number is the model's own self-assessment. It is not calibrated post-hoc and it is not computed
