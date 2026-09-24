@@ -934,6 +934,27 @@ and finding no tickets in it.
 `preflight.sh` now scans each page's script for functions that are called but never defined. Cheap,
 crude, and it would have caught this.
 
+### D57. The product stopped explaining its own design
+Each field pop-out ended with a "Why it was designed this way" paragraph — the reasoning behind the
+0.50 threshold, why a guess never becomes a fact, and so on. Austin's verdict on reading it back:
+*"this isn't me."*
+
+He is right twice over. It was my prose in his product, and a demo is not the place to argue for a
+design — the panel asks about design, and then you answer, out loud, from the decision log. A
+paragraph pre-empting a question nobody asked is padding that makes the real content harder to find.
+
+The pop-outs now carry only what the system decided and the evidence for it. The reasoning lives in
+`docs/DECISIONS.md`, where someone who wants it will look.
+
+### D58. Every number on the dashboard is a filter
+The overview showed counts you could read and nothing you could do. Clicking "Critical 10" or
+"Security 8" now filters the list to exactly those tickets, with the active filter named next to the
+count and a clear button beside it. The urgency and category bars are clickable segment by segment.
+
+**Why it matters for a demo:** "here are 42 tickets, 10 of them critical" is a claim. Clicking
+Critical and reading the four that come back is evidence, and it takes one second. The views are now
+named **Dashboard** and **Queues**, because that is what they are.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

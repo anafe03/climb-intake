@@ -99,7 +99,19 @@ input[type=file]{display:none}
 .ov .big small{font-size:12.5px;font-weight:500;color:var(--dim);margin-left:6px;letter-spacing:0}
 .ov .big.danger{color:var(--danger)}
 .dist{display:flex;height:9px;border-radius:5px;overflow:hidden;margin:9px 0 7px;background:var(--sunken)}
-.dist i{display:block}.dist i+i{border-left:1px solid var(--card)}
+.dist i{display:block;cursor:pointer}.dist i+i{border-left:1px solid var(--card)}
+.dist i:hover{filter:brightness(1.15)}
+.dist i.sel{outline:2px solid var(--text);outline-offset:-2px}
+.pickable{cursor:pointer;padding:1px 5px;margin:-1px -5px;border-radius:4px}
+.pickable:hover{background:var(--sunken);color:var(--text)}
+.pickable.on{background:var(--primary);color:var(--on-primary);font-weight:600}
+.pickcard{cursor:pointer}
+.pickcard:hover{border-color:var(--line-2)}
+.pickcard.on{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
+.ov .k .hint{text-transform:none;letter-spacing:0;font-weight:400;color:var(--faint);margin-left:6px}
+.clearpick{background:transparent;border:1px solid var(--line-2);color:var(--dim);
+  font-size:11px;padding:2px 8px;border-radius:5px;margin-left:8px;text-transform:none;letter-spacing:0}
+.clearpick:hover{border-color:var(--primary);color:var(--primary)}
 .legend{display:flex;flex-wrap:wrap;gap:4px 11px;font-size:10.5px;color:var(--dim)}
 .legend span{display:flex;align-items:center;gap:5px;white-space:nowrap}
 .legend b{width:8px;height:8px;border-radius:2px;display:inline-block}
@@ -314,7 +326,7 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
     <button id="f-esc">Escalated</button>
   </div>
   <div class="seg">
-    <button id="v-list" class="on">List</button>
+    <button id="v-list" class="on">Dashboard</button>
     <button id="v-queue">Queues</button>
   </div>
   <select id="sort">
@@ -347,6 +359,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const cap=s=>{s=String(s).replace(/_/g,' ');return s[0].toUpperCase()+s.slice(1)};
 let rows=[], escOnly=false, sortBy='newest', openId=null, view='list';
+let pick=null;   // {kind:'urgency'|'category'|'critical', value} — set by clicking a stat
 
 // What each simulated downstream queue is for. Shown on the board so a reviewer can see the
 // routing table's intent, not just its output.
@@ -435,7 +448,7 @@ function explainer(key,d){
   const x=d.extraction, c=x.customer;
   const head=(t,lead)=>`<p class="lead">${esc(lead)}</p>`;
   const why=(txt)=>txt?`<h5>Why this ticket read that way</h5><p>${esc(txt)}</p>`:'';
-  const judg=(t)=>`<details class="judg"><summary>Why it was designed this way</summary><div>${t}</div></details>`;
+  const judg=(_t)=>'';  // design rationale lives in docs/DECISIONS.md, not in the product
   const found=(t)=>`<div class="found"><b>In this ticket</b>${t}</div>`;
 
   if(key==='who') return head('Who sent it',
@@ -596,7 +609,15 @@ const SORTS={
   fastest:(a,b)=>a.latency_ms-b.latency_ms,
   category:(a,b)=>a.extraction.category.localeCompare(b.extraction.category)||SORTS.urgency(a,b),
 };
-const visible=()=>(escOnly?rows.filter(d=>d.extraction.escalate):rows).slice().sort(SORTS[sortBy]);
+function matchesPick(d){
+  if(!pick) return true;
+  if(pick.kind==='urgency')  return d.extraction.urgency===pick.value;
+  if(pick.kind==='category') return d.extraction.category===pick.value;
+  if(pick.kind==='critical') return d.extraction.urgency==='critical';
+  return true;
+}
+const visible=()=>(escOnly?rows.filter(d=>d.extraction.escalate):rows)
+  .filter(matchesPick).slice().sort(SORTS[sortBy]);
 
 function ticketCard(d){
   const x=d.extraction;
@@ -649,31 +670,54 @@ function renderOverview(){
   const lat=rows.map(d=>d.latency_ms).sort((a,b)=>a-b);
   const p50=lat[Math.floor(lat.length/2)];
   const count=(key,get)=>{const m={};rows.forEach(d=>{const v=get(d);m[v]=(m[v]||0)+1});return m};
-  const bar=(m,colors)=>{
+  const bar=(m,colors,kind)=>{
     const keys=Object.keys(m).sort((a,b)=>m[b]-m[a]);
-    return `<div class="dist">${keys.map(k=>`<i style="width:${m[k]/rows.length*100}%;background:${colors[k]||'#cdcdc0'}" title="${esc(cap(k))} ${m[k]}"></i>`).join('')}</div>
-      <div class="legend">${keys.slice(0,5).map(k=>`<span><b style="background:${colors[k]||'#cdcdc0'}"></b>${esc(cap(k))} ${m[k]}</span>`).join('')}</div>`;
+    const on=k=>pick&&pick.kind===kind&&pick.value===k;
+    return `<div class="dist">${keys.map(k=>`<i data-pick="${kind}:${esc(k)}" class="${on(k)?'sel':''}" style="width:${m[k]/rows.length*100}%;background:${colors[k]||'#cdcdc0'}" title="${esc(cap(k))} ${m[k]} — click to filter"></i>`).join('')}</div>
+      <div class="legend">${keys.map(k=>`<span class="pickable ${on(k)?'on':''}" data-pick="${kind}:${esc(k)}"><b style="background:${colors[k]||'#cdcdc0'}"></b>${esc(cap(k))} ${m[k]}</span>`).join('')}</div>`;
   };
   el.innerHTML=`
-    <div class="ov"><div class="k">Tickets read</div>
+    <div class="ov pickcard ${!pick&&!escOnly?'on':''}" data-pick="all:1"><div class="k">Tickets read</div>
       <div class="big">${rows.length}</div>
       <div class="legend" style="margin-top:8px"><span>${rows.filter(d=>d.mode==='llm').length} by the model</span></div></div>
-    <div class="ov"><div class="k">Needing a human</div>
+    <div class="ov pickcard ${escOnly?'on':''}" data-pick="escalated:1"><div class="k">Needing a human</div>
       <div class="big danger">${esc_n}<small>${Math.round(esc_n/rows.length*100)}% escalated</small></div>
-      <div class="legend" style="margin-top:8px"><span>${crit} critical</span></div></div>
-    <div class="ov"><div class="k">By urgency</div>
-      ${bar(count('u',d=>d.extraction.urgency),URG_COLOR)}</div>
-    <div class="ov"><div class="k">By category</div>
-      ${bar(count('c',d=>d.extraction.category),CAT_COLOR)}</div>
+      <div class="legend" style="margin-top:8px"><span class="pickable ${pick&&pick.kind==='critical'?'on':''}" data-pick="critical:1">${crit} critical</span></div></div>
+    <div class="ov"><div class="k">By urgency <span class="hint">click to filter</span></div>
+      ${bar(count('u',d=>d.extraction.urgency),URG_COLOR,'urgency')}</div>
+    <div class="ov"><div class="k">By category <span class="hint">click to filter</span></div>
+      ${bar(count('c',d=>d.extraction.category),CAT_COLOR,'category')}</div>
     <div class="ov"><div class="k">Time to read one</div>
       <div class="big">${(p50/1000).toFixed(1)}<small>seconds, median</small></div>
       <div class="legend" style="margin-top:8px"><span>${(lat[lat.length-1]/1000).toFixed(1)}s slowest</span></div></div>`;
 }
 
+function applyPick(token){
+  const [kind,value]=token.split(':');
+  if(kind==='all'){pick=null;escOnly=false}
+  else if(kind==='escalated'){pick=null;escOnly=!escOnly}
+  else if(kind==='critical'){pick=(pick&&pick.kind==='critical')?null:{kind:'critical'}}
+  else pick=(pick&&pick.kind===kind&&pick.value===value)?null:{kind,value};
+  $('#f-all').classList.toggle('on',!escOnly); $('#f-esc').classList.toggle('on',escOnly);
+  renderList();
+}
+function wirePicks(){
+  document.querySelectorAll('[data-pick]').forEach(el=>el.onclick=e=>{
+    e.stopPropagation(); applyPick(el.dataset.pick);
+  });
+}
+
 function renderList(){
   renderOverview();
+  wirePicks();
   const v=visible(), n=rows.filter(d=>d.extraction.escalate).length;
-  $('#count').innerHTML=rows.length?`<b>${rows.length}</b> tickets · <i>${n} need a human</i>`:'';
+  const label = pick ? (pick.kind==='critical'?'critical':cap(pick.value)) : null;
+  $('#count').innerHTML = !rows.length ? ''
+    : (label||escOnly)
+      ? `<b>${v.length}</b> of ${rows.length} · <i>${esc(label||'escalated')}</i> <button class="clearpick" id="clearpick">clear</button>`
+      : `<b>${rows.length}</b> tickets · <i>${n} need a human</i>`;
+  const cp=$('#clearpick'); if(cp) cp.onclick=()=>{pick=null;escOnly=false;
+    $('#f-all').classList.add('on');$('#f-esc').classList.remove('on');renderList()};
   if(view==='queue' && rows.length) return renderQueueBoard();
   if(!v.length){
     $('#list').innerHTML=rows.length
@@ -899,7 +943,7 @@ $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;
 $('#clear').onclick=()=>{if(!confirm('Delete every decision from the audit log?'))return;
   run(async()=>{await api('/tickets',{method:'DELETE'});closeModal();await reload();
     status('Cleared.',{hold:2500})})};
-$('#f-all').onclick=()=>{escOnly=false;$('#f-all').classList.add('on');$('#f-esc').classList.remove('on');renderList()};
+$('#f-all').onclick=()=>{pick=null;escOnly=false;$('#f-all').classList.add('on');$('#f-esc').classList.remove('on');renderList()};
 $('#f-esc').onclick=()=>{escOnly=true;$('#f-esc').classList.add('on');$('#f-all').classList.remove('on');renderList()};
 $('#sort').onchange=e=>{sortBy=e.target.value;renderList()};
 $('#menubtn').onclick=e=>{e.stopPropagation();$('#menupop').classList.toggle('on')};
