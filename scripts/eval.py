@@ -23,15 +23,29 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def main() -> int:
+    # --rescore re-runs the scoring over a saved run instead of calling the model again. Adding a
+    # metric should not cost another eval: the decisions are already on disk, and what changed is
+    # how they are judged.
+    rescore = "--rescore" in sys.argv
     mode = effective_mode()
+    if rescore:
+        mode = next((a for a in sys.argv[1:] if not a.startswith("-")), mode)
     gold = load_gold()
-    if mode == "llm":
-        from _spend import confirm
-        confirm(len(gold), "gold eval")
-    t0 = time.perf_counter()
-    with ThreadPoolExecutor(max_workers=int(os.environ.get("BATCH_CONCURRENCY", "4"))) as ex:
-        decisions = list(ex.map(lambda r: process(TicketIn(text=r["text"], source="eval", external_id=r["id"]), persist=False), gold))
-    wall = time.perf_counter() - t0
+    if rescore:
+        from app.models import Decision
+        saved = json.loads((ROOT / "data" / "eval-results" / f"{mode}.json").read_text())
+        decisions = [Decision(**d) for d in saved["decisions"]]
+        by_id = {d.ticket.external_id: d for d in decisions}
+        decisions = [by_id[r["id"]] for r in gold]
+        wall = float("nan")
+    else:
+        if mode == "llm":
+            from _spend import confirm
+            confirm(len(gold), "gold eval")
+        t0 = time.perf_counter()
+        with ThreadPoolExecutor(max_workers=int(os.environ.get("BATCH_CONCURRENCY", "4"))) as ex:
+            decisions = list(ex.map(lambda r: process(TicketIn(text=r["text"], source="eval", external_id=r["id"]), persist=False), gold))
+        wall = time.perf_counter() - t0
     results = [score_one(r, d) for r, d in zip(gold, decisions)]
     s = summarize(results)
     tokens_in = sum(d.usage.get("input_tokens", 0) for d in decisions)
@@ -43,7 +57,8 @@ def main() -> int:
     lines = [
         f"# Eval scorecard: mode={mode}" + (f", model={model}" if model else ""),
         "",
-        f"Generated {time.strftime('%Y-%m-%d %H:%M')} on {s['n']} gold tickets (10 Climb samples + {s['n'] - 10} edge cases).",
+        f"Generated {time.strftime('%Y-%m-%d %H:%M')} on {s['n']} gold tickets (10 Climb samples + {s['n'] - 10} edge cases)."
+        + (" Scoring re-run over the saved decisions; the model was not called again." if rescore else ""),
         "",
         "| Metric | Value |",
         "|---|---|",
@@ -53,6 +68,10 @@ def main() -> int:
         f"| Escalation reason accuracy | {s['reasons_accuracy']:.0%} |",
         f"| Category accuracy (ambiguity-aware) | {s['category_accuracy']:.0%} |",
         f"| Urgency exact / within tolerance | {s['urgency_exact']:.0%} / {s['urgency_accuracy']:.0%} |",
+        f"| Urgency **under**-called (said calmer than gold) | {s['urgency_under_rate']:.0%} \u2014 {s['urgency_under'] or 'none'} |",
+        f"| Urgency over-called (said more urgent than gold) | {s['urgency_over_rate']:.0%} \u2014 {s['urgency_over'] or 'none'} |",
+        f"| Under-calls on tickets gold does NOT mark ambiguous | {s['urgency_hard_under'] or 'none'} |",
+        f"| Any critical ticket read as less than critical | {'NO' if s['urgency_never_under_critical'] else 'YES \u2014 investigate'} |",
         f"| Customer name accuracy (incl. correctly null) | {s['customer_accuracy']:.0%} |",
         f"| Identifier extraction | {s['identifier_accuracy']:.0%} |",
         f"| Overclaimed sender confidence (safety: must be none) | {s['overconfidence'] or 'none'} |",
@@ -60,8 +79,20 @@ def main() -> int:
         f"| Confidence misses | {s['confidence_misses'] or 'none'} |",
         f"| Every guess carries its basis | {'yes' if s['basis_always_given'] else 'NO'} |",
         f"| Latency p50 / p95 per ticket | {p50} ms / {p95} ms |",
-        f"| Wall time (concurrency {os.environ.get('BATCH_CONCURRENCY', '4')}) | {wall:.1f} s |",
+        f"| Wall time (concurrency {os.environ.get('BATCH_CONCURRENCY', '4')}) | {'not re-run' if rescore else f'{wall:.1f} s'} |",
         f"| Tokens in / out | {tokens_in} / {tokens_out} |",
+        "",
+        "## Why urgency is reported by direction",
+        "",
+        "Accuracy scores an under-call and an over-call as the same mistake. They are not. This is a",
+        "screening test: calling a well patient sick costs a second look, calling a sick patient well",
+        "costs the thing the test exists for. An over-called ticket reaches a queue faster than it",
+        "needed to and someone downgrades it. An under-called ticket sits.",
+        "",
+        "So the number to read is **under-calls**, and specifically under-calls on tickets the gold set",
+        "does *not* mark ambiguous on urgency \u2014 the rest are disagreements the gold set already",
+        "licenses. The same asymmetry is built into the guardrail layer, which may raise urgency and",
+        "never lower it.",
         "",
         "## Per-ticket",
         "",

@@ -53,6 +53,7 @@ def score_one(row: dict, d: Decision) -> dict:
         "guess": x.customer.best_guess,
         "basis_given": bool(x.customer.basis) or x.customer.confidence == 0.0,
         "identifier_ok": (not exp.get("identifier_contains")) or any(exp["identifier_contains"] in i for i in x.customer.identifiers),
+        "ambiguous": sorted(amb),
         "queue": d.queue,
         "got": {"category": x.category.value, "urgency": x.urgency.value, "escalate": x.escalate, "reasons": [r.value for r in x.escalation_reasons], "customer": x.customer.name},
         "expected": exp,
@@ -86,4 +87,45 @@ def summarize(results: list[dict]) -> dict:
             for r in results if r["confidence_scored"] and not (r["confidence_floor_ok"] and r["confidence_ceiling_ok"])
         ],
         "basis_always_given": all(r["basis_given"] for r in results),
+        **_urgency_direction(results),
     }
+
+
+# Accuracy scores an under-call and an over-call the same, and they are not the same failure. This
+# is a screening test: calling a well patient sick costs a second look, calling a sick patient well
+# costs the thing you built the test for. So urgency is reported by direction, and the number that
+# matters is under-calls — tickets that needed to move faster than we said.
+URGENCY_ORDER = {"low": 0, "medium": 1, "high": 2, "critical": 3}
+
+
+def _urgency_direction(results: list[dict]) -> dict:
+    under, over = [], []
+    for r in results:
+        if r["urgency_exact"]:
+            continue
+        got = URGENCY_ORDER[r["got"]["urgency"]]
+        exp = URGENCY_ORDER[r["expected"]["urgency"]]
+        gap = got - exp
+        entry = f"{r['id']} said {r['got']['urgency']}, gold {r['expected']['urgency']}"
+        (under if gap < 0 else over).append(entry)
+    n = len(results)
+    # Under-calls on a ticket the gold set does not mark ambiguous on urgency are the real misses:
+    # the rest are disagreements the gold set already licenses.
+    hard_under = [u for u in under if not _urg_ambiguous(results, u.split()[0])]
+    return {
+        "urgency_under": under,
+        "urgency_over": over,
+        "urgency_under_rate": len(under) / n,
+        "urgency_over_rate": len(over) / n,
+        "urgency_hard_under": hard_under,
+        "urgency_never_under_critical": not any(
+            r["expected"]["urgency"] == "critical" and r["got"]["urgency"] != "critical" for r in results
+        ),
+    }
+
+
+def _urg_ambiguous(results: list[dict], ticket_id: str) -> bool:
+    for r in results:
+        if r["id"] == ticket_id:
+            return "urgency" in (r.get("ambiguous") or [])
+    return False

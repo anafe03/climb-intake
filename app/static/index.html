@@ -569,11 +569,26 @@ const FAQ={
      +'report of a checkout charging customers twice is critical. The signals are facts about impact, not '
      +'temperature.'],
     ['How accurate is the urgency call?',
-     'It is the weakest field, and the scorecard says so: 82% exact on the model path, 100% once one level of '
-     +'tolerance is allowed, against 76% / 97% for rules-only (<code>docs/EVAL-llm.md</code>). Urgency is the '
-     +'one field where the gold set marks ambiguity on most tickets, because reasonable people disagree about '
-     +'low versus medium — 20 of the 33 tickets carry an ambiguity mark on urgency, against 8 on category '
-     +'and 5 on escalate.'],
+     'Accuracy is the wrong question here, and the scorecard answers the right one instead. Exact agreement '
+     +'is 82% on the model path and 76% rules-only — the weakest numbers in the system. But an urgency '
+     +'call is a <b>screening test</b>, and a screening test is not judged on accuracy. Calling a well patient '
+     +'sick costs a second look. Calling a sick patient well costs the thing you built the test for.'],
+    ['So which way does it get them wrong?',
+     'Always the safe way, on this gold set. <b>Under-called (said calmer than gold): 0%.</b> Over-called: 18% '
+     +'on the model path, 24% rules-only. No ticket the gold set calls critical was ever read as anything '
+     +'less. Every one of those misses is a ticket that reached a queue faster than it strictly needed to, '
+     +'where a person downgrades it in seconds — not one that sat. <code>docs/EVAL-llm.md</code> reports '
+     +'under-calls and over-calls as separate rows for exactly this reason.'],
+    ['Why does rules-only over-call more?',
+     'Because it should. 24% against the model’s 18% is the deterministic layer being deliberately '
+     +'twitchy: it matches words, cannot weigh context, and is built to fail upward. The model is the more '
+     +'precise reader; the rules are the floor under it. Neither has ever under-called.'],
+    ['Is that not just a tolerant gold set?',
+     'The scorecard reports the strict version too: under-calls on tickets the gold set does <i>not</i> mark '
+     +'ambiguous on urgency. That row reads <b>none</b> in both modes. Urgency is where the gold set concedes '
+     +'the most — 20 of 33 rows are marked ambiguous, against 8 on category and 5 on escalate — '
+     +'because low versus medium is genuinely arguable. The under-call number does not depend on that '
+     +'concession.'],
   ],
   human:[
     ['Why not let the model decide escalation on its own?',
@@ -583,6 +598,12 @@ const FAQ={
     ['Then why not just rules?',
      'Rules cannot read "our data reached the wrong audience" without the word breach in it. The model catches '
      +'meaning; the regexes catch words. Neither alone covers both.'],
+    ['Are you optimising for recall or precision?',
+     'Recall, explicitly, and the whole design says so. A missed escalation is a breach nobody looked at; a '
+     +'false one is a minute of someone’s afternoon. So the keyword layer may only ever <i>raise</i> a '
+     +'ticket, the gold set tolerates over-escalation on marked rows and never tolerates a miss, and urgency '
+     +'is scored by direction rather than by accuracy. The cost of the two errors is not symmetric — so the '
+     +'metrics are not either.'],
     ['What is the false-positive rate?',
      'Zero, on 22 chances. The 33-ticket gold set splits 11 must-escalate / 22 must-not, and both the model '
      +'path and rules-only mode score <b>100% escalation recall with zero false escalations</b> — the '

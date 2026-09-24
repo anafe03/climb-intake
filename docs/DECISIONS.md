@@ -1159,6 +1159,41 @@ weak field, urgency at 82% exact.
 **Rule adopted:** every number in the product names the file it came from. A claim a reader cannot
 trace is a claim that goes stale silently, which is exactly what happened here.
 
+### D75. Urgency is a screening test, so it is scored like one
+Austin, on the urgency numbers: recall matters more than precision here — the doctor trade-off.
+He is right, and the scorecard was measuring the wrong thing. "82% exact" treats an under-call and
+an over-call as the same mistake. They are not. An over-called ticket reaches a queue faster than it
+needed to and a person downgrades it in seconds. An under-called ticket sits. Calling a well patient
+sick costs a second look; calling a sick patient well costs the thing the test exists for.
+
+`tests/gold.py` now reports urgency by **direction**, and the scorecards carry four new rows:
+under-call rate, over-call rate, under-calls on tickets gold does *not* mark ambiguous, and whether
+any critical ticket was ever read as less than critical.
+
+| | model path | rules-only |
+|---|---|---|
+| Exact agreement | 82% | 76% |
+| **Under-called** (said calmer than gold) | **0%** | **0%** |
+| Over-called | 18% | 24% |
+| Under-calls on non-ambiguous rows | none | none |
+| A critical ticket read as less than critical | never | never |
+
+Two things worth saying out loud from this. First, every urgency miss in the system is in the safe
+direction — a much stronger claim than 82%, and it was already true, just not measured. Second,
+rules-only over-calls *more* (24% vs 18%), which is the deterministic layer working as designed: it
+matches words, cannot weigh context, and is built to fail upward. The model is the more precise
+reader; the rules are the floor under it.
+
+The same asymmetry was already in the code — guardrails may raise urgency and never lower it
+(D19) — and in the gold set, which tolerates over-escalation on marked rows and never tolerates
+a miss. The metrics now match the design instead of contradicting it.
+
+### D76. Re-scoring should not cost another eval run
+Adding D75's metrics would have meant re-running 33 model calls to restate numbers already on disk.
+`scripts/eval.py --rescore llm` loads the saved decisions and re-runs only the scoring. What changed
+was how the answers are judged, not the answers. The regenerated scorecard says so in its header, so
+nobody reads it as a fresh run.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

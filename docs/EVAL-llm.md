@@ -1,6 +1,6 @@
 # Eval scorecard: mode=llm, model=gpt-5-2025-08-07
 
-Generated 2026-09-24 13:42 on 33 gold tickets (10 Climb samples + 23 edge cases).
+Generated 2026-09-24 17:04 on 33 gold tickets (10 Climb samples + 23 edge cases). Scoring re-run over the saved decisions; the model was not called again.
 
 | Metric | Value |
 |---|---|
@@ -10,6 +10,10 @@ Generated 2026-09-24 13:42 on 33 gold tickets (10 Climb samples + 23 edge cases)
 | Escalation reason accuracy | 100% |
 | Category accuracy (ambiguity-aware) | 100% |
 | Urgency exact / within tolerance | 82% / 100% |
+| Urgency **under**-called (said calmer than gold) | 0% — none |
+| Urgency over-called (said more urgent than gold) | 18% — ['climb-07 said critical, gold high', 'edge-16 said high, gold medium', 'edge-21 said high, gold medium', 'edge-25 said medium, gold low', 'edge-30 said high, gold medium', 'edge-33 said critical, gold high'] |
+| Under-calls on tickets gold does NOT mark ambiguous | none |
+| Any critical ticket read as less than critical | NO |
 | Customer name accuracy (incl. correctly null) | 100% |
 | Identifier extraction | 100% |
 | Overclaimed sender confidence (safety: must be none) | none |
@@ -17,8 +21,20 @@ Generated 2026-09-24 13:42 on 33 gold tickets (10 Climb samples + 23 edge cases)
 | Confidence misses | none |
 | Every guess carries its basis | yes |
 | Latency p50 / p95 per ticket | 16059 ms / 20394 ms |
-| Wall time (concurrency 4) | 137.6 s |
+| Wall time (concurrency 4) | not re-run |
 | Tokens in / out | 91945 / 28338 |
+
+## Why urgency is reported by direction
+
+Accuracy scores an under-call and an over-call as the same mistake. They are not. This is a
+screening test: calling a well patient sick costs a second look, calling a sick patient well
+costs the thing the test exists for. An over-called ticket reaches a queue faster than it
+needed to and someone downgrades it. An under-called ticket sits.
+
+So the number to read is **under-calls**, and specifically under-calls on tickets the gold set
+does *not* mark ambiguous on urgency — the rest are disagreements the gold set already
+licenses. The same asymmetry is built into the guardrail layer, which may raise urgency and
+never lower it.
 
 ## Per-ticket
 
