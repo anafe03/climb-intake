@@ -198,10 +198,15 @@ into the loaded tickets; [docs/DEMO.md](docs/DEMO.md) is the plain-text version.
 
 ## Interface notes
 
-The web view is one list of decisions. Click any ticket to open the full breakdown in a dialog:
-the request as it arrived, the four extracted fields with the evidence behind each, the queue it was
-routed to, the reasoning, and whether any guardrail rule changed the answer. Arrow keys step between
-tickets without closing it, and every decision is linkable at `/?t=<decision id>`.
+The web view has two tabs, each answering one question. **Dashboard** is the shape of the pile:
+how many tickets, how many need a human, the split by urgency and category, and how long one takes
+to read. Every number on it is a filter. **Queues** is the tickets themselves, grouped by the team
+they were routed to — clicking a number on the dashboard lands you here with that filter applied.
+
+Click any ticket to open the full breakdown in a dialog: the request as it arrived, the four
+extracted fields with the evidence behind each, the queue it was routed to, the reasoning, and
+whether any guardrail rule changed the answer. Arrow keys step between tickets without closing it,
+and every decision is linkable at `/?t=<decision id>`.
 
 Sort by most recent, most urgent, longest or quickest to read, or category; filter to the tickets that
 need a human. Each row shows how long that ticket took to classify, which makes the model-vs-rules

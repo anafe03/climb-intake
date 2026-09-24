@@ -1064,6 +1064,42 @@ sensitive value, so the loop runs over the *presence* of each key — `nonsensit
 which leaks whether a key was supplied and never the key. Validates under OpenTofu; still not
 applied, and `docs/DEPLOY.md` says so in those words.
 
+### D67. The pop-out order was backwards: rubric before answer
+D57/D59 moved the reasoning above the reference material, which was an improvement and still not
+right. Austin, reading it as a demo: "the decision should always be first, then the criteria and
+evidence for that decision." He is correct, and the old order fails the basic test — a reviewer
+opening "How urgent" had to scroll past a five-band scale to find out the ticket was critical.
+
+Every pop-out now reads in one order: the ticket, **the decision**, the evidence behind it, then
+the rubric it was measured against. The answer is styled as the answer (`.found.lead`) rather than
+appearing as a footnote at the bottom. D59's "reason before reference" still holds; it was just
+missing a step in front of it.
+
+### D68. Queues is the landing tab, not the dashboard
+Splitting the two views (D69 below) raised the question of which one opens. Queues, because a
+consultant demoing this wants the tickets and where they went, and a summary card answers a
+question nobody has asked yet. The dashboard is what you step back to, and every number on it is a
+filter that lands you back in Queues.
+
+### D69. Dashboard and Queues stopped overlapping
+The dashboard was the stat cards *plus* a flat list of every ticket, and Queues was the same
+tickets grouped. The list appeared twice under two names. Now the dashboard is the numbers alone
+and Queues is the tickets alone — one question each. Empty queues still show when nothing is
+filtered, because an empty queue is a fact about routing; under a filter they are hidden, because
+then they are an artifact of the filter.
+
+### D70. Saying what the safety net *is*, not just what it did
+The section showed a rule name and "nothing changed", which means nothing to a reader who has not
+been told there is a second layer. It now opens with what the layer is — about twenty regexes in
+`app/rules.py`, no model, run over the original ticket text rather than the model's output, each
+belonging to one of the five escalation topics — and what it is permitted to do: raise the flag,
+lift urgency to a floor, never lower either, never touch the category. The per-ticket result comes
+after that under its own subheading.
+
+Same treatment for the urgency criteria, which were a two-word label and a quoted fragment each.
+They now say what the signal means and which way it moves the level, with the point that tone is
+deliberately not among them.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the
