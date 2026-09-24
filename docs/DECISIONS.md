@@ -867,6 +867,38 @@ demo for reasons nobody in the room can diagnose.
 **Added to the checklist:** restart the container runtime before presenting if it has been up more
 than a day. `preflight.sh` now warns on VM uptime over 24 hours rather than waiting for the symptom.
 
+### D54. Spend got away from me, and the fix is a lever plus a gate
+Across this build I ran the gold eval a dozen times, three repeatability studies, two bake-offs, and
+reloaded the demo fixtures on nearly every rebuild. **No single run was expensive — a 33-ticket eval
+is about 30 cents — but nobody was counting, and that is how the bill happened.**
+
+**Where the money actually goes.** Measured per ticket: ~2,500 input tokens of which ~90% are cached,
+and ~1,500 output. Output costs **8x** input on this family, and a reasoning model spends most of its
+output thinking rather than answering. So the bill is almost entirely reasoning tokens. Prompt length
+is nearly free by comparison, which is counter-intuitive and worth saying to anyone optimising the
+wrong end.
+
+**The lever: reasoning effort.** `OPENAI_REASONING_EFFORT` now defaults to `low`. This is
+classification against an explicit rubric with a fixed schema, not open-ended problem solving. The
+estimated cost of a 33-ticket eval across the grid:
+
+| model | minimal | low | medium | high |
+|---|---|---|---|---|
+| gpt-5 | $0.17 | **$0.32** | $0.55 | $0.88 |
+| gpt-5-mini | $0.03 | $0.06 | $0.11 | $0.18 |
+| gpt-5-nano | $0.01 | $0.01 | $0.02 | $0.04 |
+
+**The gate:** `scripts/_spend.py`. Every script that fans out over the gold set now prints its
+estimate before spending anything and stops above `SPEND_BUDGET_USD` (default $0.25), suggesting a
+cheaper model or lower effort. `SPEND_OK=1` proceeds; CI sets it.
+
+**Not yet verified.** Credits ran out before the effort change could be measured, so the *quality*
+cost of `low` is unknown. Before trusting it: run the gold eval at `low` and at `medium` and compare
+escalation recall and false escalations. If `low` costs recall, it is not a saving. **That is pinned
+in `docs/STATUS.md` as the next thing to do when credits return.**
+**If pushed:** "Why not just use the cheap model?" Because D52 — mini over-escalates the traps.
+Effort is the lever that does not trade away the thing being measured. Probably.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

@@ -22,6 +22,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from app.models import TicketIn  # noqa: E402
 from app.pipeline import process  # noqa: E402
 from tests.gold import load_gold, score_one, summarize  # noqa: E402
@@ -78,6 +79,9 @@ def main() -> int:
     ids = a.ids or (CLIMB_10 if a.climb10 else list(gold))
     rows = [gold[i] for i in ids if i in gold]
     a.ids = ids
+    from _spend import confirm
+    for m in a.models:
+        confirm(len(rows), f"bake-off leg", m)
     print(f"{len(rows)} tickets x {len(a.models)} models = {len(rows)*len(a.models)} calls\n")
 
     results = []

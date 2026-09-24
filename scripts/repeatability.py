@@ -19,6 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from app.models import TicketIn  # noqa: E402
 from app.pipeline import effective_mode, process  # noqa: E402
 from tests.gold import load_gold  # noqa: E402
@@ -41,6 +42,9 @@ def main() -> int:
     a = ap.parse_args()
 
     mode = effective_mode()
+    if mode == "llm":
+        from _spend import confirm
+        confirm(len(a.ids) * a.repeats, "repeatability run")
     gold = {r["id"]: r for r in load_gold()}
     rows = [gold[i] for i in a.ids if i in gold]
     model_name = None

@@ -14,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from app.models import TicketIn  # noqa: E402
 from app.pipeline import effective_mode, process  # noqa: E402
 from tests.gold import load_gold, score_one, summarize  # noqa: E402
@@ -24,6 +25,9 @@ ROOT = Path(__file__).resolve().parent.parent
 def main() -> int:
     mode = effective_mode()
     gold = load_gold()
+    if mode == "llm":
+        from _spend import confirm
+        confirm(len(gold), "gold eval")
     t0 = time.perf_counter()
     with ThreadPoolExecutor(max_workers=int(os.environ.get("BATCH_CONCURRENCY", "4"))) as ex:
         decisions = list(ex.map(lambda r: process(TicketIn(text=r["text"], source="eval", external_id=r["id"]), persist=False), gold))

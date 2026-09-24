@@ -34,11 +34,15 @@ Updated 2026-09-22. `./scripts/preflight.sh` is the live version of the top half
 
 ## Worth doing next, in order
 
-1. **Run the bake-off over all 33 gold tickets, not 10.** Ten tickets means one disagreement moves a
+1. **Verify that `OPENAI_REASONING_EFFORT=low` does not cost recall** (~66 calls, about $0.40).
+   Run the gold eval at `low` and at `medium`, compare escalation recall and false escalations. The
+   effort default was set for cost and is **unverified for quality** — if `low` misses an escalation
+   it is not a saving. This is the first thing to do when credits return. See D54.
+2. **Run the bake-off over all 33 gold tickets, not 10.** Ten tickets means one disagreement moves a
    column by ten points. About 90 calls.
-2. **Split the gold set.** It has been used to tune prompts, so its numbers are optimistic. Reporting
+3. **Split the gold set.** It has been used to tune prompts, so its numbers are optimistic. Reporting
    only an untouched half would be the honest version. Costs nothing but a re-run.
-3. **Decide the production model.** Bake-off and repeatability disagree: nano matches gpt-5 on
+4. **Decide the production model.** Bake-off and repeatability disagree: nano matches gpt-5 on
    accuracy at 6% of the cost, but flips a label on repeat. Probably nano plus the review queue.
 
 ## Deliberately not doing
