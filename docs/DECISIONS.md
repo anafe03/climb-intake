@@ -848,6 +848,25 @@ at mini. **Two measurements disagreed and the cheaper one was flattering.**
 test I had built, that could not see the failure mode that mattered. The fix is not a better model —
 it is a test set that tries to make the system wrong.
 
+### D53. The container's network degraded with VM uptime, and a restart fixed it
+After reverting to `gpt-5`, a 32-ticket batch put **20 of 32** on the keyword fallback with
+`APIConnectionError` — while four-ticket batches at concurrency 1, 2 and 4 all ran clean, and single
+tickets never failed. Not rate limiting (it survived concurrency 4 on small batches), not the
+deadline (these were connection errors, not timeouts), and not the per-request client (D48 already
+fixed that).
+
+The Colima VM had been up **2 days 15 hours**, and the failures had been getting steadily worse
+across the session — first the odd Docker registry pull, then pip during builds, then classifications.
+`colima restart` and the same 32-ticket batch ran **0 fallbacks**.
+
+**Root cause is the VM's network state accumulating, not this application.** It is still worth
+writing down, because it produced three different symptoms over two days that each looked like a
+different bug, and one of them wasted an hour on a build. It is also the kind of thing that breaks a
+demo for reasons nobody in the room can diagnose.
+
+**Added to the checklist:** restart the container runtime before presenting if it has been up more
+than a day. `preflight.sh` now warns on VM uptime over 24 hours rather than waiting for the symptom.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

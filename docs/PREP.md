@@ -8,6 +8,8 @@ about 45 minutes; the rehearsal is 30.
 ## 1 · Get the machine into demo state (5 min)
 
 - [ ] Credits are on the OpenAI account. Everything below assumes the model is reachable.
+- [ ] **`colima restart` if the VM has been up more than a day.** Its network degrades with uptime and
+      the symptom is tickets silently falling back to keyword rules (D53). Preflight warns about this.
 - [ ] `docker compose up -d` and then `./scripts/preflight.sh`
 - [ ] Everything reads PASS except **git remote**. If anything else fails, fix that first — the
       checks exist because each one broke at least once.

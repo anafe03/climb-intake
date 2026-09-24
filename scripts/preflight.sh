@@ -32,6 +32,13 @@ diff <(curl -s $BASE/architecture) app/static/architecture.html >/dev/null \
 diff <(curl -s $BASE/architecture) app/static/architecture.html >/dev/null \
   && ok "architecture page current at /architecture" || no "/architecture stale or missing"
 
+UP=$(ps -o etime= -p "$(pgrep -f 'limactl.*colima' | head -1)" 2>/dev/null | tr -d ' ')
+case "$UP" in
+  *-*) no "container VM has been up $UP — restart it (colima restart); its network degrades (D53)" ;;
+  "")  ok "no long-running VM detected" ;;
+  *)   ok "container VM uptime $UP" ;;
+esac
+
 echo "── api"
 MODE=$(curl -s $BASE/health | $PY -c 'import json,sys;print(json.load(sys.stdin)["mode"])')
 [ "$MODE" = "llm" ] && ok "model mode active ($(curl -s $BASE/health | $PY -c 'import json,sys;print(json.load(sys.stdin)["model"])'))" \
