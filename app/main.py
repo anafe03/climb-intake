@@ -19,7 +19,39 @@ from .models import Decision, TicketIn
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
-app = FastAPI(title="Climb Ticket Intake", version="0.1.0")
+DESCRIPTION = """
+Ticket intake and routing. Post freeform text, get back a decision you can audit.
+
+**What happens to a ticket.** A model reads it and returns structured fields with a reason for
+each one. A layer of plain keyword rules then runs over the *original* text and may raise the
+escalation flag or the urgency, never lower either. The routing table in `app/routing.yaml` maps
+the result to a queue. Every step is written to SQLite and to a JSON-line audit log before the
+response is returned.
+
+**Two modes.** With a provider key set, the model path runs. Without one — or if the model call
+fails — the same request is served by the keyword classifier alone and `mode` says so. The API
+shape is identical either way, so nothing downstream has to care.
+
+**Idempotency.** `(source, external_id)` is unique. Re-posting a ticket you already sent returns
+the original decision rather than classifying it twice.
+
+**Where to start.** `POST /tickets/load-samples` ingests the ten provided tickets in one call,
+then `GET /tickets` lists what came out. `GET /tickets/{id}/explain` is the plain-text version of
+the same record, meant to be read by a person.
+"""
+
+TAGS = [
+    {"name": "intake", "description": "Ways in. Every one of these runs the full pipeline and writes an audit record."},
+    {"name": "read", "description": "Ways out. Decisions, the human-readable explanation, and queue depths."},
+    {"name": "operate", "description": "Health and housekeeping."},
+]
+
+app = FastAPI(
+    title="Climb Ticket Intake",
+    version="0.1.0",
+    description=DESCRIPTION,
+    openapi_tags=TAGS,
+)
 STATIC = Path(__file__).with_name("static")
 DATA = Path(__file__).resolve().parent.parent / "data"
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
@@ -57,8 +89,13 @@ def architecture():
     return FileResponse(STATIC / "architecture.html")
 
 
-@app.get("/health")
+@app.get("/health", tags=["operate"], summary="Is it up, and is the model answering?")
 def health():
+    """`ok` is false when a model is configured but its last call failed.
+
+    The service still answers in that state — on the keyword rules — so a plain 200 would hide a
+    real degradation. `mode` tells you which path the next ticket will take.
+    """
     last = pipeline.LAST_MODEL_CALL
     degraded = last["status"] == "failing"
     return {
@@ -74,20 +111,34 @@ def health():
     }
 
 
-@app.post("/tickets", response_model=Decision)
+@app.post("/tickets", response_model=Decision, tags=["intake"],
+          summary="Classify and route one ticket")
 def create_ticket(ticket: TicketIn):
+    """The main entry point. `text` is the raw ticket; everything else is optional.
+
+    Set `external_id` to whatever your system already calls this ticket and the call becomes safe
+    to retry. The response carries the final `extraction`, the model's pre-override answer in
+    `llm_extraction`, every rule that fired in `rule_hits`, and the queue it landed in.
+    """
     return pipeline.process(ticket)
 
 
-@app.post("/tickets/batch", response_model=BatchOut)
+@app.post("/tickets/batch", response_model=BatchOut, tags=["intake"],
+          summary="Classify a list of tickets")
 def create_batch(batch: BatchIn):
+    """Same processing as `POST /tickets`, run concurrently (`BATCH_CONCURRENCY`, default 4)."""
     decisions = _process_many(batch.tickets)
     return BatchOut(count=len(decisions), decisions=decisions)
 
 
-@app.post("/tickets/upload", response_model=BatchOut)
+@app.post("/tickets/upload", response_model=BatchOut, tags=["intake"],
+          summary="Upload a file of tickets")
 async def upload(file: UploadFile = File(...)):
-    """Accepts .json (array of {text,...} or strings), .jsonl, .csv (a `text` column, optional id/source), or .txt (blank-line separated)."""
+    """Batch upload for people who have an export rather than an integration.
+
+    Accepts `.json` (an array of objects with `text`, or of plain strings), `.jsonl`, `.csv` (a
+    `text` column, optionally `id` and `source`), or `.txt` split on blank lines.
+    """
     raw = (await file.read()).decode("utf-8", errors="replace")
     name = (file.filename or "").lower()
     tickets: list[TicketIn] = []
@@ -119,12 +170,13 @@ FIXTURES = {
 }
 
 
-@app.post("/tickets/load-samples", response_model=BatchOut)
+@app.post("/tickets/load-samples", response_model=BatchOut, tags=["intake"],
+          summary="Ingest a bundled fixture (start here)")
 def load_samples(fixture: str = "samples"):
     """Convenience for demos: ingest a bundled ticket fixture.
 
-    fixture=samples -> the 10 Climb-provided tickets
-    fixture=demo    -> a wider set spanning every category, urgency, and escalation reason
+    - `samples` — the ten provided tickets
+    - `demo` — a wider set covering every category, urgency, and escalation reason
     """
     if fixture not in FIXTURES:
         raise HTTPException(400, f"unknown fixture '{fixture}'; expected one of {sorted(FIXTURES)}")
@@ -135,12 +187,15 @@ def load_samples(fixture: str = "samples"):
     return BatchOut(count=len(decisions), decisions=decisions)
 
 
-@app.get("/tickets", response_model=list[Decision])
+@app.get("/tickets", response_model=list[Decision], tags=["read"],
+         summary="List decisions, newest first")
 def list_tickets(limit: int = 100, queue: str | None = None):
+    """Pass `queue` to see only what routed to one queue, e.g. `human-escalation-desk`."""
     return audit.list_recent(limit=limit, queue=queue)
 
 
-@app.get("/tickets/{decision_id}", response_model=Decision)
+@app.get("/tickets/{decision_id}", response_model=Decision, tags=["read"],
+         summary="One decision, in full")
 def get_ticket(decision_id: str):
     d = audit.get(decision_id)
     if not d:
@@ -148,8 +203,12 @@ def get_ticket(decision_id: str):
     return d
 
 
-@app.get("/tickets/{decision_id}/explain", response_class=PlainTextResponse)
+@app.get("/tickets/{decision_id}/explain", response_class=PlainTextResponse, tags=["read"],
+         summary="The same decision, written for a person")
 def explain(decision_id: str):
+    """Plain text, not JSON: the four fields, the reason for each, the rules that fired, and any
+    override the rules applied to the model's answer. This is what gets pasted into a thread when
+    someone asks why a ticket went where it went."""
     d = audit.get(decision_id)
     if not d:
         raise HTTPException(404, "unknown ticket id")
@@ -183,13 +242,16 @@ def explain(decision_id: str):
     return "\n".join(lines)
 
 
-@app.get("/queues")
+@app.get("/queues", tags=["read"], summary="Every queue and how deep it is")
 def queues():
+    """All configured queues, including the ones nothing routed to — an empty queue is a fact
+    worth showing, not a row to hide."""
     counts = audit.queue_counts()
     return {"total": audit.total(), "queues": [{"name": q, "count": counts.get(q, 0)} for q in routing.all_queues()]}
 
 
-@app.delete("/tickets")
+@app.delete("/tickets", tags=["operate"], summary="Wipe the audit store")
 def clear_all():
+    """Clears every decision. Intended for resetting a demo, not for production use."""
     audit.clear()
     return {"ok": True}

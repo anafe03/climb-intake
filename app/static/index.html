@@ -238,6 +238,9 @@ input[type=file]{display:none}
 .ref li span{color:var(--dim)}
 @media (max-width:560px){.ref li b{display:block;min-width:0;margin-bottom:2px}}
 .crit li span{font-weight:400;color:var(--dim)}
+.trig{margin-top:5px;font:500 11px/1.6 var(--mono);color:var(--faint);
+  word-spacing:.02em}
+.crit li.hit .trig{color:var(--dim)}
 .judg{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
 .judg summary{font:600 12px var(--sans);color:var(--dim);cursor:pointer;list-style:none}
 .judg summary::-webkit-details-marker{display:none}
@@ -426,12 +429,21 @@ const URGENCY_CRITERIA=[
   ['Recurrence','"third time this month", "still happening"'],
   ['Ongoing harm','is it still causing damage as they write'],
 ];
+// Third column is the literal vocabulary the guardrail layer greps for, abridged from
+// ESCALATION_RULES in app/rules.py. The model decides these five topics from meaning; the
+// guardrail decides them from words. Showing both is the closest thing to a rubric that is
+// honest — there are no bands here, a topic either applies or it does not.
 const ESC_DEFS=[
-  ['security_incident','active or suspected unauthorised access, credentials not revoked, phishing, vulnerability reports'],
-  ['data_exposure','they saw data belonging to someone else, or theirs was exposed'],
-  ['legal_threat','legal review, breach of contract, MSA disputes, attorneys'],
-  ['compliance_request','GDPR, CCPA and similar demands carrying statutory deadlines'],
-  ['executive_mention','a C-level, VP, founder, board or leadership team named on either side'],
+  ['security_incident','active or suspected unauthorised access, credentials not revoked, phishing, vulnerability reports',
+   'unauthorised \u00b7 credentials \u00b7 former employee \u00b7 compromised \u00b7 phishing \u00b7 MFA \u00b7 audit log \u00b7 vulnerability \u00b7 CVE \u00b7 IDOR \u00b7 exploit'],
+  ['data_exposure','they saw data belonging to someone else, or theirs was exposed',
+   "another customer's records \u00b7 exposed \u2026 data \u00b7 data leak \u00b7 leaked \u00b7 permissions issue \u00b7 visible to everyone"],
+  ['legal_threat','legal review, breach of contract, MSA disputes, attorneys',
+   'legal team \u00b7 lawyer \u00b7 attorney \u00b7 lawsuit \u00b7 litigation \u00b7 in breach of \u00b7 MSA \u00b7 arbitration \u00b7 cease and desist'],
+  ['compliance_request','GDPR, CCPA and similar demands carrying statutory deadlines',
+   'GDPR \u00b7 CCPA \u00b7 HIPAA \u00b7 DSAR \u00b7 data subject \u00b7 right to erasure \u00b7 regulator'],
+  ['executive_mention','a C-level, VP, founder, board or leadership team named on either side',
+   'CEO \u00b7 CFO \u00b7 CTO \u00b7 CISO \u00b7 founder \u00b7 VP \u00b7 chief \u2026 officer \u00b7 the board \u00b7 general counsel'],
 ];
 
 // A dot means "this one applies to this ticket". Lists where nothing is selected get no dots —
@@ -453,6 +465,8 @@ function shareBar(x){
   </div><div class="s">${parts.map(p=>`${p.main?'<b>':''}${esc(cap(p.c))} ${Math.round(p.v/total*100)}%${p.main?'</b>':''}`).join(' · ')}</div>`;
 }
 function li(label,desc,hit){return `<li class="${hit?'hit':''}"><b>${esc(label)}</b> <span>— ${esc(desc)}</span></li>`}
+function liTrig(label,desc,trig,hit){return `<li class="${hit?'hit':''}"><b>${esc(label)}</b> <span>— ${esc(desc)}</span>
+  <div class="trig">keywords: ${esc(trig)}</div></li>`}
 function ref(items){return `<ul class="ref">${items.map(([k,v])=>
   `<li><b>${esc(k)}</b><span>${esc(v)}</span></li>`).join('')}</ul>`}
 
@@ -531,21 +545,24 @@ function explainer(key,d){
         double-charging 1,900 end customers is critical. That distinction is the whole reason there is a model here
         and not just a word list.`);
 
-  if(key==='human') return head('Escalate beyond the owning team?',
-      'This is not "does anyone look at it". Every ticket goes to people. This asks whether it also needs someone outside the team that owns it.')
-    + `<h5>Three different people can end up involved \u2014 they are not the same thing</h5><ul class="crit">
+  if(key==='human') return head()
+    + why(x.escalation_reason_text)
+    + `<h5>The five escalation topics</h5><ul class="crit">${ESC_DEFS.map(([k,v,t])=>
+        liTrig(cap(k),v,t,x.escalation_reasons.includes(k))).join('')}</ul>
+       <p style="font-size:11.5px;color:var(--faint);margin:9px 0 0">Both halves read the same five
+       topics. The model reads them from meaning, so it catches \u201cour VP of Engineering is asking\u201d
+       with no keyword in sight. The keywords run separately, over the raw ticket, and catch what the
+       model played down. Either half alone is enough to raise the flag; neither can lower it.</p>`
+    + `<h5>Who ends up involved \u2014 four things that get confused for each other</h5><ul class="crit">
         ${li('Its own team','always. Every ticket is routed to a queue a person works.',true)}
         ${li('On-call, paged now','when urgency is critical. This ticket: '+esc(x.urgency)+'.',x.urgency==='critical')}
-        ${li('The escalation desk, on top of its team','only for the five topics below.',x.escalate)}
+        ${li('The escalation desk, on top of its team','only for the five topics above.',x.escalate)}
         ${li('Human review instead of a team','only when the classifier was too unsure to pick one.',d.queue==='human-review')}
        </ul>
        <p style="font-size:11.5px;color:var(--faint);margin:9px 0 0">A checkout bug double-charging
        customers is critical and gets paged to engineering on-call within minutes \u2014 and still does
        not escalate, because it is a product defect, not a security or legal matter. Speed and
        escalation are separate dials.</p>`
-    + why(x.escalation_reason_text)
-    + `<h5>The five escalation topics</h5><ul class="crit">${ESC_DEFS.map(([k,v])=>
-        li(cap(k),v,x.escalation_reasons.includes(k))).join('')}</ul>`
     + found(x.escalate
         ? `Escalated for ${x.escalation_reasons.map(r=>`<b>${esc(cap(r))}</b>`).join(' and ')}, and copied to <code>${esc(d.escalation_queue||'the escalation desk')}</code> on top of <code>${esc(d.queue)}</code>.`
         : `None of the five applied, so it goes to <code>${esc(d.queue)}</code> and nowhere else.`)
@@ -563,15 +580,29 @@ function explainer(key,d){
     const cc=x.category_confidence, diverted=d.queue==='human-review';
     const step=(n,label,val,note)=>`<li class="hit"><b>${esc(label)}</b> <span>${esc(note)}</span>
       <div style="margin-top:4px;font:600 12.5px var(--mono);color:var(--text)">${val}</div></li>`;
-    return head('Where it goes',
-      'No judgment here. It is a table lookup, and you can follow it line by line for this ticket.')
-    + `<h5>What happened to this ticket</h5><ul class="crit">
+    // Only some categories have an on-call queue, so "critical" does not always reroute. Infer it
+    // from the decision rather than asserting it: if the queue still matches the category default,
+    // nothing was rerouted, whatever the urgency says.
+    const dflt=routeDefault(x.category);
+    const rerouted=x.urgency==='critical' && !diverted && !!dflt && d.queue!==dflt;
+    const modifiers=[
+      rerouted ? 'critical urgency moved it to <code>'+esc(d.queue)+'</code>' : '',
+      diverted ? 'confidence '+cc.toFixed(2)+' is under the 0.50 bar, so it goes to a person rather than a team' : '',
+      x.escalate ? 'the escalation flag adds a copy for <code>'+esc(d.escalation_queue)+'</code>' : '',
+    ].filter(Boolean);
+    return head()
+    + `<h5>Why it went to this queue</h5><p class="reason">Nothing was judged here. <b>${esc(cap(x.category))}</b>
+       is owned by <code>${esc(routeDefault(x.category)||'\u2014')}</code> in the routing table${
+       modifiers.length?', then '+modifiers.join(', and '):', and nothing changed that'}.</p>`
+    + `<h5>The lookup, step by step</h5><ul class="crit">
         ${step(1,'Start with the category','<code>'+esc(x.category)+'</code>','every category has a default queue')}
         ${step(2,'Look it up in the table',
           '<code>'+esc(x.category)+'</code> \u2192 <code>'+esc(diverted?(routeDefault(x.category)||'\u2014'):d.queue)+'</code>',
           'from app/routing.yaml')}
         ${step(3,'Does urgency change it?',
-          x.urgency==='critical' ? 'critical \u2192 the on-call queue instead' : esc(x.urgency)+' \u2192 no change',
+          rerouted ? 'critical \u2192 <code>'+esc(d.queue)+'</code> instead'
+          : x.urgency==='critical' ? 'critical, but <code>'+esc(x.category)+'</code> has no on-call queue \u2192 no change'
+          : esc(x.urgency)+' \u2192 no change',
           'only critical reroutes, and only for categories that have an on-call queue')}
         ${step(4,'Is the classifier confident enough?',
           diverted ? cc.toFixed(2)+' is below 0.50 \u2192 <code>human-review</code>'

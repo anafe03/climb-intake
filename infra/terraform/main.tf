@@ -11,17 +11,40 @@ resource "google_artifact_registry_repository" "repo" {
   depends_on    = [google_project_service.apis]
 }
 
-resource "google_secret_manager_secret" "anthropic" {
-  secret_id = "${var.service_name}-anthropic-api-key"
+# One secret per provider, created only for the keys you actually pass. The service runs on either
+# one; the demo runs OpenAI, so deploying Anthropic-only Terraform would have shipped something
+# different from what was demonstrated.
+locals {
+  # for_each cannot take a sensitive value, and anything derived from one inherits the mark — so
+  # unmark the *presence* of each key, which is not a secret, and keep the key material itself out
+  # of the iterator entirely.
+  present = toset(compact([
+    nonsensitive(var.anthropic_api_key != "") ? "anthropic" : "",
+    nonsensitive(var.openai_api_key != "") ? "openai" : "",
+  ]))
+  key_value = {
+    anthropic = var.anthropic_api_key
+    openai    = var.openai_api_key
+  }
+  env_name = {
+    anthropic = "ANTHROPIC_API_KEY"
+    openai    = "OPENAI_API_KEY"
+  }
+}
+
+resource "google_secret_manager_secret" "key" {
+  for_each  = local.present
+  secret_id = "${var.service_name}-${each.key}-api-key"
   replication {
     auto {}
   }
   depends_on = [google_project_service.apis]
 }
 
-resource "google_secret_manager_secret_version" "anthropic" {
-  secret      = google_secret_manager_secret.anthropic.id
-  secret_data = var.anthropic_api_key
+resource "google_secret_manager_secret_version" "key" {
+  for_each    = local.present
+  secret      = google_secret_manager_secret.key[each.key].id
+  secret_data = local.key_value[each.key]
 }
 
 resource "google_service_account" "svc" {
@@ -29,8 +52,10 @@ resource "google_service_account" "svc" {
   display_name = "Climb intake service"
 }
 
+# Scoped to the secrets this service needs and nothing else in the project.
 resource "google_secret_manager_secret_iam_member" "svc_reads_key" {
-  secret_id = google_secret_manager_secret.anthropic.id
+  for_each  = local.present
+  secret_id = google_secret_manager_secret.key[each.key].id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.svc.email}"
 }
@@ -61,15 +86,31 @@ resource "google_cloud_run_v2_service" "intake" {
         value = var.claude_model
       }
       env {
+        name  = "OPENAI_MODEL"
+        value = var.openai_model
+      }
+      # Output tokens dominate the bill on reasoning models; see docs/DECISIONS.md D54.
+      env {
+        name  = "OPENAI_REASONING_EFFORT"
+        value = var.openai_reasoning_effort
+      }
+      env {
+        name  = "LLM_PROVIDER"
+        value = var.llm_provider
+      }
+      env {
         name  = "AUDIT_DB_PATH"
         value = "/srv/data/audit.db"
       }
-      env {
-        name = "ANTHROPIC_API_KEY"
-        value_source {
-          secret_key_ref {
-            secret  = google_secret_manager_secret.anthropic.secret_id
-            version = "latest"
+      dynamic "env" {
+        for_each = local.present
+        content {
+          name = local.env_name[env.value]
+          value_source {
+            secret_key_ref {
+              secret  = google_secret_manager_secret.key[env.value].secret_id
+              version = "latest"
+            }
           }
         }
       }

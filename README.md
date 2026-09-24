@@ -152,27 +152,33 @@ token usage, and latency.
 
 ## Deploy plan (GCP Cloud Run)
 
+**[docs/DEPLOY.md](docs/DEPLOY.md) is the runbook** — the three commands, what each Dockerfile
+choice buys, how secrets reach the container, and what to check when it will not start.
+
 Infrastructure is in [infra/terraform](infra/terraform). It stands up:
 
 1. Artifact Registry repo for the image
-2. Secret Manager secret holding `ANTHROPIC_API_KEY`
+2. A Secret Manager secret and version for each provider key you pass (`openai_api_key`,
+   `anthropic_api_key`, or both, with `llm_provider` deciding between them)
 3. Cloud Run v2 service (1 vCPU, 512 MiB, min 0 / max 3 instances, health check on `/health`)
-   with the secret injected as an env var and a service account scoped to read that one secret
-4. Public invoker binding (demo only; put IAP or an API gateway in front for real traffic)
+   with those secrets injected as env vars and a service account scoped to read only them
+4. Public invoker binding (demo only; `-var public=false` and front with IAP for real traffic)
 
 ```bash
 gcloud auth login && gcloud config set project $PROJECT
 gcloud auth configure-docker us-central1-docker.pkg.dev
-docker build -t us-central1-docker.pkg.dev/$PROJECT/climb-intake/intake:v1 . && docker push $_
+IMAGE=us-central1-docker.pkg.dev/$PROJECT/climb-intake/intake:v1
+docker build -t $IMAGE . && docker push $IMAGE
 cd infra/terraform
-terraform init
-terraform apply -var project_id=$PROJECT -var image=us-central1-docker.pkg.dev/$PROJECT/climb-intake/intake:v1 -var anthropic_api_key=$ANTHROPIC_API_KEY
-terraform output url
+tofu init
+tofu apply -var project_id=$PROJECT -var image=$IMAGE \
+           -var openai_api_key=$OPENAI_API_KEY -var llm_provider=openai
+tofu output url
 ```
 
-Honest status: the Terraform is written against the current `google` provider resources but has
-**not been applied** from this machine (no gcloud/terraform installed here). Expect to iterate on
-`terraform plan` once.
+Honest status: the configuration validates under OpenTofu against the current `google` provider but
+has **not been applied** from this machine (no GCP project or `gcloud` here). Expect to iterate on
+`tofu plan` once.
 
 Scale path, in order: Cloud SQL (Postgres) behind the same `audit.py` interface once there is more than
 one instance; Cloud Tasks or Pub/Sub in front of `/tickets` so intake is async and retried; the

@@ -1019,6 +1019,51 @@ which is the risk. They are self-reported and never validated against outcomes. 
 share of opinion because that is a claim the number can support. Full reasoning in
 `docs/HOW-IT-WORKS.md`.
 
+### D63. The escalation topics show the keywords, instead of getting their own rubric
+Left open in the UI todo list: do the five escalation topics need a rubric pop-out of their own,
+like the confidence bands have? No, because there is no rubric to show. Confidence has bands —
+0.90 means something different from 0.60 — so a reader needs the ladder. An escalation topic is
+binary: it applies or it does not.
+
+What a reader actually wants there is *what would have made this fire*, so each topic now carries
+the vocabulary the guardrail greps for, abridged from `ESCALATION_RULES`. That also makes the
+two-layer design visible in the place it matters: the model reads the five topics from meaning and
+catches "our VP of Engineering is asking" with no keyword present; the keywords read the raw text
+and catch what the model played down. Either half raises the flag, neither lowers it.
+
+### D64. The step-by-step routing walkthrough was asserting a reroute that never happened
+The route pop-out printed "critical -> the on-call queue instead" whenever urgency was critical.
+Only `billing` and `bug` have a critical override in `routing.yaml`, so on a critical *security*
+ticket the walkthrough claimed a reroute while the final queue below it plainly showed
+`security-incident-response`. The explanation contradicted the decision it was explaining, on the
+single most-clicked ticket in the demo.
+
+Now it infers rather than asserts: if the final queue still equals the category default, nothing
+was rerouted, whatever the urgency says. Same class of bug as D36 and D56 — the code was
+*describing* behaviour instead of *reading* it, and only rendering the page found it.
+
+### D65. The API page is a deliverable, not a by-product
+`/docs` was FastAPI's default: endpoints named "Create Ticket", a request body prefilled with
+`{"text": "string"}` (which classifies as spam), and no statement anywhere of what the service
+does. It is linked from the app's header, so it is part of what gets demonstrated.
+
+Every endpoint now has a summary and a description, grouped under intake / read / operate, with the
+service description carrying the two-layer design, the two modes, and the idempotency rule. The
+`TicketIn` example is a real ticket that exercises the escalation path, so "Try it out" shows the
+interesting answer rather than a spam classification. The endpoints did not change; a reader who
+opens that tab now gets the design explained by the thing itself.
+
+### D66. The Terraform deployed a provider the demo does not use
+It created one Secret Manager secret, hard-coded to `ANTHROPIC_API_KEY`, while the running service
+is on OpenAI. Applying it would have stood up something materially different from what was
+demonstrated — the exact gap IaC is supposed to close.
+
+Now both keys are variables defaulting to empty, and a secret, version, and IAM binding are created
+per key actually passed, with `LLM_PROVIDER` threaded through. Terraform will not iterate over a
+sensitive value, so the loop runs over the *presence* of each key — `nonsensitive(var.x != "")`,
+which leaks whether a key was supplied and never the key. Validates under OpenTofu; still not
+applied, and `docs/DEPLOY.md` says so in those words.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

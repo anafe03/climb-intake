@@ -89,9 +89,31 @@ class RuleHit(BaseModel):
 
 
 class TicketIn(BaseModel):
-    text: str = Field(min_length=1, max_length=20000)
-    source: str = "api"
-    external_id: Optional[str] = None
+    text: str = Field(
+        min_length=1, max_length=20000,
+        description="The raw ticket, exactly as it arrived. No pre-parsing expected.",
+    )
+    source: str = Field(
+        "api", description="Where it came from. Half of the idempotency key.",
+    )
+    external_id: Optional[str] = Field(
+        None,
+        description="Your id for this ticket. With `source`, makes the call safe to retry: "
+                    "a repeat returns the original decision instead of classifying twice.",
+    )
+
+    # Swagger's "Try it out" body defaults to {"text": "string"}, which classifies as spam and
+    # teaches the reader nothing. Prefill it with a ticket that exercises the escalation path.
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{
+                "text": "Hi - our contractor left on Friday and his logins still work. He opened "
+                        "a customer export this morning. Our CTO wants to know what happened by EOD.",
+                "source": "api",
+                "external_id": "demo-1",
+            }]
+        }
+    }
 
 
 class Decision(BaseModel):

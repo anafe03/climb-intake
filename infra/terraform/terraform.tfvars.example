@@ -1,3 +1,8 @@
-project_id        = "my-gcp-project"
-image             = "us-central1-docker.pkg.dev/my-gcp-project/climb-intake/intake:v1"
-anthropic_api_key = "sk-ant-..."
+project_id = "my-gcp-project"
+image      = "us-central1-docker.pkg.dev/my-gcp-project/climb-intake/intake:v1"
+
+# Set the provider you are deploying on. Either one is enough; with both, llm_provider decides.
+# With neither, the service comes up and answers every endpoint on the keyword rules alone.
+openai_api_key = "sk-proj-..."
+# anthropic_api_key = "sk-ant-..."
+llm_provider = "openai"

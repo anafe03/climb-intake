@@ -17,7 +17,7 @@ Austin's feedback, 2026-09-24. Doing the first block now; escalate and route aft
 - [x] **How urgent**: list the levels most severe first, not least
 - [x] **Dashboard**: order the urgency breakdown by severity (Critical, High, Medium, Low), not by count
 
-## Block 2 — escalate, route, and the duplication  (IN PROGRESS)
+## Block 2 — escalate, route, and the duplication  (DONE)
 
 - [x] **Card subtitles repeat the pop-out.** The "Who sent it" card prints the full basis
       ("Inferred, not stated. From …") and then the pop-out prints it again. The card should show
@@ -29,11 +29,27 @@ Austin's feedback, 2026-09-24. Doing the first block now; escalate and route aft
       escalation desk adds something and when it is belt-and-braces.
 - [x] **The audit record needs field-level explanation** — what each field is and where it is used,
       on click rather than as a wall.
-- [ ] Same treatment as block 1: reason first, reference after, no lead-in prose
-- [ ] Decide whether the five escalation topics need their own rubric popup
+- [x] Same treatment as block 1: reason first, reference after, no lead-in prose
+- [x] Decide whether the five escalation topics need their own rubric popup — **no**. A topic
+      is binary, so there is no ladder to show. Each one now lists the keywords the guardrail
+      greps for instead, which is what a reader actually wants there (D63).
 
-## Block 3 — questions to settle in the docs
+## Block 3 — questions to settle in the docs  (DONE)
 
 - [x] **Is a split better practice than one confidence number?** Write the answer down: what we have
       is a self-reported share, not a calibrated probability, and the distinction matters.
-- [ ] **Docker**: Austin wants help with the deployment side.
+- [x] **Docker**: [DEPLOY.md](DEPLOY.md) is the runbook — three commands, what each Dockerfile
+      choice buys, how secrets reach the container, what changes for real traffic, and a
+      what-to-check-when-it-breaks table. The Terraform was OpenAI-blind; fixed (D66).
+
+## Found while doing the above
+
+- [x] The routing walkthrough claimed "critical -> the on-call queue instead" on tickets that were
+      never rerouted, because only `billing` and `bug` have a critical override (D64).
+- [x] `/docs` was FastAPI's default page, linked from the app header. Now documented (D65).
+
+## Still open
+
+- [ ] No git remote. The only unmet deliverable, and it needs your GitHub account — `preflight.sh`
+      fails on exactly this one check.
+- [ ] Terraform validates but has never been applied. Needs a GCP project.
