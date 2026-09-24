@@ -34,10 +34,8 @@ Updated 2026-09-22. `./scripts/preflight.sh` is the live version of the top half
 
 ## Worth doing next, in order
 
-1. **Verify that `OPENAI_REASONING_EFFORT=low` does not cost recall** (~66 calls, about $0.40).
-   Run the gold eval at `low` and at `medium`, compare escalation recall and false escalations. The
-   effort default was set for cost and is **unverified for quality** — if `low` misses an escalation
-   it is not a saving. This is the first thing to do when credits return. See D54.
+1. ~~Verify `low` reasoning effort does not cost recall~~ — **done, D55.** 100% recall, no false
+   escalations, output tokens halved from ~1,500 to 863.
 2. **Run the bake-off over all 33 gold tickets, not 10.** Ten tickets means one disagreement moves a
    column by ten points. About 90 calls.
 3. **Split the gold set.** It has been used to tune prompts, so its numbers are optimistic. Reporting

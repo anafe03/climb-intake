@@ -899,6 +899,41 @@ in `docs/STATUS.md` as the next thing to do when credits return.**
 **If pushed:** "Why not just use the cheap model?" Because D52 — mini over-escalates the traps.
 Effort is the lever that does not trade away the thing being measured. Probably.
 
+### D55. `low` reasoning effort costs nothing measurable, and halves the output tokens
+D54 set `OPENAI_REASONING_EFFORT=low` for cost and pinned the quality check as unverified. Measured
+over the full 33-ticket gold set on `gpt-5`:
+
+| | at default effort | at `low` |
+|---|---|---|
+| Escalation recall | 100% | **100%** |
+| False escalations | none | **none** |
+| Category accuracy | 100% | **100%** |
+| Urgency exact / tolerant | 76–88% / 100% | **82% / 100%** |
+| Confidence calibration | 88% | **100%** |
+| Output tokens per ticket | ~1,500 | **863** (326 reasoning) |
+
+**Nothing regressed, and the bill roughly halved.** The urgency and calibration columns sit inside
+normal run-to-run variance, so the honest claim is parity, not improvement.
+
+**Why this was worth checking rather than assuming:** a cost saving that quietly costs recall is not
+a saving, it is a regression traded for fifteen cents. The pinned item in `STATUS.md` existed so the
+default could not stay unverified, and it is now closed.
+
+### D56. The health badge was sticky, and a recovered model still read "unreachable"
+`/health` reports the last model outcome (D35), but the page only read it on load. When the credits
+were topped up, the badge and the error banner kept saying the model was unreachable until someone
+pressed F5 — during a demo, indistinguishable from actually broken.
+
+The page now polls `/health` every 15 seconds, and announces recovery rather than just going quiet.
+
+**And a worse bug on the way to fixing it.** My first two attempts to patch that code matched the
+wrong text — the second one landed the *call site* without the function, so the served page called
+an undefined `refreshHealth` and died on load. It passed `node --check`, passed the served-page diff,
+and passed all 52 tests, because none of those execute the page. Caught by dumping the rendered DOM
+and finding no tickets in it.
+`preflight.sh` now scans each page's script for functions that are called but never defined. Cheap,
+crude, and it would have caught this.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

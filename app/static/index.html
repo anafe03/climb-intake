@@ -912,14 +912,30 @@ const ta=$('#text');
 ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,150)+'px'});
 ta.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter')$('#submit').click()});
 
-(async()=>{
-  const h=await api('/health'), m=$('#mode'), live=h.mode==='llm';
-  const failing = h.last_model_call === 'failing';
+// The badge showed the last known state and only refreshed on reload, so a model that had come
+// back still read "unreachable" until someone pressed F5 — during a demo that is indistinguishable
+// from broken. Poll instead, and say so when it recovers.
+let lastHealth = null;
+async function refreshHealth(){
+  let h; try { h = await api('/health'); } catch { return null; }
+  const m = $('#mode'), live = h.mode === 'llm', failing = h.last_model_call === 'failing';
   m.className = 'mode' + (live && !failing ? '' : ' off');
   m.textContent = !live ? 'no API key — keyword rules only'
     : failing ? `${h.model} unreachable — keyword rules only`
     : `reading with ${h.model}`;
-  if (failing && h.last_model_error) status(`Model calls are failing, so tickets are being read by keyword rules. ${h.last_model_error.slice(0,150)}`, {err:true});
+  const was = lastHealth && lastHealth.last_model_call;
+  if (failing && h.last_model_error && was !== 'failing')
+    status(`Model calls are failing, so tickets are being read by keyword rules. ${h.last_model_error.slice(0,140)}`, {err:true});
+  if (!failing && was === 'failing')
+    status(`Model is reachable again — ${h.model}.`, {hold:5000});
+  lastHealth = h;
+  return h;
+}
+setInterval(refreshHealth, 15000);
+
+(async()=>{
+  const h = await refreshHealth() || {};
+  const live = h.mode === 'llm';
   await reload();
   const want=new URL(location).searchParams.get('t');
   if(want && rows.some(r=>r.id===want)) openModal(want);
