@@ -281,10 +281,10 @@ The panel's biggest question: **"How are you controlling the determinism of the 
       goes to the FAQ.
 
 ### P3: presenting as a consultant
-- [ ] **14. Presenter notes reordered:** scene (intro), then the app, then determinism and
+- [x] **14. (done in Block 18) Presenter notes reordered:** scene (intro), then the app, then determinism and
       consistency, then FAQ and technical, then cost. Drop the code-explanation beats. Framed as an
       FDE presenting to the client.
-- [ ] **15. Panel prep (Daniel is the engagement lead):** consulting questions. "A time you were wrong
+- [x] **15. (done in Block 18) Panel prep (Daniel is the engagement lead):** consulting questions. "A time you were wrong
       in front of a client" (this project has real ones: the cheap-model recommendation that was
       reversed, the FAQ claims that failed a check), how you react, Climb's company values, and "don't
       make it up: say you'll check and escalate internally".
@@ -391,6 +391,20 @@ consistency, strategies, the thought process I've been giving you."
       urgency can err up; who sent it and category can't, so keywords only take over when the model is
       down. "Make sure to add that to explanations as well as urgency to err up vs can't really do that in
       who sent it and category."
+
+## Block 18 (2026-09-25)
+
+Austin: "keep cooking" (approval for Block 11 items 14 and 15).
+
+- [x] **14. Presenter notes reordered (done):** intro, then the app, then consistency, then the Explanations
+      tab, then cost. Framed as an FDE presenting to Climb as the client. Drop code-explanation beats.
+- [x] **15. Panel prep for Daniel (done, at the bottom of /notes) (engagement lead):** consulting questions, "a time you were wrong in
+      front of a client" with the real ones from this project, Climb's company values, "don't make it
+      up: say you'll check and escalate internally".
+- [x] **Found while doing it:** the app badge still named the model ("reading with gpt-5"), and the
+      reading clock too. Item 9 was ticked too early. Now "AI reading".
+- [x] **Found while doing it:** the notes still pointed at removed things (Full audit record, Queue board,
+      "Load 10 samples") and said 0 / 1 for the trick tickets; it is 0 missed / 4 wrongly flagged.
 
 ## Still open
 

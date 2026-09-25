@@ -1674,6 +1674,14 @@ Also corrected an overstatement found by Austin: the consistency write-up said t
 "never changes". Only the company name field never changed; the written guess is open-ended and reworded
 every run.
 
+### D119. Presenter notes follow a client meeting, not the code
+After the first demo the panel's feedback was to present as a consultant to a client and to drop the code
+walkthrough. The notes now run: the problem, what the support team sees, why it can be trusted
+(consistency, then the test numbers), how it is built, then cost and a recommendation. It ends on what to
+do next rather than on a feature. Panel prep for the engagement lead sits at the bottom: a real "wrong in
+front of a client" story from this project, consulting questions, and Climb's own published lines mapped
+to where the project shows them. The app badge no longer names the model.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

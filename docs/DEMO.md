@@ -1,8 +1,7 @@
 # Three-minute demo script
 
-> **Presenting? Open <http://localhost:8080/notes> in a second tab instead of reading this file.**
-> Same walkthrough, but it checks the service is up, reads the live ticket count, and gives you
-> clickable links straight to the ticket for each beat. This file is the plain-text version.
+> **Older short script, kept for reference. The current walkthrough is <http://localhost:8080/notes>**
+> (intro, the app, why you can trust it, how it's built, cost and next steps, plus panel prep).
 
 For a live walkthrough. Have the service running with a model key present so the badge reads
 "reading with <model>". Load the 32-ticket demo set beforehand — it takes about 90 seconds.

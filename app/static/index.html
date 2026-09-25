@@ -1069,7 +1069,7 @@ function stopClock(){clearInterval(tick); tick=null;}
 $('#submit').onclick=()=>run(async()=>{
   const t=$('#text').value.trim(); if(!t) return;
   const h=await api('/health').catch(()=>({}));
-  startClock(h.model&&h.last_model_call!=='failing'?`Reading it with ${h.model}`:'Reading it');
+  startClock('Reading it');
   const d=await api('/tickets',{method:'POST',headers:{'content-type':'application/json'},
     body:JSON.stringify({text:t,source:'ui'})});
   $('#text').value=''; $('#text').style.height='';
@@ -1118,13 +1118,13 @@ async function refreshHealth(){
   const m = $('#mode'), live = h.mode === 'llm', failing = h.last_model_call === 'failing';
   m.className = 'mode' + (live && !failing ? '' : ' off');
   m.textContent = !live ? 'no API key: keyword rules only'
-    : failing ? `${h.model} unreachable: keyword rules only`
-    : `reading with ${h.model}`;
+    : failing ? 'AI unreachable: keyword rules only'
+    : 'AI reading';
   const was = lastHealth && lastHealth.last_model_call;
   if (failing && h.last_model_error && was !== 'failing')
     status(`Model calls are failing, so tickets are being read by keyword rules. ${h.last_model_error.slice(0,140)}`, {err:true});
   if (!failing && was === 'failing')
-    status(`Model is reachable again: ${h.model}.`, {hold:5000});
+    status('The AI is reachable again.', {hold:5000});
   lastHealth = h;
   return h;
 }
