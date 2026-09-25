@@ -1662,6 +1662,18 @@ headless Chrome. The Deliverables tab shows it. The Cost & models tab is gone: i
 inside the Explanations cost card, and the dashboard no longer carries the model comparison or the
 "AI did not answer" card, since both confused more than they showed.
 
+### D118. Where the keyword check may overrule the AI, and where it may not
+Austin asked whether keywords should show and vote on every decision, and sensed the problem himself:
+"could it cause multi classification". It would. The keyword check may only overrule the AI where there
+is a safe direction to push: escalation (add a flag) and urgency (raise it). Category has eight answers
+and none is the safe one; taking both the AI's and the keyword check's answer would send one ticket to
+two teams. Who sent it is open-ended and a wrong company is not safer than a right one. So for those two
+the keyword check only takes over when the AI is down. This is now a table on the Explanations tab.
+
+Also corrected an overstatement found by Austin: the consistency write-up said the who-sent-it answer
+"never changes". Only the company name field never changed; the written guess is open-ended and reworded
+every run.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

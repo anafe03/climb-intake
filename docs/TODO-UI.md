@@ -376,9 +376,21 @@ consistency, strategies, the thought process I've been giving you."
 ## Block 16 (2026-09-25)
 
 - [x] **"make these bigger: The problem"** Intro section headings.
-- [ ] **"in these [ticket pop-ups] we should show what keywords it caught ... or could it cause multi
-      classification"** Answer first: keyword check as a second opinion on category and urgency, not a vote.
-      Waiting on Austin's call before building.
+- [x] **"in these [ticket pop-ups] we should show what keywords it caught ... or could it cause multi
+      classification"** Answered. Austin: explanation only, "make sure to add that to explanations".
+
+## Block 17 (2026-09-25)
+
+- [x] **Ticket view: "took 16.1 s / 15m ago / Full audit record: drop these"**
+- [x] **"how does keyword check guess [who sent it]", "no fixed list of t ?", "how does who sent it work
+      when the model's down"** Explain plainly on the Who sent it card.
+- [x] **"is this wrong: ... the answer ('not stated') never changes. It's open-ended right"** Yes, it
+      overstated. The company name field never changed; the written guess is open-ended and reworded
+      each run. Fix in Explanations and CONSISTENCY.md.
+- [x] **Add to Explanations:** category keywords can't vote (8 answers, no safe direction, fixed order);
+      urgency can err up; who sent it and category can't, so keywords only take over when the model is
+      down. "Make sure to add that to explanations as well as urgency to err up vs can't really do that in
+      who sent it and category."
 
 ## Still open
 

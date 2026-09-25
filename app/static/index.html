@@ -706,32 +706,6 @@ function matchesPick(d){
 const visible=()=>(escOnly?rows.filter(d=>d.extraction.escalate):rows)
   .filter(matchesPick).slice().sort(SORTS[sortBy]);
 
-// What every field in the audit record is for. This is the thing an auditor reads six months later,
-// so each row says what it holds and who uses it.
-const AUDIT_FIELDS=[
- ['id','The decision id. Appears in the JSON log line and in the shareable URL for this ticket.'],
- ['created_at','When the decision was made, UTC. The audit table is indexed on it.'],
- ['ticket.source','Where it came from: the web form, an upload, an API client. Half of the idempotency key.'],
- ['ticket.external_id','The sending system\u2019s own id. The other half of the idempotency key: resubmitting returns this same decision rather than making a second one.'],
- ['mode','Which path produced it: <code>llm</code>, or <code>llm_fallback_rules</code> when the model failed and keyword rules stepped in.'],
- ['model','The exact model version. Pinned here so a decision can be reproduced against the model that made it.'],
- ['extraction','What shipped: the fields the downstream queue acts on.'],
- ['llm_extraction','What the model said <i>before</i> the guardrails ran. Keeping both is what makes "did a rule change this?" answerable.'],
- ['rule_hits','Every guardrail that matched, with the exact text it matched on.'],
- ['overrides','The changes those rules made, in order. Empty when nothing moved.'],
- ['queue / escalation_queue','Where it was routed, and the human copy if there was one.'],
- ['latency_ms','Wall time for the whole decision, including retries.'],
- ['usage','Tokens in and out, how many were cached, and reasoning tokens: this is the cost of the decision.'],
- ['error','Present only when the model call failed. The reason the fallback ran.'],
-];
-function auditTable(d){
-  const get=(k)=>{const v=k.split('.').reduce((o,p)=>o&&o[p],d);
-    return v===undefined||v===null?'—':(typeof v==='object'?`{${Object.keys(v).length} fields}`:String(v));};
-  return `<table class="audit">${AUDIT_FIELDS.map(([k,desc])=>{
-    const first=k.split(' / ')[0];
-    return `<tr><th>${esc(k)}</th><td class="v">${esc(get(first)).slice(0,60)}</td><td class="d">${desc}</td></tr>`;
-  }).join('')}</table>`;
-}
 
 function ticketCard(d){
   const x=d.extraction;
@@ -1005,13 +979,6 @@ async function openModal(id){
       <h2 class="ssec">2 &middot; The reasoning behind it</h2>
       <div class="sec"><h3>Why it read it that way, overall</h3><div class="prose">${esc(x.rationale)}</div></div>
       ${guard}
-      <div class="meta">
-        <span>took ${esc(took(d.latency_ms))}</span>
-        <span>${esc(ago(d.created_at))}</span>
-      </div>
-      <details><summary>Full audit record</summary>${auditTable(d)}
-        <details style="margin-top:10px"><summary>Raw JSON</summary><pre>${esc(JSON.stringify(d,null,2))}</pre></details>
-      </details>
     </div>`;
   // Clicking a box opens a second-level pop-out for that one field, closable on its own.
   const TITLES={who:'Who sent it',what:'What kind of request',urgency:'How urgent it is',

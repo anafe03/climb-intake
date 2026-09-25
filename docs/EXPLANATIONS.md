@@ -10,16 +10,33 @@
 - Otherwise it makes a best guess, marks it as a guess, scores it, and lists the words it is based on.
   A guess can never end up in the name field.
 
-### The keyword check
+### The keyword check (when the AI is down)
 
-- **When it runs:** only if the model does not answer.
-- **What it looks at:** a company named after "from", "at" or "on behalf of"; a sign-off with a name and
-  company; a work email address (gmail, outlook and similar do not count as a company); invoice, account
-  and ticket numbers; and, for the guess, enterprise words, team size and plan names.
-- **How it stays cautious:** it never invents a company. Without a stated name it only guesses, with a
-  low score: a work email scores 0.8, a plan or team size about 0.5, nothing at all 0.0.
-- There is no pattern for company names in general, because there is no fixed list of them. Named
-  entity recognition is the right tool for that, and the next step.
+It only runs if the AI does not answer. It finds a company in two places only:
+
+- **Right after "from", "at" or "on behalf of"**, as long as it starts with a capital letter: "this is Dana
+  *from Acme Logistics*".
+- **A sign-off line at the end** that starts with a dash: "— Priya Raghavan, *Meridian Health*".
+
+If neither is there, it does not name anyone. It makes a labelled guess from whatever clues it finds:
+
+| Clue in the ticket | Its guess | Score |
+|---|---|---|
+| a work email, like `dana@acme.com` | someone at acme.com | 0.8 |
+| a team size, like "50 users" | a customer with a sizeable team | 0.5 |
+| a plan name, like "Team plan" | a customer on that plan | 0.45 |
+| enterprise words, like "workspace" or "Databricks" | an enterprise customer | 0.45 |
+| a personal email (gmail, outlook) | an individual user | 0.3 |
+| only an invoice or account number | an existing customer | 0.3 |
+| nothing | not stated | 0.0 |
+
+**Why it cannot find company names anywhere else.** Word patterns need to know what to look for. There is
+no list of every company in the world to check against, so it cannot tell that "Meridian Health" in the
+middle of a sentence is a company. It can only find one in those two predictable places. Spotting names
+anywhere in a sentence is what named entity recognition does, and that would be the next step.
+
+**Why the keyword check never overrules the AI here.** There is no safe direction for who sent it: a wrong
+company is not more cautious than a right one. So it only takes over when the AI is down.
 
 ### The full scale
 
@@ -68,6 +85,13 @@ is. Under 0.50 sure, the ticket goes to a person instead of a team.
   - otherwise: other
 - **How it stays cautious:** its scores are deliberately low, so anything it is unsure of goes to human
   review rather than a team. Security wins over spam: a ticket with both is treated as security.
+
+**Why it cannot overrule the AI.** Escalation is yes or no, so "either one says yes" is safe: flagging too
+much only costs a minute. Category has eight answers and none of them is the safe one. If the keyword check
+says bug and the AI says billing, you cannot take both; that would be sending one ticket to two teams. So
+for category the keyword check cannot vote. It is a fallback when the AI is down, and at most a second
+opinion. It always gives exactly one answer, because it checks in a fixed order (the list above), and that
+fixed order is exactly why it is weaker than the AI: it counts words instead of reading the ticket.
 
 ### The eight categories
 
@@ -123,6 +147,12 @@ How angry someone sounds is deliberately not one of them.
   ("is down", "can't log in", "all our users"): critical. "No rush" or "whenever you get a chance": low. A
   deadline (today, by Friday, end of day, ASAP, urgent): high. Otherwise medium.
 - **How it stays cautious:** the floors can only raise urgency, never lower it.
+
+**Why the keyword check can overrule the AI here, but not for category.** Urgency has a safe direction:
+higher. Calling a ticket more urgent than it is costs someone a moment; calling it less urgent means it
+waits. So, like escalation, the keyword check is allowed to push urgency up and never down. Category and
+who sent it have no safe direction, which is why the keyword check only takes over for those when the AI
+is down.
 
 ### The four levels
 
@@ -280,6 +310,16 @@ about 500 tokens to every call, but that part is cached, so the cost per ticket 
 (0.94 to 0.92 cents). The cost is effort: each example has to be written, kept correct, and re-tested every
 time it changes. One fixed the wobble it was aimed at. Good enough is better than perfect.
 
+### Where the keyword check can change the AI's answer
+
+| Decision | Can the keyword check overrule the AI? | Why |
+|---|---|---|
+| Escalation | Yes, only to add a flag | Flagging too much is the safe mistake. |
+| Urgency | Yes, only upward | Too urgent is the safe mistake; too calm means it waits. |
+| Category | No, fallback only | Eight answers and no safe one. You cannot send a ticket to two teams. |
+| Who sent it | No, fallback only | A wrong company is not safer than a right one, and the answer is open-ended. |
+| Where it goes | Not needed | A fixed table, no AI involved. |
+
 ### The test: the same ticket, five times
 
 Each of the 10 Climb tickets, read 5 times, with and without the worked example: 100 reads.
@@ -289,14 +329,19 @@ Each of the 10 Climb tickets, read 5 times, with and without the worked example:
 | Category changed | 0 of 10 tickets | 0 of 10 |
 | Escalation changed | 0 of 10 | 0 of 10 |
 | Queue changed | 0 of 10 | 0 of 10 |
-| Stated customer changed | 0 of 10 | 0 of 10 |
+| Company name changed | 0 of 10 | 0 of 10 |
 | Urgency changed | 2 of 10 | 1 of 10 |
 | Category confidence moves by | 0.10 on average | 0.10 on average |
 | Who-sent-it confidence moves by | 0.18 on average, 0.45 at most | 0.17 on average, 0.40 at most |
 
 - When urgency changed, it was by one level, in one run out of five.
-- The confidence scores move; the answers do not. The biggest swing is the crypto spam ticket: nothing
-  identifies the sender, so the score wanders, but the answer ("not stated") never changes.
+- The fixed answers never changed: category, escalation, the queue, and the company name (which stays "not
+  stated" when the ticket gives none).
+- The open-ended parts do change. The written guess about who sent it, like "an existing customer using the
+  export feature", is worded afresh every run, and its score moves. The biggest swing is the crypto spam
+  ticket: nothing identifies the sender, so the score wandered between 0.25 and 0.70. The reasons are
+  reworded each run too. That is expected for anything written in free text, and it is why only the fixed
+  answers decide where a ticket goes.
 - **What the before and after shows.** There is no pass mark here; I read the results. With the example, the
   two tickets that wobbled stopped wobbling, and a different ticket wobbled once. Five runs per ticket is a
   small test, so that is a good sign, not proof. On the main scorecard, urgency went from 82% to 88% exactly

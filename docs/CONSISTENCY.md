@@ -10,7 +10,7 @@ whether the same ticket gets the same answer.
 | Tickets where urgency changed | 2 of 10 (climb-06, climb-07) | 1 of 10 (climb-01) |
 | Tickets where escalation changed | 0 of 10  | 0 of 10  |
 | Tickets where the queue changed | 0 of 10  | 0 of 10  |
-| Tickets where the stated customer changed | 0 of 10  | 0 of 10  |
+| Tickets where the company name changed | 0 of 10  | 0 of 10  |
 | Category confidence, how far it moves | 0.10 on average, 0.15 at most | 0.10 on average, 0.20 at most |
 | Who-sent-it confidence, how far it moves | 0.18 on average, 0.45 at most | 0.17 on average, 0.40 at most |
 
@@ -20,9 +20,10 @@ whether the same ticket gets the same answer.
   times and high once; the CEO onboarding ticket (climb-07) was critical four times and high once. After the
   worked example both came back the same all five times, and a different ticket (climb-01, the $4,200
   invoice) was high once and medium four times. Always the neighbouring level, never two levels apart.
-- **The confidence scores move, the answers do not.** Category confidence moves about 0.10. Who-sent-it
-  confidence moves most on the spam ticket, where there is nothing to identify the sender and the score
-  wandered between 0.25 and 0.70. The answer itself ("not stated") never changed.
+- **The fixed answers do not move; the open-ended parts do.** The company name never changed (it stays "not
+  stated" when the ticket gives none). The written guess about who sent it is worded afresh every run and
+  its score moves: most on the spam ticket, where nothing identifies the sender and the score wandered
+  between 0.25 and 0.70. Category confidence moves about 0.10.
 - **Category, escalation, the queue and the stated customer never changed**, in any of the 100 reads.
 
 ## How to read it
