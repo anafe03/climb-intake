@@ -39,16 +39,20 @@ escalation desk. Executive mentions floor urgency at medium, not high, for this 
 
 ## Model choices
 
-**Which model and why?** `claude-opus-5`, adaptive thinking, medium effort, structured outputs via
-`messages.parse`. Quality on implicit-urgency inference is the point; cost is cents per ticket.
-Model and effort are env vars; `scripts/eval.py` reports tokens and p95 so a swap is measurable.
+**Which model and why?** `gpt-5` at **low** reasoning effort, structured outputs via
+`responses.parse`. Anthropic is supported on the same interface and either key works. Low effort
+roughly halved output tokens and cost with no loss on the gold set (D55). The full answer — every
+model scored and priced together, and why `gpt-5-nano` is disqualified at 26x cheaper — is on the
+`/optimization` page. Model, provider and effort are all env vars, and a swap is measurable in one
+command: `scripts/model_bakeoff.py`.
 
 **Prompt injection?** Ticket text is wrapped in `<ticket>` tags and declared as data. `edge-23` is an
 injection attempt asserting the ticket still lands in a real queue and is never "resolved."
 
-**Prompt caching?** The system prompt is a stable cached prefix. Opus 5's minimum cacheable prefix
-is 512 tokens and the prompt is near that, so the audit record logs `cache_read_input_tokens` to show
-whether it actually hits rather than assume.
+**Prompt caching?** The system prompt is a stable cached prefix, and the audit record logs
+`cache_read_input_tokens` so the hit rate is measured rather than assumed. Measured: **~90% of input
+tokens are cache reads**, at a tenth of the price. It is the cheapest of the four cost levers and
+the only free one.
 
 **How do you know the model isn't hallucinating a customer?** The schema says name is null unless
 literally in the text, and the gold set scores "correctly null" on 9 of 10 Climb samples.
@@ -66,10 +70,17 @@ Each row lists which fields are ambiguous so scoring doesn't punish defensible a
 are marked ambiguous on urgency, 8 on category, 5 on escalate. Escalation recall is never ambiguous
 for must-escalate rows.
 
-**What are the numbers?** Both modes hit 100% escalation recall with zero false escalations. The
-model wins on urgency (80% exact, 100% within tolerance vs 77% / 97%) and on the 8 unambiguous rows
-where the two disagree. It costs ~11 s per ticket instead of microseconds. Prompt caching covered 90%
-of input tokens, measured not assumed. Full tables in `docs/EVAL-llm.md` and `docs/EVAL-rules.md`.
+**What are the numbers?** Both modes hit 100% escalation recall with zero false escalations on the
+33-row gold set. The model wins on urgency (82% exact vs 76%) and on category (100% strict vs 82%).
+**Neither mode ever under-calls urgency** — every miss is in the safe direction, and no critical
+ticket was ever read as less. It costs 0.9¢ and about 16 s per ticket against microseconds and
+nothing. Full tables in `docs/EVAL-llm.md` and `docs/EVAL-rules.md`.
+
+**100% sounds too good.** It is, and the honest move is to go looking rather than quote it.
+`docs/STRESS-llm.md` is twelve tickets written to break it. Still no missed escalations — but four
+over-escalations, all of the same shape: the vocabulary of an incident without the incident. A
+*denied* breach, a *hypothetical* vulnerability, someone else's lawyer, "a total breach of trust".
+The best one to show is `adv-01`, where the model was right and the keyword guardrail overrode it.
 
 **Where is the model worse than your regexes?** Nowhere on the gold set — but on the demo set it
 escalated a pipeline failure as an executive mention off the phrase "board readout Thursday", with no

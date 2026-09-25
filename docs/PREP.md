@@ -34,13 +34,17 @@ Read these **in order**. Each one assumes the last.
       order. *Check: can you answer "is it a model or is it rules" in two sentences?*
 - [ ] **`docs/EVAL-llm.md`** — read the **summary table and the per-ticket table**, skim the
       rationales (5 min). *Check: can you say what the weakest number is without looking?*
-- [ ] **`docs/MODEL-BAKEOFF.md`** (2 min) and **`docs/REPEATABILITY.md`** (3 min) — read them
-      together; they disagree, and the disagreement is the point.
+- [ ] **<http://localhost:8080/optimization>** (5 min) — the recommendation box, then the model
+      table. *Check: can you say why nano is disqualified at 26x cheaper, in one sentence?*
+- [ ] **`docs/STRESS-llm.md`** (5 min) — where it breaks. Read `adv-01` properly; it is the ticket
+      to show if anyone doubts the 100%. *Check: can you explain why you are not fixing it?*
 - [ ] **`docs/PANEL-QA.md`** (6 min) — the questions with short answers.
-- [ ] **`docs/DECISIONS.md`** — **do not read all 45.** Read the "Which calls were mine" table at the
-      top, then these six: **D1** (two layers), **D26** (reversing the customer decision), **D34/D37**
-      (confidence as a share), **D43** (the gold ticket that broke the recall claim), **D45**
-      (confidence scoring the wrong thing). About 8 minutes.
+- [ ] **`docs/DECISIONS.md`** — **do not read all 96.** Read the "Which calls were mine" table at
+      the top, then these eight: **D1** (two layers), **D26** (reversing the customer decision),
+      **D34/D37** (confidence as a share), **D43** (the gold ticket that broke the recall claim),
+      **D75** (urgency is a screening test), **D84/D85** (the cascade that lost money, and the one
+      that did not), **D89** (proving the model half earns its place), **D92** (the ticket the
+      guardrail gets wrong). About 12 minutes.
 
 ## 3 · Click through it yourself (10 min)
 
@@ -81,7 +85,10 @@ Do this before rehearsing. You are checking that it makes sense to *you*.
 | Escalation recall, both modes | 100% |
 | False escalations | none |
 | Gold tickets | 33 |
-| Model cost vs the cheapest that works | 16x |
+| Cost per ticket | 0.914¢, about $9 per thousand |
+| Cheapest model that still works | `gpt-5-mini`, 5x cheaper, one false escalation |
+| Cheapest model overall | `gpt-5-nano`, 26x cheaper, **disqualified** — three critical read as high |
+| Adversarial set: missed / false escalations | 0 / 1 |
 | What you have not verified | the Terraform apply |
 
 ---

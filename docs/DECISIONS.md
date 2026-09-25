@@ -17,6 +17,13 @@ decisions I made and directed**, and several reversed what the implementation ha
 | **D18 / D25** | Containerize it properly and prove it runs, rather than shipping a Dockerfile nobody executed. |
 | **Interface** | Most recent run at the top; click a request to open everything in a popup; sort by urgency and by time. |
 | **Fixtures** | More sample tickets than the ten provided, so a demo can show the full category and escalation matrix. |
+| **D75** | Urgency should not be scored on accuracy. It is a screening test, and an under-call and an over-call are not the same mistake — the doctor's trade-off. This changed what the scorecard measures, and the answer (0% under-called) was already true and simply unmeasured. |
+| **D87 / D89** | "Is escalation really just keywords?" Pushing on this exposed that the gold set could not tell, and that the product was claiming a keyword match as proof of the model's contribution. It produced the keyword-free probe. |
+| **D91 / D92** | "No failure — isn't that a problem? Hard to demo 100%." Correct, and it produced the adversarial set and the best two minutes in the demo: the ticket where the guardrail overrides a correct answer. |
+| **D90** | "Isn't 100% category accuracy suspect?" It was, twice over — it flattered rules mode, and it cannot separate any two models. |
+| **D84 / D85** | Build the cascade rather than describe it. The obvious version lost money; measuring it is what found the free triage that works. |
+| **D80 / D94** | Show what it costs, in the product, and give the model comparison its own page with a recommendation rather than a table. |
+| **D77 / D78** | Filter and sort are one question, so one control. And demo data should be replayed from a recorded run, never classified live on stage. |
 
 The rest — the two-layer classifier, the guardrail asymmetry, the audit design, the eval method —
 were engineering calls, and each entry says what was rejected and why.
@@ -1448,6 +1455,38 @@ rather than thrift: three cheaper options measured, each priced, all three decli
 Swept the stale numbers out of the presenter sidebar while there: it still said 31 gold tickets and
 77% urgency. The sidebar now also carries the two numbers worth volunteering — urgency
 under-called at 0%, and the adversarial set at 0 missed / 1 false.
+
+### D97. The presenter notes contained the opposite advice to the product
+A consistency sweep after the cost work found beat 12 still saying: *"the answer for this workload
+is: don't buy the expensive model. Run the cheap one in production."* That came from the 10-ticket
+bake-off D52 retracted. The page and the script would have contradicted each other on stage, and the
+script was the one that was wrong.
+
+Deleted it. Beat 7 and `/optimization` cover the same ground with the full gold set behind them.
+Also renumbered every beat 0–13 — inserting three beats had produced two number 5s and two
+number 7s — and trimmed four beats to bring the long script back from 31.8 to 29.8 minutes. The
+short script is 14.3.
+
+The general lesson, and the third time in this project: **a document is not updated until its claims
+are re-derived.** Adding a page does not update the pages that reference the same facts, and the
+stale ones are the dangerous ones because they read as confident.
+
+### D98. What the sweep found everywhere else
+- `STATUS.md` listed "nano matches gpt-5 at 6% of the cost" as a deliverable and had "probably nano
+  plus the review queue" as an open decision. Both now say the opposite, with the reason.
+- `PANEL-QA.md` still described the model as `claude-opus-5` with `messages.parse` and quoted
+  urgency at 80%/77%. It now says `gpt-5` at low effort, the current numbers, and carries a
+  "100% sounds too good" answer pointing at the stress set.
+- `PREP.md` quoted "model cost vs the cheapest that works: 16x" with no context; now four rows
+  including why nano is disqualified. Its reading list adds `/optimization` and `STRESS-llm.md`, and
+  no longer says "do not read all 45" of 96 decisions.
+- `DEMO.md` and `HOW-IT-WORKS.md` carried 77%/97% urgency and a 31-ticket gold set.
+- The presenter sidebar still said 31 gold tickets and 77% urgency.
+
+The attribution table at the top of this file now credits the calls Austin made in this round —
+scoring urgency by direction, pushing on whether escalation is just keywords, refusing to accept
+100%, and telling me to build the cascade rather than describe it. Several of those changed the
+result, not just the wording.
 
 ## Open questions to raise with the panel (or answer if asked)
 

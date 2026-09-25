@@ -15,10 +15,11 @@ Updated 2026-09-22. `./scripts/preflight.sh` is the live version of the top half
 | Containerized, runs locally | Built, run, health green, non-root, audit survives restart |
 | IaC | Terraform for Cloud Run, `tofu validate` passes |
 | README with a deploy plan | Including the Apple-silicon install path that actually works |
-| 47 tests | Unit, API, mocked model path, gold in keyword mode, concurrency |
-| Cost/performance across models | `docs/MODEL-BAKEOFF.md` — nano matches gpt-5 at 6% of the cost |
+| 62 tests | Unit, API, mocked model path, gold in keyword mode, concurrency, pricing, replay |
+| Cost/performance across models | `/optimization` and `docs/MODEL-BAKEOFF.md` — nano is 26x cheaper and **disqualified**: it read three critical tickets as high |
+| Where it breaks | `docs/STRESS-llm.md` — 12 adversarial tickets. No missed escalations; four over-escalations, all where incident vocabulary appears without an incident |
 | Repeatability | `docs/REPEATABILITY.md` — labels stable, confidence ±0.03 |
-| Presenter material | `/notes` (15/30 min), `DEMO.md`, `HOW-IT-WORKS.md`, `PANEL-QA.md`, 36 decisions |
+| Presenter material | `/notes` (14 beats, 15/30 min), `/optimization`, `DEMO.md`, `HOW-IT-WORKS.md`, `PANEL-QA.md`, 96 decisions |
 
 ## Done but NOT verified live
 
@@ -40,13 +41,17 @@ Updated 2026-09-22. `./scripts/preflight.sh` is the live version of the top half
    column by ten points. About 90 calls.
 3. **Split the gold set.** It has been used to tune prompts, so its numbers are optimistic. Reporting
    only an untouched half would be the honest version. Costs nothing but a re-run.
-4. **Decide the production model.** Bake-off and repeatability disagree: nano matches gpt-5 on
-   accuracy at 6% of the cost, but flips a label on repeat. Probably nano plus the review queue.
+4. ~~**Decide the production model.**~~ **Decided: `gpt-5` at low effort.** The full-gold-set
+   bake-off (D81) retired the earlier "nano is as good" reading, which came from 10 tickets with no
+   false-positive traps. Nano reads three critical tickets as high. Mini is the credible cheap
+   option at a fifth of the cost and one false escalation; the keyword-triaged cascade is 38%
+   cheaper and ships off by default. All of it is on `/optimization`.
 
 ## Deliberately not doing
 
 - **Async intake.** Measured and argued for (D24, `LOADTEST.md`) but out of scope for a take-home;
   describing the measurement is stronger than a half-built worker.
 - **Cloud SQL, IAP, a real job queue.** Named as the scale path with the reason and the ordering.
-- **More sample tickets.** 31 gold + 32 demo already covers every category, urgency and escalation
-  reason, plus the traps. More would pad the number without adding coverage.
+- **More sample tickets.** 33 gold + 32 demo + 12 adversarial + 6 keyword-free already cover every
+  category, urgency and escalation reason, plus the traps. More of the same would pad the number
+  without adding coverage. More tickets *I did not write* would be worth real money — see below.

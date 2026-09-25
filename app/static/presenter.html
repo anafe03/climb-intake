@@ -260,7 +260,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   </div>
 
   <div class="beat">
-    <div class="top"><span class="n">5</span><h2>Close on the audit trail</h2><span class="time" data-sec="90" data-short="70">1.5 min</span></div>
+    <div class="top"><span class="n">8</span><h2>Close on the audit trail</h2><span class="time" data-sec="90" data-short="70">1.5 min</span></div>
     <div class="do"><b>Do</b>Expand <b>Full audit record</b> on any ticket.</div>
     <div class="say">
       <p>"Every decision is a row in SQLite and a JSON line on stdout: what the model said, what
@@ -270,9 +270,9 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   </div>
 
 
-  <h2 class="section">7 · The API, in a terminal <span class="tag">always cover</span></h2>
+  <h2 class="section">9 · The API, in a terminal <span class="tag">always cover</span></h2>
   <div class="beat">
-    <div class="top"><span class="n">7</span><h2>Show it is a service, not a web page</h2><span class="time" data-sec="150" data-short="80">2.5 min</span></div>
+    <div class="top"><span class="n">9</span><h2>Show it is a service, not a web page</h2><span class="time" data-sec="150" data-short="80">2.5 min</span></div>
     <p class="why">Have a terminal ready beside the browser. The point of this beat: <b>the UI is one
     client. Everything it does is an endpoint.</b></p>
 
@@ -307,9 +307,9 @@ curl -s -X POST localhost:8080/tickets/upload -F 'file=@/tmp/t.csv' | jq '.count
     without this a webhook retry puts a duplicate in the escalation desk.</p>
   </div>
 
-  <h2 class="section">8 · Containerisation and deployment <span class="tag">always cover</span></h2>
+  <h2 class="section">10 · Containerisation and deployment <span class="tag">always cover</span></h2>
   <div class="beat">
-    <div class="top"><span class="n">8</span><h2>How it ships</h2><span class="time" data-sec="180" data-short="90">3 min</span></div>
+    <div class="top"><span class="n">10</span><h2>How it ships</h2><span class="time" data-sec="150" data-short="90">2.5 min</span></div>
     <div class="do"><b>Start here</b>Show it is already the thing they're talking to.</div>
     <div class="cmd"><pre>docker compose ps
 docker exec $(docker compose ps -q) id -un</pre></div>
@@ -358,9 +358,9 @@ docker exec $(docker compose ps -q) id -un</pre></div>
     </div>
   </div>
 
-  <h2 class="section">9 · The audit trail <span class="tag">always cover</span></h2>
+  <h2 class="section">11 · The audit trail <span class="tag">always cover</span></h2>
   <div class="beat">
-    <div class="top"><span class="n">9</span><h2>What you could answer six months later</h2><span class="time" data-sec="120" data-short="0">2 min</span></div>
+    <div class="top"><span class="n">11</span><h2>What you could answer six months later</h2><span class="time" data-sec="90" data-short="0">1.5 min</span></div>
     <div class="do"><b>Do</b>Expand <b>Full audit record</b>, then show the same thing as a log line.</div>
     <div class="cmd"><pre>docker compose logs --tail 3 | grep routing_decision | jq</pre></div>
     <div class="say">
@@ -374,9 +374,9 @@ docker exec $(docker compose ps -q) id -un</pre></div>
     went where it went, the answer is a row, not an archaeology project."</p>
   </div>
 
-  <h2 class="section extra-only">10 · Where it was wrong <span class="tag">30 min only</span></h2>
+  <h2 class="section extra-only">12 · Where it was wrong <span class="tag">30 min only</span></h2>
   <div class="beat extra">
-    <div class="top"><span class="n">10</span><h2>Three things I got wrong and how I found them</h2><span class="time" data-sec="180" data-short="0">3 min</span></div>
+    <div class="top"><span class="n">12</span><h2>Three things I got wrong and how I found them</h2><span class="time" data-sec="150" data-short="0">2.5 min</span></div>
     <p class="why">Volunteer this. It is the strongest material you have and it is the part nobody else
     will offer. Keep each one to three sentences.</p>
     <div class="say">
@@ -398,9 +398,9 @@ docker exec $(docker compose ps -q) id -un</pre></div>
     is a number, and I write down what changed it."</p>
   </div>
 
-  <h2 class="section extra-only">11 · Design decisions <span class="tag">30 min only</span></h2>
+  <h2 class="section extra-only">13 · Design decisions <span class="tag">30 min only</span></h2>
   <div class="beat extra">
-    <div class="top"><span class="n">11</span><h2>Open the decision log</h2><span class="time" data-sec="120" data-short="0">2 min</span></div>
+    <div class="top"><span class="n">13</span><h2>Open the decision log</h2><span class="time" data-sec="90" data-short="0">1.5 min</span></div>
     <div class="do"><b>Do</b>Open <code>docs/DECISIONS.md</code>. Don't read it — scroll it, then pick two.</div>
     <div class="say">
       <p>"33 entries. Each one says what I chose, what I rejected, and what I'd say if pushed. The top
@@ -416,24 +416,6 @@ docker exec $(docker compose ps -q) id -un</pre></div>
     </div>
   </div>
 
-
-<h2 class="section extra-only">12 · What it costs to run <span class="tag">30 min only</span></h2>
-  <div class="beat extra">
-    <div class="top"><span class="n">12</span><h2>Does this job need the expensive model?</h2><span class="time" data-sec="150" data-short="0">2.5 min</span></div>
-    <div class="do"><b>Do</b>Open <code>docs/MODEL-BAKEOFF.md</code>.</div>
-    <div class="say">
-      <p>"Same prompt, same schema, same guardrails. Only the model changes."</p>
-      <p>"All three hit 100% escalation recall and 100% category accuracy on the ten tickets. Nano
-      costs six percent of what the top model does."</p>
-      <p>"So the answer for this workload is: don't buy the expensive model. Run the cheap one in
-      production, and spend the difference on the human-review queue — the tickets where the
-      classifier already told you it was unsure."</p>
-    </div>
-    <p class="why"><b>Give the caveats before they do.</b> Ten tickets, so one disagreement moves a
-    column ten points. And the guardrail layer sits under every row — a model that missed an
-    escalation here would still have been caught before the ticket shipped. That is the argument for
-    the two-layer design, priced.</p>
-  </div>
 
   <h2 class="section">Requirement coverage</h2>
   <div class="beat">

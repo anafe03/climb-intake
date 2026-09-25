@@ -78,6 +78,22 @@ improvement but still put a rubric ahead of the answer.
       never rerouted, because only `billing` and `bug` have a critical override (D64).
 - [x] `/docs` was FastAPI's default page, linked from the app header. Now documented (D65).
 
+## Block 5 — cost, model choice, and going looking for failure  (DONE)
+
+- [x] **Show what it costs.** `app/pricing.py` is the one rate card; every decision carries
+      `usage.cost_usd`; the ticket footer and a dashboard card show it (D80).
+- [x] **Compare models with scores, not just price** — `/optimization`, its own nav item, opening
+      with a recommendation. Nano is 26x cheaper and disqualified (D81, D94).
+- [x] **Build the cascade instead of describing it.** The obvious version costs 29% *more*; the
+      keyword-triaged version is 38% cheaper and ships off by default (D84, D85).
+- [x] **Go looking for failures.** 12 adversarial tickets: no missed escalations, four
+      over-escalations, all one shape (D91).
+- [x] **Prove the model half earns its place** — six keyword-free escalations, all caught (D89).
+- [x] **Score urgency by direction**, not accuracy: 0% under-called (D75).
+- [x] Presenter notes: two new beats, renumbered 0–13, both scripts back under time.
+- [x] Swept stale numbers out of PANEL-QA, STATUS, PREP, DEMO and HOW-IT-WORKS. STATUS still
+      recommended nano, which the evidence now disqualifies.
+
 ## Still open
 
 - [ ] No git remote. The only unmet deliverable, and it needs your GitHub account — `preflight.sh`
