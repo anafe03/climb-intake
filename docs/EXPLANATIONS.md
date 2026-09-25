@@ -147,8 +147,9 @@ waits. Like a doctor: a needless check-up costs a little, sending a sick person 
   the new report" is low urgency but goes to someone senior.
 - **Could an angry customer make a ticket look more urgent?** No. "This is ridiculous. Third month in a row
   the invoice doesn't match!!!" is medium, because it keeps happening, not because of the shouting.
-- **How often is it exactly right?** 88% on the 33 main tickets, 76% with the keyword check alone. The
-  weakest number, which is why the direction matters more.
+- **How often is it exactly right?** 88% on the 33 main tickets, 76% with the keyword check alone. This is
+  our worst accuracy number. But when it is wrong, it is wrong upward: it calls a ticket more urgent than it
+  is, never less, which is the safe way to be wrong.
 - **Did you go easy on the grading?** Some tickets could fairly be low or medium, and count either way. The
   "never too calm" result holds even counting only the tickets with one clear answer.
 
@@ -372,9 +373,10 @@ The model comparison and the small-then-big versions were run before the worked 
 
 The trick, no-keyword and extraction sets were run before the worked example was added.
 
-**Who wrote the answers.** I did, for 23 of the 33 main tickets. That is a weakness: I also wrote the
-instructions, so agreement proves less than it looks. The 10 Climb tickets are the fair test, and it got all
-10 right.
+**Who wrote the tests.** I wrote 23 of the 33 main test tickets, and that has a limit: if I already knew a
+way it breaks, I would have fixed it. So the hardest failures to test for are the ones I have not thought
+of. That is why the trick tickets were written to break it on purpose, why the 10 Climb tickets are the fairest
+test (it got all 10 right), and why the next step is real tickets labelled by other people.
 
 ## With more time
 

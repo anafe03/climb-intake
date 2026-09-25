@@ -490,10 +490,9 @@ docker exec $(docker compose ps -q) id -un</pre></div>
       measured model latency at concurrency 1, 4 and 8, and the tail is the model itself, not
       contention. A synchronous handler that can block 40 seconds is a design the numbers reject.</p></div>
     <div class="q"><h4>What's weakest?</h4>
-      <p>I wrote 23 of the 33 gold answers myself, so they encode my judgment about what is right: the
-      ten they provided are the only independent rows. The 12-ticket stress set pushes back on that, but
-      I wrote those too. With more time: real tickets, two labellers, inter-rater agreement, and a
-      held-out split so prompt tuning can't overfit.</p></div>
+      <p>I wrote 23 of the 33 main test tickets, and that has a limit: if I already knew a way it breaks, I
+      would have fixed it, so the hardest failures to test for are the ones I have not thought of. That is why the
+      trick tickets exist, and why the next step is real tickets labelled by other people.</p></div>
   </div>
 </main>
 

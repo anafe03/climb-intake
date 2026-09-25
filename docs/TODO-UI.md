@@ -350,6 +350,14 @@ consistency, strategies, the thought process I've been giving you."
 - [x] **Consistency: say it plainly.** The keyword part gives the same answer every time by definition;
       the model's output might not, so that is what was tested, and here is the variance.
 
+## Block 14 (2026-09-25)
+
+- [x] **"this view is fucked"** Find and fix what is broken on the Explanations cards.
+- [x] **"Who wrote the answers": reword.** Austin's point: "when I know how it breaks, it's hard to write
+      tests that are creative, or I would have changed it originally."
+- [x] **Urgency accuracy: "say this is our worst accuracy measurement, so push up direction, it's wrong
+      basically"** It is the lowest number, and when it is wrong it errs upward.
+
 ## Still open
 
 - [x] Git remote: github.com/anafe03/climb-intake, pushed by Austin.
