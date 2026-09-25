@@ -202,8 +202,11 @@ def connection_retries() -> int:
     return int(os.environ.get("LLM_CONNECTION_RETRIES", "3"))
 
 
-def classify(text: str) -> tuple[Extraction, dict]:
+def classify(text: str, model: str | None = None) -> tuple[Extraction, dict]:
     """Return (extraction, meta) from the active provider. Raises provider errors for the caller.
+
+    `model` overrides the configured one for this call only, which is what the cascade needs: the
+    reader changes per ticket, so it cannot be an environment variable.
 
     Connection errors get their own retry budget, separate from the per-attempt deadline. They fail
     in well under a second, so retrying them is nearly free — unlike a slow response, which the
@@ -218,8 +221,8 @@ def classify(text: str) -> tuple[Extraction, dict]:
         try:
             if provider() == "openai":
                 from . import llm_openai
-                return llm_openai.classify(text)
-            return classify_anthropic(text)
+                return llm_openai.classify(text, model)
+            return classify_anthropic(text, model)
         except (_anthropic.APIConnectionError, _openai.APIConnectionError) as e:
             last = e
             if attempt < connection_retries():
@@ -228,10 +231,10 @@ def classify(text: str) -> tuple[Extraction, dict]:
     raise last  # type: ignore[misc]
 
 
-def classify_anthropic(text: str) -> tuple[Extraction, dict]:
+def classify_anthropic(text: str, model: str | None = None) -> tuple[Extraction, dict]:
     started = time.perf_counter()
     response = _client().messages.parse(
-        model=model_name(),
+        model=model or model_name(),
         max_tokens=4096,
         # Stable prefix, cached across tickets. Opus 5 minimum cacheable prefix is 512 tokens;
         # usage.cache_read_input_tokens in the audit record shows whether it lands.

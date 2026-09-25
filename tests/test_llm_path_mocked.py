@@ -30,7 +30,7 @@ def llm_mode(monkeypatch):
 
 
 def test_model_misses_legal_threat_rules_catch_it(llm_mode, monkeypatch):
-    monkeypatch.setattr(llm, "classify", lambda text: (_model_answer(), {"model": "mock", "input_tokens": 1, "output_tokens": 1}))
+    monkeypatch.setattr(llm, "classify", lambda text, model=None: (_model_answer(), {"model": "mock", "input_tokens": 1, "output_tokens": 1}))
     d = pipeline.process(TicketIn(text="If this isn't fixed our legal team will review the MSA for breach."), persist=False)
     assert d.mode == "llm" and d.model == "mock"
     assert d.llm_extraction.escalate is False            # what the model said
@@ -44,7 +44,7 @@ def test_model_misses_legal_threat_rules_catch_it(llm_mode, monkeypatch):
 def test_model_answer_is_kept_when_rules_agree(llm_mode, monkeypatch):
     ans = _model_answer(category=Category.security, urgency=Urgency.critical, escalate=True,
                         escalation_reasons=[EscalationReason.security_incident], customer=Customer(name="Acme"))
-    monkeypatch.setattr(llm, "classify", lambda text: (ans, {"model": "mock", "input_tokens": 1, "output_tokens": 1}))
+    monkeypatch.setattr(llm, "classify", lambda text, model=None: (ans, {"model": "mock", "input_tokens": 1, "output_tokens": 1}))
     d = pipeline.process(TicketIn(text="A former employee logged in with old credentials this morning."), persist=False)
     assert d.extraction.customer.name == "Acme"
     assert d.overrides == []                              # rules confirmed, changed nothing
@@ -52,13 +52,13 @@ def test_model_answer_is_kept_when_rules_agree(llm_mode, monkeypatch):
 
 
 def test_model_cannot_lower_urgency_below_rule_floor(llm_mode, monkeypatch):
-    monkeypatch.setattr(llm, "classify", lambda text: (_model_answer(urgency=Urgency.low, escalate=True, escalation_reasons=[EscalationReason.data_exposure]), {"model": "mock"}))
+    monkeypatch.setattr(llm, "classify", lambda text, model=None: (_model_answer(urgency=Urgency.low, escalate=True, escalation_reasons=[EscalationReason.data_exposure]), {"model": "mock"}))
     d = pipeline.process(TicketIn(text="I was able to see another company's customer records this morning."), persist=False)
     assert d.extraction.urgency == Urgency.critical
 
 
 def test_api_error_degrades_to_rules(llm_mode, monkeypatch):
-    def boom(text):
+    def boom(text, model=None):
         raise anthropic.APIConnectionError(request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"))
     monkeypatch.setattr(llm, "classify", boom)
     d = pipeline.process(TicketIn(text="Our CEO wants an update on onboarding today."), persist=False)
@@ -112,7 +112,7 @@ def test_openai_error_degrades_to_rules(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "x")
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     from app import llm_openai
-    def boom(text):
+    def boom(text, model=None):
         raise openai.APIConnectionError(request=httpx.Request("POST", "https://api.openai.com/v1/responses"))
     monkeypatch.setattr(llm_openai, "classify", boom)
     d = pipeline.process(TicketIn(text="Our CEO wants an update today."), persist=False)
@@ -175,7 +175,7 @@ def test_alternatives_survive_the_pipeline_and_sum_sensibly(llm_mode, monkeypatc
         Alternative(category=Category.billing, confidence=0.25, why_not="wrong charge, but the cause is a defect"),
         Alternative(category=Category.other, confidence=0.15, why_not="could be a question, but it reports a fault"),
     ])
-    monkeypatch.setattr(llm, "classify", lambda text: (ans, {"model": "mock"}))
+    monkeypatch.setattr(llm, "classify", lambda text, model=None: (ans, {"model": "mock"}))
     d = pipeline.process(TicketIn(text="Checkout is charging customers twice."), persist=False)
     alts = d.extraction.category_alternatives
     assert [a.category.value for a in alts] == ["billing", "other"]
@@ -190,7 +190,7 @@ def test_health_reports_the_model_as_failing_after_an_error(llm_mode, monkeypatc
     from fastapi.testclient import TestClient
     from app.main import app
     pipeline.LAST_MODEL_CALL.update(status="unknown", at=None, error=None)
-    monkeypatch.setattr(llm, "classify", lambda t: (_ for _ in ()).throw(
+    monkeypatch.setattr(llm, "classify", lambda t, model=None: (_ for _ in ()).throw(
         anthropic.APIConnectionError(request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"))))
     pipeline.process(TicketIn(text="The export is broken."), persist=False)
     body = TestClient(app).get("/health").json()
@@ -207,7 +207,7 @@ def test_a_stated_name_means_full_identification_confidence(llm_mode, monkeypatc
     named = _model_answer(customer=Customer(name="Grupo Andino", contact_name="Carlos Mendoza",
                                             best_guess="Grupo Andino, an existing subscriber",
                                             confidence=1.0, basis=["signed off with name and company"]))
-    monkeypatch.setattr(llm, "classify", lambda t: (named, {"model": "mock"}))
+    monkeypatch.setattr(llm, "classify", lambda t, model=None: (named, {"model": "mock"}))
     c = pipeline.process(TicketIn(text="… — Carlos Mendoza, Grupo Andino"), persist=False).extraction.customer
     assert c.name == "Grupo Andino"
     assert c.confidence >= 0.9, "a verbatim name is an identification, not a guess"
@@ -222,7 +222,7 @@ def test_connection_errors_are_retried_then_give_up_cleanly(llm_mode, monkeypatc
     monkeypatch.setenv("LLM_CONNECTION_RETRIES", "2")
 
     calls = {"n": 0}
-    def flaky(text):
+    def flaky(text, model=None):
         calls["n"] += 1
         if calls["n"] < 3:
             raise anthropic.APIConnectionError(request=httpx.Request("POST", "https://x/y"))
@@ -234,7 +234,7 @@ def test_connection_errors_are_retried_then_give_up_cleanly(llm_mode, monkeypatc
     assert calls["n"] == 3
 
     calls["n"] = 0
-    def always_down(text):
+    def always_down(text, model=None):
         calls["n"] += 1
         raise anthropic.APIConnectionError(request=httpx.Request("POST", "https://x/y"))
     monkeypatch.setattr(llm_openai, "classify", always_down)

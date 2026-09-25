@@ -168,3 +168,19 @@ def test_exposure_to_the_wrong_audience_escalates_not_just_exposure_to_us():
                    "We were double-billed for March on invoice #88213."]:
         clean, hits, _ = apply_escalation_rules(benign, _base())
         assert not clean.escalate, f"false positive on: {benign}"
+
+
+def test_rules_triage_picks_the_reader_before_spending_anything():
+    """The free triage must send the dangerous tickets to the expensive model, and only those."""
+    from app import cascade
+
+    expensive, why = cascade.triage_by_rules(
+        "A former employee still has admin credentials and opened a customer export.")
+    assert expensive and "security" in why
+
+    cheap, why2 = cascade.triage_by_rules("The dark mode toggle resets every time I refresh.")
+    assert not cheap and "cheap reader" in why2
+
+    # A contract question with no dispute is the false-positive trap; it must stay cheap.
+    trap, _ = cascade.triage_by_rules("When does our contract renew, and can you price 50 seats?")
+    assert not trap

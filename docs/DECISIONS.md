@@ -1277,6 +1277,44 @@ justified it, and the code is already shaped for it — the confidence threshold
 tickets to `human-review` is the same signal that would send them to a better reader. Under 0.50 to
 the expensive model, above it ships on the cheap one: a routing change and one branch.
 
+### D84. I built the cascade I recommended, and the obvious version loses money
+D83 said a cascade was the lever worth building. Built it, measured it, and the naive design is
+**29% more expensive** than just using `gpt-5` on everything.
+
+Draft each ticket on `gpt-5-mini`, re-read on `gpt-5` when the draft escalates, calls it high or
+critical, or is unsure. 58% were re-read, so the arithmetic says roughly 22% saved. It does not,
+because of **adverse selection**: the tickets a cascade chooses to re-read are by construction the
+hard ones, and a hard ticket costs nearly double the average on the expensive model — measured,
+**1.73¢ against a 0.91¢ average**. The draft is then pure overhead on most of the spend.
+
+That error is invisible if you reason with an average cost per ticket, which is exactly what the
+back-of-envelope in D83 did. Pricing each decision individually (D80) is what made it visible.
+
+### D85. The triage should be free, and the free triage works
+The draft's only job is deciding which reader a ticket needs, and something already does that for
+nothing: the keyword layer reads every ticket anyway, as the guardrail. So let it choose. A ticket
+that trips an escalation pattern, or reads as high urgency on keywords alone, goes to `gpt-5`;
+everything else goes to `gpt-5-mini`. **One model call either way, no draft to pay for.**
+
+| arrangement | missed esc. | false esc. | critical under-called | cost/ticket | vs gpt-5 |
+|---|---|---|---|---|---|
+| `gpt-5` on everything | none | none | no | 0.914¢ | — |
+| draft on mini, re-read the risky | none | none | no | 1.179¢ | **29% worse** |
+| **triage on the keyword layer** | none | 1 | no | 0.567¢ | **38% cheaper** |
+
+17 of 33 took the expensive path. The cost is mini's error profile on the half it handles: one false
+escalation (the SOC 2 request again) and one low-versus-medium urgency disagreement. Nothing missed,
+no critical under-called — the two results that would rule it out.
+
+**Shipped off by default** (`LLM_CASCADE=0`). At 0.9¢ a ticket there is nothing to optimise, and
+the simpler system is the one worth handing over. It exists so the answer to "could this be cheaper"
+is a measurement and a flag rather than an opinion.
+
+### D86. Test doubles have to match the signature they stand in for
+Adding a `model` parameter to `llm.classify` broke three mocks that took only `text`. The right fix
+was updating the doubles, not passing the argument some other way: a stub whose signature has
+drifted from the real function is a test that passes while the thing it tests is broken.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

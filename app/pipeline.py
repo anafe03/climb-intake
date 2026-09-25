@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 import anthropic
 import openai
 
-from . import audit, llm, pricing, routing, rules
+from . import audit, cascade, llm, pricing, routing, rules
 from .models import Decision, Extraction, TicketIn
 
 log = logging.getLogger("climb.pipeline")
@@ -31,6 +31,43 @@ def effective_mode() -> str:
     return mode
 
 
+def _merge_usage(first: dict, second: dict) -> dict:
+    """Both reads were paid for, so both are reported. Hiding the draft's tokens would make the
+    cascade look cheaper than it is, which is the one thing this measurement must not do."""
+    out = dict(second)
+    for k in ("input_tokens", "output_tokens", "cache_read_input_tokens"):
+        out[k] = (first.get(k, 0) or 0) + (second.get(k, 0) or 0)
+    return out
+
+
+def _cascade_classify(text: str) -> tuple[Extraction, dict, dict]:
+    """Pick a reader for this ticket. Two strategies, both measured in docs/CASCADE.md."""
+    if cascade.triage_mode() == "rules":
+        # Triage with the keyword layer, which costs nothing and has already read the text. One
+        # model call, chosen before any money is spent.
+        expensive, why = cascade.triage_by_rules(text)
+        model = None if expensive else cascade.draft_model()
+        x, meta = llm.classify(text, model=model)
+        return x, meta, {"triage": "rules", "expensive": expensive, "why": why,
+                         "reader": meta.get("model")}
+
+    draft, dmeta = llm.classify(text, model=cascade.draft_model())
+    reread, why = cascade.needs_second_read(draft)
+    draft_cost = pricing.cost_usd(dmeta, dmeta.get("model"))
+    note = {"triage": "draft", "draft_model": dmeta.get("model"), "reread": reread, "why": why,
+            "draft_cost_usd": round(draft_cost, 6) if draft_cost else None}
+    if not reread:
+        return draft, dmeta, note
+    final, fmeta = llm.classify(text)
+    # Report the merged spend under the model that produced the shipped answer.
+    merged = _merge_usage(dmeta, fmeta)
+    note["draft_said"] = {"category": draft.category.value, "urgency": draft.urgency.value,
+                          "escalate": draft.escalate}
+    note["changed"] = (draft.category != final.category or draft.urgency != final.urgency
+                       or draft.escalate != final.escalate)
+    return final, merged, note
+
+
 def process(ticket: TicketIn, persist: bool = True) -> Decision:
     # Fast path for sequential retries: skip the model call if we already decided this ticket.
     # Correctness does not rest here — a unique index in audit.record() arbitrates concurrent
@@ -48,9 +85,15 @@ def process(ticket: TicketIn, persist: bool = True) -> Decision:
 
     if mode == "llm":
         try:
-            llm_extraction, meta = llm.classify(ticket.text)
+            if cascade.enabled():
+                llm_extraction, meta, cascade_note = _cascade_classify(ticket.text)
+            else:
+                llm_extraction, meta = llm.classify(ticket.text)
+                cascade_note = None
             model = meta.pop("model")
             usage = meta
+            if cascade_note:
+                usage["cascade"] = cascade_note
             # Price the decision where the tokens are known, so the audit record answers "what did
             # this cost" without anyone having to re-derive it from a rate card six months later.
             cost = pricing.cost_usd(usage, model)

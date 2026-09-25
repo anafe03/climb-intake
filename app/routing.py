@@ -27,6 +27,11 @@ def route(category: Category, urgency: Urgency, escalate: bool, confidence: floa
     return queue, (table["escalation_queue"] if escalate else None)
 
 
+def low_confidence_threshold() -> float:
+    """The one number in the system that changes behaviour. Read it, never hard-code it."""
+    return float(load_table().get("low_confidence", {}).get("threshold", 0.0))
+
+
 def all_queues() -> list[str]:
     table = load_table()
     names = {q for entry in table["queues"].values() for q in entry.values()}

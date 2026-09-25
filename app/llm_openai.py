@@ -29,7 +29,7 @@ def model_name() -> str:
     return os.environ.get("OPENAI_MODEL", "gpt-5")
 
 
-def classify(text: str) -> tuple[Extraction, dict]:
+def classify(text: str, model: str | None = None) -> tuple[Extraction, dict]:
     started = time.perf_counter()
     client = _client(timeout_s(), max_retries())
     # Output tokens are 8x the input price on this family, and a reasoning model spends most of them
@@ -37,7 +37,7 @@ def classify(text: str) -> tuple[Extraction, dict]:
     # which is 90% cached anyway. Default "low": this is classification against an explicit rubric,
     # not open-ended problem solving. Raise it with OPENAI_REASONING_EFFORT if a hard ticket needs it.
     response = client.responses.parse(
-        model=model_name(),
+        model=model or model_name(),
         instructions=SYSTEM_PROMPT,
         input=f"<ticket>\n{text}\n</ticket>",
         text_format=Extraction,
