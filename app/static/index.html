@@ -116,6 +116,9 @@ input[type=file]{display:none}
 .ov .big{font-size:26px;font-weight:650;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .ov .big small{font-size:12.5px;font-weight:500;color:var(--dim);margin-left:6px;letter-spacing:0}
 .ov .big.danger{color:var(--danger)}
+.ov .s{font-size:12px;line-height:1.55;color:var(--dim)}
+.ov .lnk{color:var(--primary);text-decoration:none;font-weight:600}
+.ov .lnk:hover{text-decoration:underline}
 .meta .cost{color:var(--climb-coral-deep);font-weight:600}
 .dist{display:flex;height:9px;border-radius:5px;overflow:hidden;margin:9px 0 7px;background:var(--sunken)}
 .dist i{display:block;cursor:pointer}.dist i+i{border-left:1px solid var(--card)}
@@ -364,6 +367,7 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
 <nav><div class="wrap">
   <a href="/" class="on">Intake</a>
   <a href="/architecture">How it works</a>
+  <a href="/optimization">Cost &amp; models</a>
   <a href="/notes">Presenter notes</a>
   <a href="/docs">API</a>
 </div></nav>
@@ -414,7 +418,7 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const cap=s=>{s=String(s).replace(/_/g,' ');return s[0].toUpperCase()+s.slice(1)};
 // Cost is recorded per decision by app/pricing.py, so the page never owns a rate card.
 const costOf=d=>(d.usage&&typeof d.usage.cost_usd==='number')?d.usage.cost_usd:null;
-const cents=v=>v==null?null:(v*100<1?`${(v*100).toFixed(3)}\u00a2`:`$${v.toFixed(3)}`);
+const cents=v=>v==null?null:v>=1?`$${v.toFixed(2)}`:v>=0.01?`${(v*100).toFixed(2)}\u00a2`:`${(v*100).toFixed(3)}\u00a2`;
 let rows=[], escOnly=false, sortBy='newest', openId=null, view='list';
 let pick=null;   // {kind:'urgency'|'category'|'critical', value} — set by clicking a stat
 
@@ -986,6 +990,9 @@ function renderOverview(){
   const p50=lat[Math.floor(lat.length/2)];
   const costs=rows.map(costOf).filter(v=>v!=null);
   const priced=costs.length, spend=priced?costs.reduce((a,b)=>a+b,0):null;
+  // Quality belongs next to the money: a run that was cheap because the model failed is not cheap.
+  const fellBack=rows.filter(d=>d.mode!=='llm').length;
+  const errored=rows.filter(d=>d.error).length;
   const count=(key,get)=>{const m={};rows.forEach(d=>{const v=get(d);m[v]=(m[v]||0)+1});return m};
   const URG_ORDER=['critical','high','medium','low'];
   const bar=(m,colors,kind)=>{
@@ -1009,7 +1016,10 @@ function renderOverview(){
       ${bar(count('c',d=>d.extraction.category),CAT_COLOR,'category')}</div>
     ${spend!=null?`<div class="ov"><div class="k">What it cost</div>
       <div class="big">${cents(spend/Math.max(priced,1))}<small>per ticket, average</small></div>
-      <div class="legend" style="margin-top:8px"><span>${cents(spend)} for all ${priced} · ${cents(spend/Math.max(priced,1)*1000)} per 1,000</span></div></div>`:''}
+      <div class="s" style="margin-top:9px"><b>$${(spend/Math.max(priced,1)*1000).toFixed(2)}</b> per 1,000 tickets · ${cents(spend)} for these ${priced}</div></div>`:''}
+    <div class="ov"><div class="k">Failed extractions</div>
+      <div class="big ${fellBack?'danger':''}">${fellBack}<small>${fellBack===1?'ticket':'tickets'} fell back to keyword rules</small></div>
+      <div class="s" style="margin-top:9px">${errored?`${errored} returned an error. `:''}<a href="/optimization" class="lnk">100% escalation recall on the gold set →</a></div></div>
     <div class="ov"><div class="k">Time to read one</div>
       <div class="big">${(p50/1000).toFixed(1)}<small>seconds, median</small></div>
       <div class="legend" style="margin-top:8px"><span>${(lat[lat.length-1]/1000).toFixed(1)}s slowest</span></div></div>`;

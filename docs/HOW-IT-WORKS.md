@@ -163,9 +163,10 @@ call is probabilistic, can be refused, and can time out. `tests/test_gold_rules_
 deterministic layer alone catches 100% of must-escalate tickets with no network.
 
 **"Why not do it all with rules?"** Because urgency is never stated. Ticket 10 describes a checkout
-bug double-charging many customers with no alarm words in it. The keyword layer scores 77% exact on
-urgency; the model scores 77% with 100% inside tolerance, and wins on every unambiguous row where
-the two disagree.
+bug double-charging many customers with no alarm words in it. On urgency the keyword layer scores 76%
+exact against the model's 82%, and 82% strict on category against the model's 100%. Neither
+under-calls. The sharper answer is the adversarial set: rules alone miss three escalations out of
+twelve there, and the model misses none.
 
 **"So the model can be wrong and you'd still ship it?"** It can be wrong and we ship a *corrected*
 answer. `tests/test_llm_path_mocked.py` mocks a model that calls a legal threat "billing, no

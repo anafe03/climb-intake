@@ -113,6 +113,13 @@ def architecture():
     return FileResponse(STATIC / "architecture.html")
 
 
+@app.get("/optimization", include_in_schema=False)
+def optimization():
+    """Cost, the model comparison, and the one optimisation that pays. Its own page because
+    "what does it cost and could it be cheaper" is the second question every client asks."""
+    return FileResponse(STATIC / "optimization.html")
+
+
 @app.get("/health", tags=["operate"], summary="Is it up, and is the model answering?")
 def health():
     """`ok` is false when a model is configured but its last call failed.

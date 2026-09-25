@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cost &amp; model choice — Climb Intake</title>
+<style>
+:root{
+  --teal:#03323a; --teal-mid:#006172; --coral:#f27557; --coral-deep:#92351e; --cyan:#a2f1f8;
+  --sage:#87a48c; --mint:#c6f0cd;
+  --paper:#f9f9f5; --card:#fff; --sunken:#f2f2ea; --line:#e4e4d8; --line2:#cdcdc0;
+  --ink:#121d1f; --dim:#5d6a6b; --faint:#949c9c;
+  --mono:"SF Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.65 var(--sans);-webkit-font-smoothing:antialiased}
+header{background:var(--teal);color:#fff;padding:22px 0}
+.wrap{max-width:1000px;margin:0 auto;padding:0 26px}
+header h1{margin:0;font-size:20px;font-weight:650}
+header p{margin:5px 0 0;color:var(--cyan);font-size:13.5px}
+nav{background:var(--teal-mid);padding:0}
+nav .wrap{display:flex;gap:2px}
+nav a{color:#cfe9ed;text-decoration:none;font:600 13px var(--sans);padding:11px 16px}
+nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+nav a.on{background:var(--paper);color:var(--teal)}
+main{padding:30px 0 90px}
+h2{font:700 12px var(--sans);letter-spacing:.09em;text-transform:uppercase;
+  margin:42px 0 16px;padding-bottom:9px;border-bottom:2px solid var(--coral)}
+h2:first-of-type{margin-top:6px}
+h3{font-size:17px;font-weight:650;margin:26px 0 8px}
+p{margin:0 0 13px}
+.lead{font-size:16px;color:var(--dim);margin-bottom:22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:16px 0}
+figure{margin:18px 0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;overflow-x:auto}
+figcaption{font-size:13px;color:var(--dim);margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+svg{display:block;margin:0 auto;max-width:100%;height:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0}
+th{text-align:left;font:700 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;
+  color:var(--faint);padding:0 12px 9px 0;border-bottom:1px solid var(--line2)}
+td{padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{font-weight:600;white-space:nowrap}
+code{font:13px var(--mono);background:var(--sunken);padding:2px 6px;border-radius:4px}
+.key{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--dim);margin-top:14px}
+.key span{display:flex;align-items:center;gap:7px}
+.key i{width:13px;height:13px;border-radius:3px;display:inline-block}
+.note{border-left:3px solid var(--sage);background:var(--sunken);border-radius:0 9px 9px 0;
+  padding:13px 16px;margin:16px 0;font-size:14px}
+.note > b:first-child{display:block;margin-bottom:3px}
+.q{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--coral);
+  border-radius:0 11px 11px 0;padding:16px 20px;margin:16px 0}
+.q h3{margin:0 0 7px;font-size:16px}
+.q p:last-child{margin-bottom:0}
+@media print{nav{display:none}body{font-size:11pt}figure{break-inside:avoid}}
+tr.bad td{background:#fdeee9}
+tr.good td{background:#eef6ef}
+tr.bad td b{color:var(--climb-coral-deep,#92351e)}
+
+.rec{border:2px solid var(--coral);border-radius:12px;padding:18px 20px;margin:0 0 26px;background:#fff}
+.rec .lab{font:700 9.5px var(--sans,inherit);letter-spacing:.1em;text-transform:uppercase;color:var(--coral-deep);margin-bottom:6px}
+.rec h3{margin:0 0 8px;font-size:19px}
+.rec p{margin:0 0 8px}
+.rec p:last-child{margin-bottom:0}
+.big3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:0 0 26px}
+.big3 .c{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.big3 .k{font:700 9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.big3 .v{font-size:27px;font-weight:650;line-height:1.1;letter-spacing:-.02em}
+.big3 .s{font-size:12.5px;color:var(--dim);margin-top:5px;line-height:1.5}
+@media (max-width:720px){.big3{grid-template-columns:1fr}}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pick td{background:#eef6ef}
+.pick td:first-child::after{content:" \2190 running this";color:var(--sage);font-weight:600;font-size:12px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Cost &amp; model choice</h1>
+  <p>What a decision costs, what a cheaper one would cost you, and the one optimisation that pays</p>
+</div></header>
+<nav><div class="wrap">
+  <a href="/">Intake</a>
+  <a href="/architecture">How it works</a>
+  <a href="/optimization" class="on">Cost &amp; models</a>
+  <a href="/notes">Presenter notes</a>
+  <a href="/docs">API</a>
+</div></nav>
+
+<main class="wrap">
+
+<div class="rec">
+  <div class="lab">Recommendation</div>
+  <h3>Run <code>gpt-5</code> at low reasoning effort. Do not optimise this yet.</h3>
+  <p>It is the only configuration measured with <b>no missed escalations, no false escalations and no
+  urgency under-calls</b> on the gold set. It costs <b>0.9&cent; a ticket</b> &mdash; about <b>$9 per
+  thousand</b>, or roughly what one support hour costs per forty thousand tickets.</p>
+  <p>Two cheaper options are real and measured, and both are below. Neither is worth taking at this
+  volume: the saving is a few dollars a month and the cost is a class of error you then have to
+  explain. <b>Revisit at about 50,000 tickets a month</b>, where the 38% saving becomes real money
+  and is worth the extra failure mode.</p>
+</div>
+
+<div class="big3">
+  <div class="c"><div class="k">Cost per ticket</div><div class="v">0.914&cent;</div>
+    <div class="s">$9.14 per thousand. 90% of input tokens are cache reads at a tenth of the price.</div></div>
+  <div class="c"><div class="k">Escalation recall</div><div class="v">100%</div>
+    <div class="s">11 of 11 on the gold set, and no miss on the 12 adversarial tickets either.</div></div>
+  <div class="c"><div class="k">Failed extractions</div><div class="v">0</div>
+    <div class="s">No ticket fell back to keyword rules across 33 gold + 12 adversarial reads.</div></div>
+</div>
+
+<h2>Every model, scored and priced together</h2>
+
+<p>Same prompt, same schema, same guardrails, 33 gold tickets. Only the model and its reasoning
+effort change. <b>Read the error columns first</b> &mdash; the cost column decides nothing until the
+error columns are acceptable.</p>
+
+<table>
+  <tr><th>Model</th><th>Effort</th><th>Escalation recall</th><th>Missed</th><th>False esc.</th>
+      <th>Urgency under-called</th><th>p50</th><th class="num">Cost / ticket</th><th class="num">Per 1,000</th><th>vs top</th></tr>
+  <tr class="pick"><td><code>gpt-5</code></td><td>low</td><td><b>100%</b></td><td>none</td><td>none</td>
+      <td>none</td><td>16.1 s</td><td class="num">0.914&cent;</td><td class="num">$9.14</td><td>1.00&times;</td></tr>
+  <tr><td><code>gpt-5-mini</code></td><td>low</td><td><b>100%</b></td><td>none</td><td>1 &mdash; SOC&nbsp;2 request</td>
+      <td>1 &mdash; low vs medium</td><td>9.9 s</td><td class="num">0.184&cent;</td><td class="num">$1.84</td><td>0.20&times;</td></tr>
+  <tr><td><code>gpt-5-mini</code></td><td>minimal</td><td><b>100%</b></td><td>none</td><td>3</td>
+      <td>1 &mdash; low vs medium</td><td>5.5 s</td><td class="num">0.127&cent;</td><td class="num">$1.27</td><td>0.14&times;</td></tr>
+  <tr class="bad"><td><code>gpt-5-nano</code></td><td>low</td><td><b>100%</b></td><td>none</td><td>1</td>
+      <td><b>3 critical read as high</b></td><td>7.0 s</td><td class="num">0.035&cent;</td><td class="num">$0.35</td><td>0.04&times;</td></tr>
+  <tr><td>keyword rules only</td><td>&mdash;</td><td><b>100%</b></td><td>none</td><td>none</td>
+      <td>none</td><td>0.0 s</td><td class="num">$0</td><td class="num">$0</td><td>free</td></tr>
+</table>
+
+<p><b>Category accuracy is not in that table on purpose.</b> Every model scores 100% on it, including
+the one disqualified below. A number that cannot separate a frontier model from the cheapest one is
+measuring the task, not the model, so it does not belong in a decision table. Strict category
+accuracy does separate the two <i>modes</i> &mdash; 100% on the model path against 82% rules-only
+&mdash; and that is in the scorecards.</p>
+
+<div class="note">
+  <b>Why <code>gpt-5-nano</code> is disqualified at 26&times; cheaper</b>
+  It read three <em>critical</em> tickets as high, one of them a provided sample: the checkout flow
+  double-charging customers. Those tickets sit. It scores 100% on category and 100% on escalation
+  recall while doing it, which is the whole argument for reporting urgency by direction &mdash; an
+  accuracy score calls nano a bargain.
+</div>
+
+<div class="note">
+  <b>And why the free row is not the answer either</b>
+  Keyword rules alone score 100% on the gold set and then miss three escalations out of twelve on the
+  adversarial set &mdash; a leak described as "probably nothing", credentials written
+  <code>cr3ds</code>, and the same incident in Spanish. Free is not cheap if it misses one.
+</div>
+
+<h2>The four levers, in order of return</h2>
+
+<table>
+  <tr><th>Lever</th><th>Effect</th><th>What it costs</th><th>Status</th></tr>
+  <tr><td><b>Prompt caching</b></td>
+      <td>~90% of input tokens are cache reads at a tenth of the price</td>
+      <td>Nothing. The system prompt is a stable prefix, free once the first call warms it.</td>
+      <td><b>On</b></td></tr>
+  <tr><td><b>Reasoning effort</b></td>
+      <td>The dominant output-token lever. Moving to <code>low</code> roughly halved output tokens
+          and took the cost from 1.72&cent; to 0.91&cent;.</td>
+      <td>Judgment on hard rows. Mini at <code>minimal</code> tripled its false escalations.</td>
+      <td><b>On</b> (<code>low</code>)</td></tr>
+  <tr><td><b>A smaller model</b></td>
+      <td>5&times; to 26&times; cheaper</td>
+      <td>The error profile changes <em>shape</em>, not just magnitude &mdash; see the table.</td>
+      <td>Not taken</td></tr>
+  <tr><td><b>Cascade</b></td>
+      <td>Pick the reader per ticket. <b>38% cheaper</b> done right, <b>29% more expensive</b> done
+          the obvious way.</td>
+      <td>Complexity, and the cheap model's errors on the half it handles.</td>
+      <td>Built, off by default</td></tr>
+</table>
+
+<h2>I built the cascade. The obvious version loses money.</h2>
+
+<p>Worth showing because the arithmetic looks fine right up until you measure it. Draft every ticket
+on <code>gpt-5-mini</code>, then re-read on <code>gpt-5</code> when the draft escalates, calls it
+high or critical, or is unsure. 58% got re-read, so the naive sum says about 22% saved.</p>
+
+<table>
+  <tr><th>Arrangement</th><th>Missed esc.</th><th>False esc.</th><th>Critical under-called</th>
+      <th class="num">Cost / ticket</th><th>vs <code>gpt-5</code></th></tr>
+  <tr><td><code>gpt-5</code> on everything</td><td>none</td><td>none</td><td>no</td>
+      <td class="num">0.914&cent;</td><td>&mdash;</td></tr>
+  <tr class="bad"><td>Draft on mini, re-read the risky ones</td><td>none</td><td>none</td><td>no</td>
+      <td class="num">1.179&cent;</td><td><b>29% more expensive</b></td></tr>
+  <tr class="good"><td>Triage on the keyword layer, one call</td><td>none</td><td>1</td><td>no</td>
+      <td class="num">0.567&cent;</td><td><b>38% cheaper</b></td></tr>
+</table>
+
+<div class="note">
+  <b>Why the draft version loses: adverse selection</b>
+  The tickets a cascade chooses to re-read are, by construction, the hard ones &mdash; they escalate,
+  or they are urgent. A hard ticket costs nearly double the average on the expensive model &mdash;
+  <b>1.73&cent; against a 0.91&cent; average</b> &mdash; so the draft becomes pure overhead on most of
+  the spend and the saving never arrives. It is invisible if you reason about an average cost per
+  ticket instead of pricing each one.
+</div>
+
+<p><b>The version that works does the triage for free.</b> The keyword layer already reads every
+ticket &mdash; it is the guardrail. Let it choose the reader instead of paying a model to choose:
+anything that trips an escalation pattern, or reads as high urgency on keywords alone, goes to
+<code>gpt-5</code>; everything else goes to <code>gpt-5-mini</code>. <b>One model call either way.</b>
+17 of 33 tickets took the expensive path and the bill fell 38%.</p>
+
+<p>What it costs is mini's error profile on the half it handles: one false escalation, the SOC&nbsp;2
+document request again, and one low-versus-medium urgency disagreement. Nothing missed and no
+critical ticket under-called, which are the two results that would rule it out. Turn it on with
+<code>LLM_CASCADE=1 CASCADE_TRIAGE=rules</code>.</p>
+
+<h2>If volume grew</h2>
+
+<table>
+  <tr><th>Tickets / month</th><th>On <code>gpt-5</code></th><th>With the keyword cascade</th><th>Worth switching?</th></tr>
+  <tr><td class="num">1,000</td><td class="num">$9</td><td class="num">$6</td><td>No. $3 a month.</td></tr>
+  <tr><td class="num">10,000</td><td class="num">$91</td><td class="num">$57</td><td>Probably not.</td></tr>
+  <tr><td class="num">50,000</td><td class="num">$457</td><td class="num">$284</td><td>Now it is a conversation.</td></tr>
+  <tr><td class="num">500,000</td><td class="num">$4,570</td><td class="num">$2,835</td><td>Yes, and revisit the prompt too.</td></tr>
+</table>
+
+<p>Before any of that, the cheaper lever at volume is not the model: it is batching. Anything that is
+not interactive belongs on the provider's batch API, and backfills belong nowhere near the
+synchronous endpoint.</p>
+
+<p style="color:var(--faint);font-size:13px">Model numbers from <code>docs/MODEL-BAKEOFF.md</code>,
+cascade from <code>docs/CASCADE.md</code> and <code>docs/CASCADE-RULES.md</code>, adversarial results
+from <code>docs/STRESS-llm.md</code>. Rates are list price as of 2026-09 and live in
+<code>app/pricing.py</code>; check them before quoting a figure.</p>
+
+</main>
+</body>
+</html>

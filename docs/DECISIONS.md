@@ -1414,6 +1414,41 @@ produced when it read that ticket. What is not happening is a *fresh* call. The 
 so, with the analogy that lands: a database restore loads real rows without re-running the
 transactions.
 
+### D94. Cost and model choice get their own page, with a recommendation on top
+The comparison was buried at the bottom of the architecture page, which is the wrong place for the
+second question every client asks. `/optimization` is now a nav item — **Cost & models** — and it
+opens with a recommendation rather than a table: *run `gpt-5` at low effort, do not optimise this
+yet, revisit at 50,000 tickets a month.*
+
+Three things it does that the buried version did not. Every model is scored **and** priced in one
+table, so nobody has to hold quality in their head while reading cost. Category accuracy is
+deliberately **left out** of that table and the omission is explained — all four models score 100%,
+so it cannot decide anything. And there is a volume table showing when the 38% saving stops being
+three dollars a month and starts being a conversation.
+
+The architecture page keeps a two-sentence summary and a link. Design lives there; economics lives
+here.
+
+### D95. The dashboard shows what the money bought
+Austin asked for recall and failed-extraction metrics next to the cost card. Cost alone is half an
+answer — a run that was cheap because the model failed is not a cheap run. The dashboard now
+carries **Failed extractions** (tickets that fell back to keyword rules, live, from this session)
+next to **What it cost**, with a link through to the gold-set recall number, which cannot be
+computed from live tickets because live tickets have no labels.
+
+Also fixed the formatter: 1.01¢ was rendering as `$0.010`, which is technically correct and reads
+as a tenth of what it is.
+
+### D96. Two new demo beats, because the question was "where does this go"
+`/notes` beat 6 is the ticket the guardrail gets wrong, typed live — the strongest two minutes in
+the demo, because showing the system being wrong on purpose, with the reason it is allowed to be
+wrong, lands harder than any green number. Beat 7 is the cost page, and its point is judgement
+rather than thrift: three cheaper options measured, each priced, all three declined with a reason.
+
+Swept the stale numbers out of the presenter sidebar while there: it still said 31 gold tickets and
+77% urgency. The sidebar now also carries the two numbers worth volunteering — urgency
+under-called at 0%, and the adversarial set at 0 missed / 1 false.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

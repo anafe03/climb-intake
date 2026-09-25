@@ -65,6 +65,7 @@ tr.bad td b{color:var(--climb-coral-deep,#92351e)}
 <nav><div class="wrap">
   <a href="/">Intake</a>
   <a href="/architecture" class="on">How it works</a>
+  <a href="/optimization">Cost &amp; models</a>
   <a href="/notes">Presenter notes</a>
   <a href="/docs">API</a>
 </div></nav>
@@ -336,122 +337,16 @@ incident:</p>
 are all invisible to it. The model caught every one. Full transcripts in
 <code>docs/STRESS-llm.md</code> and <code>docs/STRESS-rules.md</code>.</p>
 
-<h2>What it costs, and why not a cheaper model</h2>
+<h2>What it costs</h2>
 
-<p>Every decision carries its own price, computed from the tokens the provider actually reported and
-the rate card in <code>app/pricing.py</code>. Open any ticket and the cost is on the footer line next
-to the token counts. At <b>0.9&cent; a ticket</b>, a thousand tickets is about <b>$9</b>.</p>
+<p>Every decision carries its own price, computed from the tokens the provider reported and the rate
+card in <code>app/pricing.py</code>. Open any ticket and the cost is on the footer line next to the
+token counts. At <b>0.9&cent; a ticket</b>, a thousand tickets is about <b>$9</b>.</p>
 
-<p>So the honest question is not whether this is affordable. It is whether something cheaper would
-do. Same prompt, same schema, same guardrails, 33 gold tickets &mdash; only the model and its
-reasoning effort change:</p>
-
-<table>
-  <tr><th>Model</th><th>Effort</th><th>Missed escalations</th><th>False escalations</th>
-      <th>Urgency under-called</th><th>Cost / ticket</th><th>vs gpt&#8209;5</th></tr>
-  <tr><td><code>gpt-5</code></td><td>low</td><td>none</td><td>none</td><td>none</td>
-      <td>0.914&cent;</td><td>1.00&times;</td></tr>
-  <tr><td><code>gpt-5-mini</code></td><td>low</td><td>none</td><td>1 &mdash; the SOC&nbsp;2 request</td>
-      <td>1 &mdash; low vs medium</td><td>0.184&cent;</td><td>0.20&times;</td></tr>
-  <tr><td><code>gpt-5-mini</code></td><td>minimal</td><td>none</td><td>3</td>
-      <td>1 &mdash; low vs medium</td><td>0.127&cent;</td><td>0.14&times;</td></tr>
-  <tr class="bad"><td><code>gpt-5-nano</code></td><td>low</td><td>none</td><td>1</td>
-      <td><b>3 critical tickets read as high</b></td><td>0.035&cent;</td><td>0.04&times;</td></tr>
-</table>
-
-<p>Read the error columns, not the cost column. Three things fall out of this table that an accuracy
-score would have hidden completely:</p>
-
-<p><b>Nobody missed an escalation.</b> That is the column that would disqualify a model outright, and
-every row passes &mdash; partly because the keyword layer sits underneath all of them and would have
-caught it anyway.</p>
-
-<p><b>Cheaper models buy their discount in false escalations.</b> Mini over-escalates the SOC&nbsp;2
-document request &mdash; a procurement question that reads like a compliance demand. That is a
-tolerable error: a person spends a minute on it. But it is the price of the 5&times; saving and it
-should be quoted alongside it.</p>
-
-<p><b>Nano is disqualified, and it scores 100% on category.</b> It read three <em>critical</em>
-tickets as high, one of them a provided sample &mdash; the checkout flow double-charging customers.
-Those tickets sit. That is the failure this system exists to prevent, and a model can be 26&times;
-cheaper, perfectly accurate on category, and still unusable because of it.</p>
-
-<div class="note">
-  <b>Why the cheap model gets worse when you give it less thinking</b>
-  Dropping mini from <code>low</code> to <code>minimal</code> reasoning effort saved 31% and tripled
-  its false escalations, from one to three. Less thinking does not degrade a classifier evenly; it
-  makes it reach for the alarming answer. Cost and caution are the same dial.
-</div>
-
-<h2>Making a cheaper model good enough</h2>
-
-<p>The model is the lever people reach for first. It is the third-best one here.</p>
-
-<table>
-  <tr><th>Lever</th><th>Effect</th><th>What it costs</th></tr>
-  <tr><td><b>Prompt caching</b></td>
-      <td>~90% of input tokens are cache reads, at a tenth of the price</td>
-      <td>Nothing. The system prompt is a stable prefix, so it is free after the first call warms it.</td></tr>
-  <tr><td><b>Reasoning effort</b></td>
-      <td>The dominant output-token lever. Moving to <code>low</code> roughly halved output tokens.</td>
-      <td>Judgment on the hard rows &mdash; see the note above.</td></tr>
-  <tr><td><b>A smaller model</b></td>
-      <td>5&times; to 26&times; cheaper</td>
-      <td>The error profile changes <em>shape</em>, not just magnitude.</td></tr>
-  <tr><td><b>Cascade</b></td>
-      <td>Pick the reader per ticket. Measured below: <b>38% cheaper</b> when the keyword layer does
-          the triage, <b>29% more expensive</b> when a cheap model does.</td>
-      <td>Complexity, and the cheap model's error profile on the tickets it handles.</td></tr>
-</table>
-
-<p>The cascade is the one worth building if volume ever justified it, and the code is already shaped
-for it. The confidence threshold that sends unsure tickets to <code>human-review</code> is the same
-signal that would send them to a better reader instead: everything under 0.50 goes to the expensive
-model, everything above ships on the cheap one. That is a routing change in
-<code>app/routing.yaml</code> and one branch in the pipeline, not a redesign.</p>
-
-<h3 style="font-size:15px;margin:26px 0 8px">I built the cascade. The obvious version loses money.</h3>
-
-<p>Worth showing because the arithmetic looks fine right up until you measure it. Draft every ticket
-on <code>gpt-5-mini</code>, then re-read on <code>gpt-5</code> when the draft escalates, calls it
-high or critical, or is unsure. 58% got re-read, so the naive sum says about 22% saved.</p>
-
-<table>
-  <tr><th>Arrangement</th><th>Missed esc.</th><th>False esc.</th><th>Critical under-called</th>
-      <th>Cost / ticket</th><th>vs <code>gpt-5</code></th></tr>
-  <tr><td><code>gpt-5</code> on everything</td><td>none</td><td>none</td><td>no</td>
-      <td>0.914&cent;</td><td>&mdash;</td></tr>
-  <tr class="bad"><td>Draft on mini, re-read the risky ones</td><td>none</td><td>none</td><td>no</td>
-      <td>1.179&cent;</td><td><b>29% more expensive</b></td></tr>
-  <tr class="good"><td>Triage on the keyword layer, one call</td><td>none</td><td>1</td><td>no</td>
-      <td>0.567&cent;</td><td><b>38% cheaper</b></td></tr>
-</table>
-
-<div class="note">
-  <b>Why the draft version loses: adverse selection</b>
-  The tickets a cascade chooses to re-read are, by construction, the hard ones &mdash; they escalate,
-  or they are urgent. A hard ticket costs nearly double the average on the expensive model:
-  <b>1.73&cent; against a 0.91&cent; average</b>. So the draft is pure overhead on most of the spend,
-  and the saving never arrives. It is invisible if you reason about an average cost per ticket
-  instead of pricing each one.
-</div>
-
-<p><b>The version that works does the triage for free.</b> The keyword layer already reads every
-ticket &mdash; it is the guardrail. Let it choose the reader instead of paying a model to choose:
-anything that trips an escalation pattern, or reads as high urgency on keywords alone, goes to
-<code>gpt-5</code>; everything else goes to <code>gpt-5-mini</code>. <b>One model call either way.</b>
-17 of 33 tickets took the expensive path, and the bill fell 38%.</p>
-
-<p>What it costs is mini's error profile on the half it handles: one false escalation, the SOC&nbsp;2
-document request again, and one low-versus-medium urgency disagreement. Nothing was missed and no
-critical ticket was under-called, which are the two results that would rule it out. Enabled with
-<code>LLM_CASCADE=1 CASCADE_TRIAGE=rules</code>; off by default, because at this volume 0.9&cent; a
-ticket does not need optimising and the simpler system is the one I would hand over.</p>
-
-<p style="color:var(--faint);font-size:13px">Cascade numbers from <code>docs/CASCADE.md</code> and
-<code>docs/CASCADE-RULES.md</code>. Model numbers from <code>docs/MODEL-BAKEOFF.md</code>,
-regenerated by <code>scripts/model_bakeoff.py</code>. Rates are list price as of 2026-09 and should
-be checked before being quoted to anyone.</p>
+<p>The model comparison, the cheaper options and the one optimisation that pays have a page of their
+own: <a href="/optimization"><b>Cost &amp; models</b></a>. Short version &mdash; <code>gpt-5-nano</code>
+is 26&times; cheaper and disqualified for reading three critical tickets as high, and a cascade is 38%
+cheaper if the keyword layer does the triage and 29% <em>more</em> expensive if a model does.</p>
 
 </main>
 </body>

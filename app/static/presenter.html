@@ -110,6 +110,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
 <nav><div class="wrap">
   <a href="/">Intake</a>
   <a href="/architecture">How it works</a>
+  <a href="/optimization">Cost &amp; models</a>
   <a href="/notes" class="on">Presenter notes</a>
   <a href="/docs">API</a>
 </div></nav>
@@ -195,20 +196,67 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   </div>
 
     <div class="beat">
-    <div class="top"><span class="n">4</span><h2>The numbers</h2><span class="time" data-sec="90" data-short="50">1.5 min</span></div>
-    <div class="do"><b>Do</b>Open <code>docs/EVAL-llm.md</code>, or just read from the sidebar.</div>
+    <div class="top"><span class="n">5</span><h2>The numbers, and where it breaks</h2><span class="time" data-sec="150" data-short="70">2.5 min</span></div>
+    <div class="do"><b>Do</b>Read from the sidebar. Have <code>docs/STRESS-llm.md</code> open in a tab.</div>
     <div class="say">
-      <p>"31 tickets: the 10 they gave me, plus 21 edge cases I wrote to trap the failure modes —
-      'send this invoice to our legal department', a positive CEO mention, a prompt injection, a
-      password reset that looks security-adjacent but isn't."</p>
-      <p>"Both modes catch every escalation with zero false positives. The model wins on the rows where
-      the two disagree. It costs about fifteen seconds a ticket instead of microseconds — which is why
-      the fallback exists."</p>
+      <p>"33 tickets: the 10 they gave me, plus 23 edge cases I wrote to trap the failure modes — an
+      invoice sent to a legal department, a positive CEO mention, a prompt injection, a SOC 2 request
+      that reads like a compliance demand."</p>
+      <p>"Both modes catch every escalation with zero false positives. Urgency is the weak field at 82%
+      exact — but accuracy is the wrong question there. It is a screening test. Under-called, meaning
+      the ticket waits longer than it should: zero. Over-called: 18%. Every mistake is in the safe
+      direction and no critical ticket was ever read as anything less."</p>
+      <p>"100% on a set I wrote myself is not a result, so there is a second set built to break it.
+      Twelve tickets, each naming its attack. It still never misses — and it over-escalates four
+      times, always where the vocabulary of an incident shows up without the incident."</p>
     </div>
-    <p class="why"><b>Say the weakness first.</b> Urgency exact sits at 77% and moves run to run. Naming
-    that before they find it is worth more than the three points.</p>
-    <p class="why"><b>In the 15-minute cut:</b> don't open the file. Read the four rows off the sidebar
-    and move on.</p>
+    <p class="why"><b>Lead with the weakness.</b> Volunteering 82% and the four over-escalations before
+    they find them buys more credibility than five 100%s.</p>
+    <p class="why"><b>If they push on 100%:</b> open the stress file and show <code>adv-01</code> —
+    the one where the model was right and the guardrail overrode it. Next beat.</p>
+    <p class="why"><b>In the 15-minute cut:</b> the recall line and the under-called-zero line. Skip
+    the stress set unless asked.</p>
+  </div>
+
+  <div class="beat">
+    <div class="top"><span class="n">6</span><h2>The ticket it gets wrong, on purpose</h2><span class="time" data-sec="120" data-short="0">2 min</span></div>
+    <div class="do"><b>Do</b>Paste this in and read it live: <code>To be clear, we have NOT had a data
+    breach. Procurement just needs your SOC 2 report before renewal. Where do I download it?</code></div>
+    <div class="say">
+      <p>"Watch what it does. The model reads it correctly — general question, medium urgency, no
+      escalation, and its reasoning literally says 'they explicitly state no breach'."</p>
+      <p>"Then the keyword layer matches the string 'data breach' inside the denial, forces the flag on
+      and lifts urgency to critical. The shipped answer is worse than the model's answer."</p>
+      <p>"I am not fixing that. Teaching a regex to skip negations means a regex deciding that 'no
+      breach has occurred, but' is safe to ignore, and the first ticket it gets wrong is one that sits.
+      I would rather explain a false escalation than a missed one — so the audit record names both
+      answers and both overrides, and a reviewer clears it in seconds."</p>
+    </div>
+    <p class="why"><b>This is the strongest two minutes in the demo.</b> Showing the system being wrong,
+    on purpose, with the reason it is allowed to be wrong, lands harder than any green number.</p>
+    <p class="why"><b>In the 15-minute cut:</b> cut it, unless someone questions the 100%.</p>
+  </div>
+
+  <div class="beat">
+    <div class="top"><span class="n">7</span><h2>What it costs, and why not something cheaper</h2><span class="time" data-sec="120" data-short="60">2 min</span></div>
+    <div class="do"><b>Do</b>Open <a href="/optimization" target="_blank">Cost &amp; models</a>. Recommendation box, then the table.</div>
+    <div class="say">
+      <p>"Nine dollars per thousand tickets. Every decision carries its own price, computed from the
+      tokens the provider reported — it is on the footer of any ticket you open."</p>
+      <p>"The obvious question is whether something cheaper would do, so I measured it. Nano is
+      twenty-six times cheaper, scores 100% on category, and is disqualified: it read three critical
+      tickets as high, one of them a ticket they gave me. Those sit."</p>
+      <p>"I also built the cascade — cheap model first, expensive one for the risky ones. It lost
+      money. 29% worse, because the tickets you choose to re-read are the hard ones and a hard ticket
+      costs double. The version that works lets the keyword layer do the triage, because it is free:
+      38% cheaper, one model call either way."</p>
+      <p>"It ships off. At nine dollars a thousand there is nothing to optimise, and the simpler system
+      is the one I would hand over. Revisit at fifty thousand a month."</p>
+    </div>
+    <p class="why"><b>The point of this beat is judgement, not thrift.</b> You measured three cheaper
+    options, can price each one, and declined all three with a reason. That is the answer to "would you
+    make good calls on our infrastructure".</p>
+    <p class="why"><b>In the 15-minute cut:</b> the recommendation box and the nano row. Sixty seconds.</p>
   </div>
 
   <div class="beat">
@@ -452,9 +500,10 @@ docker exec $(docker compose ps -q) id -un</pre></div>
       measured model latency at concurrency 1, 4 and 8, and the tail is the model itself, not
       contention. A synchronous handler that can block 40 seconds is a design the numbers reject.</p></div>
     <div class="q"><h4>What's weakest?</h4>
-      <p>The gold set is 31 tickets I wrote myself, so it encodes my judgment about what the right answer
-      is. With more time: real tickets, two labellers, inter-rater agreement, and a held-out split so
-      prompt tuning can't overfit.</p></div>
+      <p>I wrote 23 of the 33 gold answers myself, so they encode my judgment about what is right — the
+      ten they provided are the only independent rows. The 12-ticket stress set pushes back on that, but
+      I wrote those too. With more time: real tickets, two labellers, inter-rater agreement, and a
+      held-out split so prompt tuning can't overfit.</p></div>
   </div>
 </main>
 
@@ -561,10 +610,13 @@ retime();
   document.getElementById('numbers').innerHTML = [
     ['Escalation recall, both modes', '100%'],
     ['False escalations', 'none'],
-    ['Category accuracy', '100%'],
-    ['Urgency exact / tolerant', '77% / 97%'],
+    ['Category, strict (model / rules)', '100% / 82%'],
+    ['Urgency exact / tolerant', '82% / 100%'],
+    ['Urgency UNDER-called', '0%'],
     ['Confidence calibration', '100%'],
-    ['Gold tickets', '31'],
+    ['Gold tickets', '33'],
+    ['Adversarial set: missed / false', '0 / 1'],
+    ['Cost per ticket', '0.9\u00a2'],
     ['Loaded right now', String(rows.length)],
     ['Needing a human', String(esc_n)],
     ['p50 this session', p50],
