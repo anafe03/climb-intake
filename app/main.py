@@ -6,6 +6,8 @@ import io
 import json
 import logging
 import os
+import uuid
+from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -18,6 +20,7 @@ from . import audit, llm, pipeline, routing
 from .models import Decision, TicketIn
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
+log = logging.getLogger("climb.api")
 
 DESCRIPTION = """
 Ticket intake and routing. Post freeform text, get back a decision you can audit.
@@ -70,6 +73,27 @@ def _process_many(tickets: list[TicketIn]) -> list[Decision]:
     workers = int(os.environ.get("BATCH_CONCURRENCY", "4"))
     with ThreadPoolExecutor(max_workers=workers) as ex:
         return list(ex.map(pipeline.process, tickets))
+
+
+@app.on_event("startup")
+def seed_recorded() -> None:
+    """Bring the service up with tickets already in it, from a recorded run.
+
+    A demo that opens on an empty page and then classifies ten tickets live spends two minutes
+    watching a spinner and bets the first impression on the network. SEED_RECORDED names a set in
+    data/recorded; empty string disables it. Only seeds an empty store, so a restart never
+    duplicates and a cleared store stays cleared until the process restarts.
+    """
+    which = os.environ.get("SEED_RECORDED", "").strip()
+    if not which:
+        return
+    try:
+        if audit.total():
+            return
+        loaded = load_recorded(which)
+        log.info("seeded %d recorded decisions from '%s'", loaded.count, which)
+    except Exception as e:  # never let seeding stop the service from starting
+        log.warning("could not seed recorded set '%s': %s", which, e)
 
 
 @app.get("/", include_in_schema=False)
@@ -185,6 +209,42 @@ def load_samples(fixture: str = "samples"):
     tickets = [TicketIn(text=i["text"], source=source, external_id=str(i["id"])) for i in items]
     decisions = _process_many(tickets)
     return BatchOut(count=len(decisions), decisions=decisions)
+
+
+RECORDED = Path(__file__).resolve().parent.parent / "data" / "recorded"
+
+
+@app.post("/tickets/load-recorded", response_model=BatchOut, tags=["intake"],
+          summary="Replay a recorded set \u2014 instant, no model calls")
+def load_recorded(fixture: str = "samples"):
+    """Loads decisions from a run that already happened, with no model call and no network.
+
+    A demo should read *one* ticket live, because that is the part worth watching. Replaying the
+    rest removes several minutes of spinner and the risk that a flaky connection decides how the
+    presentation goes. These are real decisions from a real run \u2014 recorded by
+    `scripts/record_fixture.py`, model and token usage preserved \u2014 not hand-written fixtures.
+
+    `source` is rewritten to `recorded:<set>` so the audit record says where each row came from and
+    a replay of the same set twice is idempotent rather than duplicated.
+    """
+    path = RECORDED / f"{fixture}.json"
+    if not path.exists():
+        have = sorted(p.stem for p in RECORDED.glob("*.json")) if RECORDED.exists() else []
+        raise HTTPException(404, f"no recorded set '{fixture}'; have {have}. Record one with scripts/record_fixture.py")
+    payload = json.loads(path.read_text())
+    now = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+    out: list[Decision] = []
+    for raw in payload["decisions"]:
+        d = Decision(**raw)
+        # Keep the reading; restate when it entered *this* store, so the list orders sensibly and
+        # nobody reads a months-old timestamp as a stale decision.
+        d = d.model_copy(update={
+            "id": uuid.uuid4().hex[:12],
+            "created_at": now,
+            "ticket": d.ticket.model_copy(update={"source": f"recorded:{fixture}"}),
+        })
+        out.append(audit.record(d))
+    return BatchOut(count=len(out), decisions=out)
 
 
 @app.get("/tickets", response_model=list[Decision], tags=["read"],

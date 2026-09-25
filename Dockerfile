@@ -16,13 +16,17 @@ RUN pip install --no-cache-dir -r requirements.lock
 COPY pyproject.toml ./
 COPY app ./app
 COPY data/sample_tickets.json data/demo_tickets.json data/gold.jsonl ./data/
-RUN pip install --no-cache-dir --no-deps . && mkdir -p /srv/data
+COPY data/recorded ./data/recorded
+# The writable volume mounts at /srv/state, NOT /srv/data. A named volume shadows whatever the
+# image ships at its mount point, so anything read-only that lives under the mount is invisible
+# once the volume exists — which is how data/recorded silently went missing on an existing volume.
+RUN pip install --no-cache-dir --no-deps . && mkdir -p /srv/state
 
 # Run as a non-root user; the audit DB lives on a writable volume.
 RUN useradd --create-home --uid 10001 climb && chown -R climb:climb /srv
 USER climb
 
-ENV AUDIT_DB_PATH=/srv/data/audit.db PORT=8080
+ENV AUDIT_DB_PATH=/srv/state/audit.db PORT=8080
 EXPOSE 8080
 HEALTHCHECK --interval=15s --timeout=3s --start-period=10s \
   CMD python -c "import urllib.request,os;urllib.request.urlopen('http://127.0.0.1:%s/health'%os.environ.get('PORT','8080'))" || exit 1

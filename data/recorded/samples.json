@@ -1,0 +1,1047 @@
+{
+  "set": "samples",
+  "recorded_at": "2026-09-25T00:54:55Z",
+  "model": "gpt-5-2025-08-07",
+  "decisions": [
+    {
+      "id": "7f3e6a416c69",
+      "created_at": "2026-09-24T19:40:19.408+00:00",
+      "ticket": {
+        "text": "Hey, I noticed we got charged $4,200 on our last invoice but I thought we downgraded to the Team plan back in July? Can someone check this and adjust if it's an error?",
+        "source": "eval",
+        "external_id": "climb-01"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing paying customer who downgraded to the Team plan in July but was billed unexpectedly on the last invoice",
+          "confidence": 0.6,
+          "basis": [
+            "\u201ccharged $4,200 on our last invoice\u201d",
+            "\u201cdowngraded to the Team plan back in July\u201d",
+            "Asking to \u201ccheck this and adjust if it's an error\u201d implies an active paid account and billing concern"
+          ]
+        },
+        "customer_reason": "No company or person is named. The text indicates they are an existing paying customer referencing a recent invoice and a plan downgrade.",
+        "category": "billing",
+        "category_confidence": 0.8,
+        "category_reason": "The ticket is about an unexpected $4,200 charge and a plan downgrade mismatch, which fits billing. Bug was considered but there\u2019s no evidence of a product defect beyond a disputed invoice amount.",
+        "category_alternatives": [
+          {
+            "category": "bug",
+            "confidence": 0.2,
+            "why_not": "Incorrect charge after a downgrade could stem from a billing system defect, but it presents as an invoice adjustment request handled by billing."
+          }
+        ],
+        "urgency": "medium",
+        "urgency_signals": [
+          "$4,200 charge",
+          "Recent invoice",
+          "Potential ongoing misbilling after downgrade"
+        ],
+        "urgency_reason": "There is a notable financial impact on the latest invoice and the issue may recur if unresolved, but no hard deadline or broad outage is indicated.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indications of security incident, data exposure, legal threat, compliance demand, or executive involvement. This is a standard billing dispute about an invoice amount.",
+        "summary": "Customer requests a review and adjustment of a $4,200 charge after they believed they downgraded to the Team plan in July.",
+        "rationale": "The core issue is an unexpected invoice total following a stated plan downgrade, which places it squarely in billing. While a system bug could be the root cause, the immediate action is a billing review and potential credit or correction. The financial amount is meaningful but not urgent to the point of critical, thus medium urgency. No escalation triggers are present."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing paying customer who downgraded to the Team plan in July but was billed unexpectedly on the last invoice",
+          "confidence": 0.6,
+          "basis": [
+            "\u201ccharged $4,200 on our last invoice\u201d",
+            "\u201cdowngraded to the Team plan back in July\u201d",
+            "Asking to \u201ccheck this and adjust if it's an error\u201d implies an active paid account and billing concern"
+          ]
+        },
+        "customer_reason": "No company or person is named. The text indicates they are an existing paying customer referencing a recent invoice and a plan downgrade.",
+        "category": "billing",
+        "category_confidence": 0.8,
+        "category_reason": "The ticket is about an unexpected $4,200 charge and a plan downgrade mismatch, which fits billing. Bug was considered but there\u2019s no evidence of a product defect beyond a disputed invoice amount.",
+        "category_alternatives": [
+          {
+            "category": "bug",
+            "confidence": 0.2,
+            "why_not": "Incorrect charge after a downgrade could stem from a billing system defect, but it presents as an invoice adjustment request handled by billing."
+          }
+        ],
+        "urgency": "medium",
+        "urgency_signals": [
+          "$4,200 charge",
+          "Recent invoice",
+          "Potential ongoing misbilling after downgrade"
+        ],
+        "urgency_reason": "There is a notable financial impact on the latest invoice and the issue may recur if unresolved, but no hard deadline or broad outage is indicated.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indications of security incident, data exposure, legal threat, compliance demand, or executive involvement. This is a standard billing dispute about an invoice amount.",
+        "summary": "Customer requests a review and adjustment of a $4,200 charge after they believed they downgraded to the Team plan in July.",
+        "rationale": "The core issue is an unexpected invoice total following a stated plan downgrade, which places it squarely in billing. While a system bug could be the root cause, the immediate action is a billing review and potential credit or correction. The financial amount is meaningful but not urgent to the point of critical, thus medium urgency. No escalation triggers are present."
+      },
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "billing-support",
+      "escalation_queue": null,
+      "latency_ms": 15135,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2798,
+        "output_tokens": 939,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 384,
+        "effort": "low",
+        "llm_ms": 15134
+      },
+      "error": null
+    },
+    {
+      "id": "cf3b89395ecb",
+      "created_at": "2026-09-24T19:40:18.451+00:00",
+      "ticket": {
+        "text": "The CSV export button on the analytics dashboard has been throwing a 500 error since yesterday afternoon. Tried Chrome and Firefox, same result. Our reporting is due Friday.",
+        "source": "eval",
+        "external_id": "climb-02"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing Climb customer using the analytics dashboard, likely an analyst/report owner blocked by export",
+          "confidence": 0.35,
+          "basis": [
+            "Mentions 'analytics dashboard' and 'CSV export button' (active product use)",
+            "Tried multiple browsers (experienced end user troubleshooting)",
+            "'Our reporting is due Friday' (business reporting workflow)"
+          ]
+        },
+        "customer_reason": "No company or person is named. The text indicates an active user of Climb\u2019s analytics dashboard needing exports for business reporting.",
+        "category": "bug",
+        "category_confidence": 0.9,
+        "category_reason": "A 500 error on the CSV export is a product malfunction affecting functionality. Not security because there is no sign of unauthorized access or data exposure.",
+        "category_alternatives": [],
+        "urgency": "high",
+        "urgency_signals": [
+          "'throwing a 500 error'",
+          "'since yesterday afternoon'",
+          "'Our reporting is due Friday'"
+        ],
+        "urgency_reason": "Ongoing defect blocking a required export with a stated deadline (Friday). The scope isn\u2019t confirmed as all users, so set to high rather than critical.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indications of unauthorized access, data exposure, legal/compliance requests, or executive involvement. This is a functional error only.",
+        "summary": "CSV export on the analytics dashboard returns 500 errors across browsers; needs resolution before Friday\u2019s reporting deadline.",
+        "rationale": "The ticket clearly reports a backend error (500) on a specific feature, which is a straightforward product bug. The user has tried multiple browsers, ruling out a simple client-side issue. The stated reporting deadline raises urgency to high. There are no security, legal, or executive signals requiring escalation."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing Climb customer using the analytics dashboard, likely an analyst/report owner blocked by export",
+          "confidence": 0.35,
+          "basis": [
+            "Mentions 'analytics dashboard' and 'CSV export button' (active product use)",
+            "Tried multiple browsers (experienced end user troubleshooting)",
+            "'Our reporting is due Friday' (business reporting workflow)"
+          ]
+        },
+        "customer_reason": "No company or person is named. The text indicates an active user of Climb\u2019s analytics dashboard needing exports for business reporting.",
+        "category": "bug",
+        "category_confidence": 0.9,
+        "category_reason": "A 500 error on the CSV export is a product malfunction affecting functionality. Not security because there is no sign of unauthorized access or data exposure.",
+        "category_alternatives": [],
+        "urgency": "high",
+        "urgency_signals": [
+          "'throwing a 500 error'",
+          "'since yesterday afternoon'",
+          "'Our reporting is due Friday'"
+        ],
+        "urgency_reason": "Ongoing defect blocking a required export with a stated deadline (Friday). The scope isn\u2019t confirmed as all users, so set to high rather than critical.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indications of unauthorized access, data exposure, legal/compliance requests, or executive involvement. This is a functional error only.",
+        "summary": "CSV export on the analytics dashboard returns 500 errors across browsers; needs resolution before Friday\u2019s reporting deadline.",
+        "rationale": "The ticket clearly reports a backend error (500) on a specific feature, which is a straightforward product bug. The user has tried multiple browsers, ruling out a simple client-side issue. The stated reporting deadline raises urgency to high. There are no security, legal, or executive signals requiring escalation."
+      },
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "engineering-triage",
+      "escalation_queue": null,
+      "latency_ms": 14178,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2790,
+        "output_tokens": 861,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 448,
+        "effort": "low",
+        "llm_ms": 14174
+      },
+      "error": null
+    },
+    {
+      "id": "02671b42f5fe",
+      "created_at": "2026-09-24T19:40:20.388+00:00",
+      "ticket": {
+        "text": "One of our former employees (terminated last week) just logged into the Climb admin console using old credentials that should've been revoked. We can see activity in the audit log from this morning.",
+        "source": "eval",
+        "external_id": "climb-03"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing Climb customer admin (IT/SecOps) reporting an unauthorized login to their company\u2019s Climb admin console",
+          "confidence": 0.6,
+          "basis": [
+            "References 'our former employees'",
+            "Mentions 'Climb admin console'",
+            "Mentions checking 'audit log'",
+            "Describes credential revocation process typical of an org admin"
+          ]
+        },
+        "customer_reason": "The ticket names no company or person. The writer speaks as an org admin ('our former employees'), references the Climb admin console and audit log, indicating an existing customer's admin/security role.",
+        "category": "security",
+        "category_confidence": 0.9,
+        "category_reason": "Unauthorized access by a terminated user is a security incident. A nearby alternative is bug if revocation automation failed, but the harm is unauthorized access, which routes to security.",
+        "category_alternatives": [
+          {
+            "category": "bug",
+            "confidence": 0.1,
+            "why_not": "Revocation may have failed technically, but the primary issue is unauthorized access, which is security."
+          }
+        ],
+        "urgency": "critical",
+        "urgency_signals": [
+          "\u201cformer employees (terminated last week) just logged into\u201d",
+          "\u201cusing old credentials that should've been revoked\u201d",
+          "\u201cactivity in the audit log from this morning\u201d"
+        ],
+        "urgency_reason": "Active unauthorized access by a terminated user with recent activity today creates immediate risk to the customer\u2019s environment and data.",
+        "escalate": true,
+        "escalation_reasons": [
+          "security_incident"
+        ],
+        "escalation_reason_text": "This is an active security incident: a terminated user retained access and logged in. Needs immediate human response for access revocation, log review, and incident handling. No legal threats or compliance requests stated; no cross-tenant data exposure reported.",
+        "summary": "Report that a terminated employee was able to log into their Climb admin console using old credentials; they need access revoked and investigation.",
+        "rationale": "The ticket reports a former employee logging in after termination, indicating unauthorized access. That makes it a security incident rather than a functional bug, even if a revocation process failed. The recent audit log activity implies current risk, warranting critical urgency. Escalation is required for incident response and containment."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing Climb customer admin (IT/SecOps) reporting an unauthorized login to their company\u2019s Climb admin console",
+          "confidence": 0.6,
+          "basis": [
+            "References 'our former employees'",
+            "Mentions 'Climb admin console'",
+            "Mentions checking 'audit log'",
+            "Describes credential revocation process typical of an org admin"
+          ]
+        },
+        "customer_reason": "The ticket names no company or person. The writer speaks as an org admin ('our former employees'), references the Climb admin console and audit log, indicating an existing customer's admin/security role.",
+        "category": "security",
+        "category_confidence": 0.9,
+        "category_reason": "Unauthorized access by a terminated user is a security incident. A nearby alternative is bug if revocation automation failed, but the harm is unauthorized access, which routes to security.",
+        "category_alternatives": [
+          {
+            "category": "bug",
+            "confidence": 0.1,
+            "why_not": "Revocation may have failed technically, but the primary issue is unauthorized access, which is security."
+          }
+        ],
+        "urgency": "critical",
+        "urgency_signals": [
+          "\u201cformer employees (terminated last week) just logged into\u201d",
+          "\u201cusing old credentials that should've been revoked\u201d",
+          "\u201cactivity in the audit log from this morning\u201d"
+        ],
+        "urgency_reason": "Active unauthorized access by a terminated user with recent activity today creates immediate risk to the customer\u2019s environment and data.",
+        "escalate": true,
+        "escalation_reasons": [
+          "security_incident"
+        ],
+        "escalation_reason_text": "This is an active security incident: a terminated user retained access and logged in. Needs immediate human response for access revocation, log review, and incident handling. No legal threats or compliance requests stated; no cross-tenant data exposure reported.",
+        "summary": "Report that a terminated employee was able to log into their Climb admin console using old credentials; they need access revoked and investigation.",
+        "rationale": "The ticket reports a former employee logging in after termination, indicating unauthorized access. That makes it a security incident rather than a functional bug, even if a revocation process failed. The recent audit log activity implies current risk, warranting critical urgency. Escalation is required for incident response and containment."
+      },
+      "rule_hits": [
+        {
+          "rule": "security.unauthorized_access",
+          "reason": "security_incident",
+          "matched": "credentials",
+          "effect": "confirmed model decision"
+        }
+      ],
+      "overrides": [],
+      "queue": "security-incident-response",
+      "escalation_queue": "human-escalation-desk",
+      "latency_ms": 16115,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2796,
+        "output_tokens": 912,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 320,
+        "effort": "low",
+        "llm_ms": 16114
+      },
+      "error": null
+    },
+    {
+      "id": "7810655698ea",
+      "created_at": "2026-09-24T19:40:18.758+00:00",
+      "ticket": {
+        "text": "I've reviewed the renewal terms your rep sent and this is not what we agreed to verbally in our Q2 call. If this isn't corrected by end of week we're going to have our legal team review the original MSA for breach.",
+        "source": "eval",
+        "external_id": "climb-04"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing paying customer in a renewal cycle with an MSA, working through account rep/procurement",
+          "confidence": 0.6,
+          "basis": [
+            "\u201crenewal terms\u201d",
+            "\u201cyour rep\u201d",
+            "\u201cMSA\u201d",
+            "\u201clegal team\u201d",
+            "reference to prior \u201cQ2 call\u201d agreement"
+          ]
+        },
+        "customer_reason": "No company or person is named. The text references renewal terms, an account rep, and an MSA, indicating an existing customer engaged in a contract renewal.",
+        "category": "legal_contract",
+        "category_confidence": 0.8,
+        "category_reason": "They threaten legal action over a breach of the MSA if renewal terms aren't corrected, which is a contract/legal dispute. Billing was considered because it involves renewal terms, but the explicit legal threat moves it to legal_contract.",
+        "category_alternatives": [
+          {
+            "category": "billing",
+            "confidence": 0.2,
+            "why_not": "Dispute centers on renewal terms (pricing/terms), but explicit threat to involve legal and reference to MSA indicates a contract dispute rather than routine billing."
+          }
+        ],
+        "urgency": "high",
+        "urgency_signals": [
+          "\u201ccorrected by end of week\u201d",
+          "threat to have legal team review for breach"
+        ],
+        "urgency_reason": "A concrete deadline ('end of week') and potential legal escalation raise the urgency beyond routine; timing-sensitive with material business risk.",
+        "escalate": true,
+        "escalation_reasons": [
+          "legal_threat"
+        ],
+        "escalation_reason_text": "The customer threatens legal action over an alleged MSA breach if the renewal terms are not corrected. This is a legal threat and requires human/legal review.",
+        "summary": "Customer disputes renewal terms as not matching a prior verbal agreement and threatens legal review for MSA breach if not fixed by end of week.",
+        "rationale": "The message is about a renewal dispute tied to an MSA and includes an explicit legal threat, placing it in legal_contract rather than billing. The 'end of week' deadline and potential legal involvement make it high urgency. No names or identifiers are provided, but context clearly indicates an existing customer in a renewal cycle with an MSA. Escalation is required due to the legal threat."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing paying customer in a renewal cycle with an MSA, working through account rep/procurement",
+          "confidence": 0.6,
+          "basis": [
+            "\u201crenewal terms\u201d",
+            "\u201cyour rep\u201d",
+            "\u201cMSA\u201d",
+            "\u201clegal team\u201d",
+            "reference to prior \u201cQ2 call\u201d agreement"
+          ]
+        },
+        "customer_reason": "No company or person is named. The text references renewal terms, an account rep, and an MSA, indicating an existing customer engaged in a contract renewal.",
+        "category": "legal_contract",
+        "category_confidence": 0.8,
+        "category_reason": "They threaten legal action over a breach of the MSA if renewal terms aren't corrected, which is a contract/legal dispute. Billing was considered because it involves renewal terms, but the explicit legal threat moves it to legal_contract.",
+        "category_alternatives": [
+          {
+            "category": "billing",
+            "confidence": 0.2,
+            "why_not": "Dispute centers on renewal terms (pricing/terms), but explicit threat to involve legal and reference to MSA indicates a contract dispute rather than routine billing."
+          }
+        ],
+        "urgency": "high",
+        "urgency_signals": [
+          "\u201ccorrected by end of week\u201d",
+          "threat to have legal team review for breach"
+        ],
+        "urgency_reason": "A concrete deadline ('end of week') and potential legal escalation raise the urgency beyond routine; timing-sensitive with material business risk.",
+        "escalate": true,
+        "escalation_reasons": [
+          "legal_threat"
+        ],
+        "escalation_reason_text": "The customer threatens legal action over an alleged MSA breach if the renewal terms are not corrected. This is a legal threat and requires human/legal review.",
+        "summary": "Customer disputes renewal terms as not matching a prior verbal agreement and threatens legal review for MSA breach if not fixed by end of week.",
+        "rationale": "The message is about a renewal dispute tied to an MSA and includes an explicit legal threat, placing it in legal_contract rather than billing. The 'end of week' deadline and potential legal involvement make it high urgency. No names or identifiers are provided, but context clearly indicates an existing customer in a renewal cycle with an MSA. Escalation is required due to the legal threat."
+      },
+      "rule_hits": [
+        {
+          "rule": "legal.threat",
+          "reason": "legal_threat",
+          "matched": "legal team",
+          "effect": "confirmed model decision"
+        }
+      ],
+      "overrides": [],
+      "queue": "legal-and-account-management",
+      "escalation_queue": "human-escalation-desk",
+      "latency_ms": 14485,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2803,
+        "output_tokens": 866,
+        "cache_read_input_tokens": 0,
+        "reasoning_tokens": 256,
+        "effort": "low",
+        "llm_ms": 14483
+      },
+      "error": null
+    },
+    {
+      "id": "145d2b5c6bcf",
+      "created_at": "2026-09-24T19:40:31.428+00:00",
+      "ticket": {
+        "text": "hey do u guys sell crypto too??? my uncle said climb was actually a mining operation lol anyway can u send me 500 free credits my discord is xXdarklord99Xx",
+        "source": "eval",
+        "external_id": "climb-05"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [
+            "Discord: xXdarklord99Xx"
+          ],
+          "best_guess": "Non-customer sending an off-topic solicitation via Discord handle",
+          "confidence": 0.6,
+          "basis": [
+            "Asks for '500 free credits' with no account context",
+            "Mentions Discord handle instead of a customer email or account",
+            "Off-topic question about crypto/mining unrelated to Climb's product",
+            "No invoice, account, or organization named"
+          ]
+        },
+        "customer_reason": "The ticket does not name a company or person. It includes only a Discord handle and an off-topic request, so I infer a non-customer solicitation.",
+        "category": "spam",
+        "category_confidence": 0.9,
+        "category_reason": "Content is unrelated to the product and requests '500 free credits,' which is a solicitation with no account context. Nearest alternative is 'other,' but there is no legitimate product question or support need.",
+        "category_alternatives": [
+          {
+            "category": "other",
+            "confidence": 0.1,
+            "why_not": "Could be a generic inquiry, but the crypto/mining joke plus request for free credits and Discord contact makes it solicitation/unrelated."
+          }
+        ],
+        "urgency": "low",
+        "urgency_signals": [],
+        "urgency_reason": "No deadline, no impact to an account, and this is a non-product solicitation; nothing suggests time sensitivity.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indicators of security incidents, data exposure, legal/compliance demands, or executive mentions. This is an off-topic solicitation.",
+        "summary": "Asks if Climb sells crypto and requests 500 free credits, providing a Discord handle for contact.",
+        "rationale": "The message is unrelated to Climb\u2019s product and requests free credits, suggesting solicitation rather than support. No customer or account details are provided, only a Discord handle. There is no operational impact or time pressure. It should be routed as spam, with no escalation needed."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [
+            "Discord: xXdarklord99Xx"
+          ],
+          "best_guess": "Non-customer sending an off-topic solicitation via Discord handle",
+          "confidence": 0.6,
+          "basis": [
+            "Asks for '500 free credits' with no account context",
+            "Mentions Discord handle instead of a customer email or account",
+            "Off-topic question about crypto/mining unrelated to Climb's product",
+            "No invoice, account, or organization named"
+          ]
+        },
+        "customer_reason": "The ticket does not name a company or person. It includes only a Discord handle and an off-topic request, so I infer a non-customer solicitation.",
+        "category": "spam",
+        "category_confidence": 0.9,
+        "category_reason": "Content is unrelated to the product and requests '500 free credits,' which is a solicitation with no account context. Nearest alternative is 'other,' but there is no legitimate product question or support need.",
+        "category_alternatives": [
+          {
+            "category": "other",
+            "confidence": 0.1,
+            "why_not": "Could be a generic inquiry, but the crypto/mining joke plus request for free credits and Discord contact makes it solicitation/unrelated."
+          }
+        ],
+        "urgency": "low",
+        "urgency_signals": [],
+        "urgency_reason": "No deadline, no impact to an account, and this is a non-product solicitation; nothing suggests time sensitivity.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indicators of security incidents, data exposure, legal/compliance demands, or executive mentions. This is an off-topic solicitation.",
+        "summary": "Asks if Climb sells crypto and requests 500 free credits, providing a Discord handle for contact.",
+        "rationale": "The message is unrelated to Climb\u2019s product and requests free credits, suggesting solicitation rather than support. No customer or account details are provided, only a Discord handle. There is no operational impact or time pressure. It should be routed as spam, with no escalation needed."
+      },
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "spam-review",
+      "escalation_queue": null,
+      "latency_ms": 12977,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2795,
+        "output_tokens": 615,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 192,
+        "effort": "low",
+        "llm_ms": 12976
+      },
+      "error": null
+    },
+    {
+      "id": "397d071620b7",
+      "created_at": "2026-09-24T19:40:35.172+00:00",
+      "ticket": {
+        "text": "We were double-billed for March and April on invoice #88213. Please refund the duplicate charge to the card on file. Let me know if you need anything else from us.",
+        "source": "eval",
+        "external_id": "climb-06"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [
+            "invoice #88213"
+          ],
+          "best_guess": "Existing paying customer billed via credit card on file",
+          "confidence": 0.35,
+          "basis": [
+            "Mentions an invoice number: 'invoice #88213'",
+            "Requests refund for duplicate charges ('double-billed')",
+            "References 'card on file'"
+          ]
+        },
+        "customer_reason": "No company or person is named in the message. The sender references an invoice number and a card on file, indicating an existing paying customer.",
+        "category": "billing",
+        "category_confidence": 0.85,
+        "category_reason": "This is about charges and a refund request ('double-billed' and 'refund the duplicate charge'), which fits billing. Bug was considered but rejected because the customer is not reporting product malfunction, only seeking a refund for their own account.",
+        "category_alternatives": [
+          {
+            "category": "bug",
+            "confidence": 0.15,
+            "why_not": "\u2018Double-billed\u2019 could imply a billing system defect, but there\u2019s no report of product malfunction or broader impact\u2014just a refund request for this account."
+          }
+        ],
+        "urgency": "medium",
+        "urgency_signals": [
+          "Duplicate charges for two months ('double-billed for March and April')",
+          "Direct request for refund"
+        ],
+        "urgency_reason": "There is a financial impact (duplicate charges), but it affects only this customer and there is no stated deadline or ongoing outage. That makes it time-sensitive but not critical.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No security incident, data exposure, legal threat, compliance demand, or executive involvement is mentioned. This is a straightforward billing refund request.",
+        "summary": "Requests a refund for duplicate charges on invoice #88213 for March and April to the card on file.",
+        "rationale": "The ticket concerns overbilling and a refund, fitting billing rather than bug or other categories. The presence of an invoice number and mention of a card on file indicate an existing paying customer, though the sender is unnamed. Financial impact exists but is limited in scope, so urgency is medium. No signals indicate security, legal, compliance, or executive involvement, so no escalation is needed."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [
+            "invoice #88213"
+          ],
+          "best_guess": "Existing paying customer billed via credit card on file",
+          "confidence": 0.35,
+          "basis": [
+            "Mentions an invoice number: 'invoice #88213'",
+            "Requests refund for duplicate charges ('double-billed')",
+            "References 'card on file'"
+          ]
+        },
+        "customer_reason": "No company or person is named in the message. The sender references an invoice number and a card on file, indicating an existing paying customer.",
+        "category": "billing",
+        "category_confidence": 0.85,
+        "category_reason": "This is about charges and a refund request ('double-billed' and 'refund the duplicate charge'), which fits billing. Bug was considered but rejected because the customer is not reporting product malfunction, only seeking a refund for their own account.",
+        "category_alternatives": [
+          {
+            "category": "bug",
+            "confidence": 0.15,
+            "why_not": "\u2018Double-billed\u2019 could imply a billing system defect, but there\u2019s no report of product malfunction or broader impact\u2014just a refund request for this account."
+          }
+        ],
+        "urgency": "medium",
+        "urgency_signals": [
+          "Duplicate charges for two months ('double-billed for March and April')",
+          "Direct request for refund"
+        ],
+        "urgency_reason": "There is a financial impact (duplicate charges), but it affects only this customer and there is no stated deadline or ongoing outage. That makes it time-sensitive but not critical.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No security incident, data exposure, legal threat, compliance demand, or executive involvement is mentioned. This is a straightforward billing refund request.",
+        "summary": "Requests a refund for duplicate charges on invoice #88213 for March and April to the card on file.",
+        "rationale": "The ticket concerns overbilling and a refund, fitting billing rather than bug or other categories. The presence of an invoice number and mention of a card on file indicate an existing paying customer, though the sender is unnamed. Financial impact exists but is limited in scope, so urgency is medium. No signals indicate security, legal, compliance, or executive involvement, so no escalation is needed."
+      },
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "billing-support",
+      "escalation_queue": null,
+      "latency_ms": 16413,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2794,
+        "output_tokens": 912,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 320,
+        "effort": "low",
+        "llm_ms": 16413
+      },
+      "error": null
+    },
+    {
+      "id": "46b04bdc5a77",
+      "created_at": "2026-09-24T19:40:36.614+00:00",
+      "ticket": {
+        "text": "Our CEO is personally asking why the onboarding for our enterprise account still isn't complete after 3 weeks. She's planning to bring this up directly with your leadership team if we don't see progress today.",
+        "source": "eval",
+        "external_id": "climb-07"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing enterprise customer in onboarding phase (enterprise account)",
+          "confidence": 0.6,
+          "basis": [
+            "Mentions \"our enterprise account\"",
+            "Discusses \"onboarding\" not complete",
+            "Refers to \"our CEO\" indicating existing customer relationship"
+          ]
+        },
+        "customer_reason": "The ticket does not name a company or person. It references an \"enterprise account\" in onboarding and mentions their CEO, implying an existing enterprise customer but without explicit identifiers.",
+        "category": "onboarding",
+        "category_confidence": 0.85,
+        "category_reason": "The issue is progress on account setup: \"why the onboarding... still isn't complete.\" Nearest alternative is other (general account status/complaint), but the explicit onboarding context makes onboarding the better fit.",
+        "category_alternatives": [
+          {
+            "category": "other",
+            "confidence": 0.15,
+            "why_not": "Could be a general escalation about account status, but the ticket specifically cites onboarding delays."
+          }
+        ],
+        "urgency": "critical",
+        "urgency_signals": [
+          "\"today\" deadline",
+          "\"CEO is personally asking\"",
+          "Potential escalation to \"your leadership team\"",
+          "Delay of \"3 weeks\" on enterprise onboarding"
+        ],
+        "urgency_reason": "There is an explicit same-day deadline with executive pressure and an enterprise account blocked for weeks, indicating immediate business impact and the need for action now.",
+        "escalate": true,
+        "escalation_reasons": [
+          "executive_mention"
+        ],
+        "escalation_reason_text": "The ticket cites their CEO and a plan to raise the issue with our leadership team, which meets the executive_mention criterion. No signs of security incident, data exposure, legal or compliance requests.",
+        "summary": "They want immediate progress today on their enterprise onboarding, with CEO-level pressure.",
+        "rationale": "This is an onboarding progress/escalation request from an enterprise customer whose go-live has stalled for three weeks. The same-day demand and CEO involvement make it critical. Category fits onboarding rather than a bug because no product defect is described, just lack of implementation progress. Escalation is required due to the explicit executive mention and threatened escalation to our leadership."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing enterprise customer in onboarding phase (enterprise account)",
+          "confidence": 0.6,
+          "basis": [
+            "Mentions \"our enterprise account\"",
+            "Discusses \"onboarding\" not complete",
+            "Refers to \"our CEO\" indicating existing customer relationship"
+          ]
+        },
+        "customer_reason": "The ticket does not name a company or person. It references an \"enterprise account\" in onboarding and mentions their CEO, implying an existing enterprise customer but without explicit identifiers.",
+        "category": "onboarding",
+        "category_confidence": 0.85,
+        "category_reason": "The issue is progress on account setup: \"why the onboarding... still isn't complete.\" Nearest alternative is other (general account status/complaint), but the explicit onboarding context makes onboarding the better fit.",
+        "category_alternatives": [
+          {
+            "category": "other",
+            "confidence": 0.15,
+            "why_not": "Could be a general escalation about account status, but the ticket specifically cites onboarding delays."
+          }
+        ],
+        "urgency": "critical",
+        "urgency_signals": [
+          "\"today\" deadline",
+          "\"CEO is personally asking\"",
+          "Potential escalation to \"your leadership team\"",
+          "Delay of \"3 weeks\" on enterprise onboarding"
+        ],
+        "urgency_reason": "There is an explicit same-day deadline with executive pressure and an enterprise account blocked for weeks, indicating immediate business impact and the need for action now.",
+        "escalate": true,
+        "escalation_reasons": [
+          "executive_mention"
+        ],
+        "escalation_reason_text": "The ticket cites their CEO and a plan to raise the issue with our leadership team, which meets the executive_mention criterion. No signs of security incident, data exposure, legal or compliance requests.",
+        "summary": "They want immediate progress today on their enterprise onboarding, with CEO-level pressure.",
+        "rationale": "This is an onboarding progress/escalation request from an enterprise customer whose go-live has stalled for three weeks. The same-day demand and CEO involvement make it critical. Category fits onboarding rather than a bug because no product defect is described, just lack of implementation progress. Escalation is required due to the explicit executive mention and threatened escalation to our leadership."
+      },
+      "rule_hits": [
+        {
+          "rule": "executive.mention",
+          "reason": "executive_mention",
+          "matched": "CEO",
+          "effect": "confirmed model decision"
+        }
+      ],
+      "overrides": [],
+      "queue": "customer-success",
+      "escalation_queue": "human-escalation-desk",
+      "latency_ms": 17206,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2795,
+        "output_tokens": 757,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 256,
+        "effort": "low",
+        "llm_ms": 17206
+      },
+      "error": null
+    },
+    {
+      "id": "fa44a425c458",
+      "created_at": "2026-09-24T19:40:33.982+00:00",
+      "ticket": {
+        "text": "The dark mode toggle resets every time I refresh the page. Whenever you get a chance.",
+        "source": "eval",
+        "external_id": "climb-08"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing Climb web app user reporting a UI preference not persisting",
+          "confidence": 0.3,
+          "basis": [
+            "Mentions 'dark mode toggle'",
+            "Issue occurs 'every time I refresh the page' implying the web UI",
+            "Tone suggests an existing user rather than a prospect"
+          ]
+        },
+        "customer_reason": "No company or person is named. The text implies an existing user of the web app due to 'dark mode toggle' and behavior on page refresh.",
+        "category": "bug",
+        "category_confidence": 0.8,
+        "category_reason": "This describes expected behavior failing (preference not persisting across refresh), which is a product defect. Feature request was considered but rejected because dark mode already exists and should retain its state.",
+        "category_alternatives": [
+          {
+            "category": "feature_request",
+            "confidence": 0.2,
+            "why_not": "Asking for persistence could be read as a request, but the toggle exists and is resetting, indicating broken behavior rather than a missing feature."
+          }
+        ],
+        "urgency": "low",
+        "urgency_signals": [
+          "Cosmetic/UI preference issue",
+          "\"Whenever you get a chance\""
+        ],
+        "urgency_reason": "No deadline or broad impact is stated; the issue is cosmetic and the user explicitly de-emphasizes urgency.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No signs of security incident, data exposure, legal or compliance request, or executive involvement. This is a routine UI bug report.",
+        "summary": "User reports dark mode setting resets on page refresh and wants it fixed.",
+        "rationale": "The ticket clearly points to a preference state not being saved or read, a typical UI bug. There are no indicators of security, legal, or executive concerns, and the user signals low urgency. Routing to the bug queue with low urgency will get it triaged without escalation."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing Climb web app user reporting a UI preference not persisting",
+          "confidence": 0.3,
+          "basis": [
+            "Mentions 'dark mode toggle'",
+            "Issue occurs 'every time I refresh the page' implying the web UI",
+            "Tone suggests an existing user rather than a prospect"
+          ]
+        },
+        "customer_reason": "No company or person is named. The text implies an existing user of the web app due to 'dark mode toggle' and behavior on page refresh.",
+        "category": "bug",
+        "category_confidence": 0.8,
+        "category_reason": "This describes expected behavior failing (preference not persisting across refresh), which is a product defect. Feature request was considered but rejected because dark mode already exists and should retain its state.",
+        "category_alternatives": [
+          {
+            "category": "feature_request",
+            "confidence": 0.2,
+            "why_not": "Asking for persistence could be read as a request, but the toggle exists and is resetting, indicating broken behavior rather than a missing feature."
+          }
+        ],
+        "urgency": "low",
+        "urgency_signals": [
+          "Cosmetic/UI preference issue",
+          "\"Whenever you get a chance\""
+        ],
+        "urgency_reason": "No deadline or broad impact is stated; the issue is cosmetic and the user explicitly de-emphasizes urgency.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No signs of security incident, data exposure, legal or compliance request, or executive involvement. This is a routine UI bug report.",
+        "summary": "User reports dark mode setting resets on page refresh and wants it fixed.",
+        "rationale": "The ticket clearly points to a preference state not being saved or read, a typical UI bug. There are no indicators of security, legal, or executive concerns, and the user signals low urgency. Routing to the bug queue with low urgency will get it triaged without escalation."
+      },
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "engineering-triage",
+      "escalation_queue": null,
+      "latency_ms": 13593,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2775,
+        "output_tokens": 660,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 128,
+        "effort": "low",
+        "llm_ms": 13593
+      },
+      "error": null
+    },
+    {
+      "id": "b470aff54c65",
+      "created_at": "2026-09-24T19:40:46.236+00:00",
+      "ticket": {
+        "text": "I was able to see another company's customer records when I exported our data this morning. This looks like a permissions issue on your end.",
+        "source": "eval",
+        "external_id": "climb-09"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing Climb customer using the data export feature in a multi-tenant environment",
+          "confidence": 0.4,
+          "basis": [
+            "\"exported our data\" implies they are an active customer/user",
+            "They reference \"another company's customer records,\" suggesting a multi-tenant context",
+            "No company or person names provided"
+          ]
+        },
+        "customer_reason": "No company or person is named. The text indicates they are an active customer who used the data export feature and observed cross-tenant data in the result.",
+        "category": "security",
+        "category_confidence": 0.85,
+        "category_reason": "They report seeing \"another company's customer records,\" which is unauthorized data visibility across tenants \u2014 a security incident. Nearest alternative is bug, but even if caused by a defect, the harm is data exposure, which routes to security.",
+        "category_alternatives": [
+          {
+            "category": "bug",
+            "confidence": 0.15,
+            "why_not": "Could be a permissions defect in export; however, the impact is cross-tenant data exposure, making it a security incident rather than a functional bug."
+          }
+        ],
+        "urgency": "critical",
+        "urgency_signals": [
+          "\"able to see another company's customer records\"",
+          "Happened \"this morning\" (recent, likely ongoing)",
+          "Cross-tenant data exposure"
+        ],
+        "urgency_reason": "Cross-tenant data exposure suggests ongoing unauthorized access risk and potential compliance impact; scope could affect multiple customers, so treat as critical.",
+        "escalate": true,
+        "escalation_reasons": [
+          "security_incident",
+          "data_exposure"
+        ],
+        "escalation_reason_text": "Reports cross-tenant data exposure in an export, indicating unauthorized access to another company's customer records. Requires immediate security incident response and containment.",
+        "summary": "Customer reports that a data export contained another company's customer records (cross-tenant exposure).",
+        "rationale": "The ticket describes unauthorized visibility of another company's records in an export, which is a tenant-boundary breach. That classifies as security, not a generic bug, because the harm is data exposure. Given the recency and potential ongoing risk, urgency is critical. This warrants escalation for security incident handling and data exposure assessment."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing Climb customer using the data export feature in a multi-tenant environment",
+          "confidence": 0.4,
+          "basis": [
+            "\"exported our data\" implies they are an active customer/user",
+            "They reference \"another company's customer records,\" suggesting a multi-tenant context",
+            "No company or person names provided"
+          ]
+        },
+        "customer_reason": "No company or person is named. The text indicates they are an active customer who used the data export feature and observed cross-tenant data in the result.",
+        "category": "security",
+        "category_confidence": 0.85,
+        "category_reason": "They report seeing \"another company's customer records,\" which is unauthorized data visibility across tenants \u2014 a security incident. Nearest alternative is bug, but even if caused by a defect, the harm is data exposure, which routes to security.",
+        "category_alternatives": [
+          {
+            "category": "bug",
+            "confidence": 0.15,
+            "why_not": "Could be a permissions defect in export; however, the impact is cross-tenant data exposure, making it a security incident rather than a functional bug."
+          }
+        ],
+        "urgency": "critical",
+        "urgency_signals": [
+          "\"able to see another company's customer records\"",
+          "Happened \"this morning\" (recent, likely ongoing)",
+          "Cross-tenant data exposure"
+        ],
+        "urgency_reason": "Cross-tenant data exposure suggests ongoing unauthorized access risk and potential compliance impact; scope could affect multiple customers, so treat as critical.",
+        "escalate": true,
+        "escalation_reasons": [
+          "security_incident",
+          "data_exposure"
+        ],
+        "escalation_reason_text": "Reports cross-tenant data exposure in an export, indicating unauthorized access to another company's customer records. Requires immediate security incident response and containment.",
+        "summary": "Customer reports that a data export contained another company's customer records (cross-tenant exposure).",
+        "rationale": "The ticket describes unauthorized visibility of another company's records in an export, which is a tenant-boundary breach. That classifies as security, not a generic bug, because the harm is data exposure. Given the recency and potential ongoing risk, urgency is critical. This warrants escalation for security incident handling and data exposure assessment."
+      },
+      "rule_hits": [
+        {
+          "rule": "security.data_exposure",
+          "reason": "data_exposure",
+          "matched": "another company's customer records",
+          "effect": "confirmed model decision"
+        }
+      ],
+      "overrides": [],
+      "queue": "security-incident-response",
+      "escalation_queue": "human-escalation-desk",
+      "latency_ms": 14807,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2784,
+        "output_tokens": 790,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 320,
+        "effort": "low",
+        "llm_ms": 14806
+      },
+      "error": null
+    },
+    {
+      "id": "bac89c9aeb63",
+      "created_at": "2026-09-24T19:40:54.538+00:00",
+      "ticket": {
+        "text": "Noticed our checkout flow is charging customers twice on any order over $200 \u2014 happened three times to us this morning alone. Support forwarded me two more emails from other customers with the same issue since 9am. Anyone else seeing this on their end?",
+        "source": "eval",
+        "external_id": "climb-10"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing Climb customer operating an e-commerce checkout using Climb, with multiple end customers being double-charged on orders over $200",
+          "confidence": 0.5,
+          "basis": [
+            "\u201cour checkout flow is charging customers twice\u201d",
+            "Multiple occurrences \u201cthree times\u2026 this morning\u201d and \u201ctwo more emails from other customers\u201d",
+            "Asks if others are seeing it, implying a platform/shared issue"
+          ]
+        },
+        "customer_reason": "No company or person is named. The text indicates they run a checkout on Climb and have their own end customers, suggesting an existing merchant using the platform.",
+        "category": "bug",
+        "category_confidence": 0.9,
+        "category_reason": "Describes a product defect causing double charges to their end customers. This is functional/financial harm with no access or exposure element, so it is a bug. Considered billing, but they are not asking about their invoice or plan; the issue is their customers being charged twice.",
+        "category_alternatives": [
+          {
+            "category": "billing",
+            "confidence": 0.1,
+            "why_not": "Mentions charges, but it is about end-customer double charges in checkout, not Climb billing, invoices, or plan changes."
+          }
+        ],
+        "urgency": "critical",
+        "urgency_signals": [
+          "\u201ccharging customers twice\u201d",
+          "\u201chappened three times\u2026 this morning alone\u201d",
+          "\u201ctwo more emails from other customers\u201d",
+          "Active production impact on end customers with direct financial harm"
+        ],
+        "urgency_reason": "Active, ongoing financial harm to multiple end customers in production with repeated occurrences this morning indicates highest urgency.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No signs of security or data exposure (no unauthorized access or cross-tenant data), no legal or compliance demands, and no executive mentions. This is a severe product defect but does not meet the defined escalation triggers.",
+        "summary": "Reports a production bug where orders over $200 are being double-charged in checkout, seen multiple times today and affecting multiple end customers.",
+        "rationale": "The ticket clearly describes a defect in the checkout logic tied to order amounts over $200, resulting in duplicate charges to end customers and multiple reports today. That places it in the bug category, not billing or security. The impact is ongoing and financial across multiple end customers, so it is critical. No indicators meet the escalation criteria (security, legal, compliance, or executive involvement)."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing Climb customer operating an e-commerce checkout using Climb, with multiple end customers being double-charged on orders over $200",
+          "confidence": 0.5,
+          "basis": [
+            "\u201cour checkout flow is charging customers twice\u201d",
+            "Multiple occurrences \u201cthree times\u2026 this morning\u201d and \u201ctwo more emails from other customers\u201d",
+            "Asks if others are seeing it, implying a platform/shared issue"
+          ]
+        },
+        "customer_reason": "No company or person is named. The text indicates they run a checkout on Climb and have their own end customers, suggesting an existing merchant using the platform.",
+        "category": "bug",
+        "category_confidence": 0.9,
+        "category_reason": "Describes a product defect causing double charges to their end customers. This is functional/financial harm with no access or exposure element, so it is a bug. Considered billing, but they are not asking about their invoice or plan; the issue is their customers being charged twice.",
+        "category_alternatives": [
+          {
+            "category": "billing",
+            "confidence": 0.1,
+            "why_not": "Mentions charges, but it is about end-customer double charges in checkout, not Climb billing, invoices, or plan changes."
+          }
+        ],
+        "urgency": "critical",
+        "urgency_signals": [
+          "\u201ccharging customers twice\u201d",
+          "\u201chappened three times\u2026 this morning alone\u201d",
+          "\u201ctwo more emails from other customers\u201d",
+          "Active production impact on end customers with direct financial harm"
+        ],
+        "urgency_reason": "Active, ongoing financial harm to multiple end customers in production with repeated occurrences this morning indicates highest urgency.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No signs of security or data exposure (no unauthorized access or cross-tenant data), no legal or compliance demands, and no executive mentions. This is a severe product defect but does not meet the defined escalation triggers.",
+        "summary": "Reports a production bug where orders over $200 are being double-charged in checkout, seen multiple times today and affecting multiple end customers.",
+        "rationale": "The ticket clearly describes a defect in the checkout logic tied to order amounts over $200, resulting in duplicate charges to end customers and multiple reports today. That places it in the bug category, not billing or security. The impact is ongoing and financial across multiple end customers, so it is critical. No indicators meet the escalation criteria (security, legal, compliance, or executive involvement)."
+      },
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "engineering-oncall",
+      "escalation_queue": null,
+      "latency_ms": 20556,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2808,
+        "output_tokens": 1128,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 512,
+        "effort": "low",
+        "llm_ms": 20553
+      },
+      "error": null
+    }
+  ]
+}

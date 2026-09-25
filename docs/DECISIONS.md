@@ -1194,6 +1194,44 @@ Adding D75's metrics would have meant re-running 33 model calls to restate numbe
 was how the answers are judged, not the answers. The regenerated scorecard says so in its header, so
 nobody reads it as a fresh run.
 
+### D77. Filter and sort were the same question asked twice
+Three controls in the toolbar did overlapping work: an All/Escalated segment, a sort dropdown, and
+clickable dashboard stats. Austin: "what if filter by and sort by are the same thing, one interface
+for it." They are — both answer "how do I want to see this list" — so they are now one
+**Show** menu with a Filter group and a Sort group, counts shown per filter row.
+
+The Escalated button lost its permanent slot. It is a useful filter and it was not worth a quarter
+of the toolbar when it is one row in a menu that also offers Critical and Sent to human review.
+Dashboard is the landing view again (reversing D68 on Austin's call): the numbers first, click one
+to land in Queues filtered.
+
+### D78. Demo data is replayed, not classified live
+Loading ten tickets live at the start of a demo spends two minutes on a spinner and bets the first
+impression on the network. `POST /tickets/load-recorded` replays decisions from a run that already
+happened — real readings, model and token usage preserved, recorded by
+`scripts/record_fixture.py` — with no model call at all. `SEED_RECORDED=samples` in the compose
+file means the service comes up with the ten Climb tickets already in it.
+
+Provenance is rewritten to `recorded:<set>`, so the audit record says where each row came from, a
+replay is idempotent against the unique index, and nobody can mistake a replay for a fresh run. The
+`created_at` is restated to load time so the list orders sensibly rather than showing a months-old
+timestamp.
+
+The demo set was recorded once for **$0.31** against a $0.31 estimate. That is strictly cheaper than
+the status quo, which paid the same $0.31 *every* time anyone pressed the button. The live path
+stays for the moment that deserves it: typing one ticket in and watching the model read it.
+
+### D79. A named volume hides whatever the image ships underneath it
+Seeding failed on boot with "no recorded set 'samples'" while the file was plainly in the image.
+The audit volume mounted at `/srv/data`, which is where the fixtures live, and a named volume
+shadows the image content at its mount point. Docker seeds a volume from the image the *first* time
+it is created, so this worked on a fresh volume and failed on the existing one — the worst
+version of the bug, since it passes locally for whoever built first.
+
+The volume now mounts at `/srv/state` and holds only the database. `/srv/data` is image content and
+stays readable. Fixed in the Dockerfile, the compose file and the Terraform together, because
+Cloud Run would have hit the same thing with its `empty_dir` mount.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

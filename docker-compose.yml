@@ -6,8 +6,12 @@ services:
     env_file:
       - .env
     environment:
-      AUDIT_DB_PATH: /srv/data/audit.db
+      AUDIT_DB_PATH: /srv/state/audit.db
+      # Come up with the ten Climb samples already read, replayed from a recorded run. No model
+      # call, so a demo never opens on an empty page or waits on the network. Set to "" to disable.
+      SEED_RECORDED: samples
     volumes:
-      - audit-data:/srv/data
+      # Mounted at /srv/state so it cannot shadow the read-only fixtures the image ships in /srv/data.
+      - audit-data:/srv/state
 volumes:
   audit-data:

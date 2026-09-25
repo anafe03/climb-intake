@@ -118,3 +118,29 @@ def test_recheck_run_count_is_capped():
     d = client.post("/tickets", json={"text": "The dark mode toggle resets on refresh."}).json()
     rc = client.post(f"/tickets/{d['id']}/recheck?runs=99").json()
     assert rc["runs"] == 3
+
+
+def test_recorded_replay_is_instant_and_idempotent(monkeypatch):
+    """Replay must not call the model, and loading the same set twice must not duplicate."""
+    calls = []
+    monkeypatch.setattr("app.pipeline.process", lambda *a, **k: calls.append(1))
+
+    r = client.post("/tickets/load-recorded?fixture=samples")
+    assert r.status_code == 200
+    first = r.json()
+    assert first["count"] == 10
+    assert not calls, "replay classified something instead of replaying it"
+
+    # The readings are preserved, the provenance is rewritten.
+    d = first["decisions"][0]
+    assert d["mode"] == "llm" and d["model"]
+    assert d["ticket"]["source"] == "recorded:samples"
+
+    total = client.get("/queues").json()["total"]
+    client.post("/tickets/load-recorded?fixture=samples")
+    assert client.get("/queues").json()["total"] == total
+
+
+def test_recorded_unknown_set_says_what_exists():
+    r = client.post("/tickets/load-recorded?fixture=nope")
+    assert r.status_code == 404 and "samples" in r.json()["detail"]

@@ -89,6 +89,13 @@ input[type=file]{display:none}
   padding:10px 14px;font-size:13px;color:var(--text);font-weight:500}
 .menu-pop button:hover:not(:disabled){background:var(--sunken)}
 .menu-pop button.danger{color:var(--danger);border-top:1px solid var(--line)}
+.menu-pop.wide{min-width:232px}
+.menu-pop .grp{font:700 9.5px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--faint);
+  padding:9px 13px 5px;border-top:1px solid var(--line)}
+.menu-pop .grp:first-child{border-top:0}
+.menu-pop button .tick{color:var(--primary);font-weight:700;margin-right:7px}
+.menu-pop button .tick.off{visibility:hidden}
+.menu-pop button .n{float:right;color:var(--faint);font-variant-numeric:tabular-nums}
 
 /* ── list ──────────────────────────────────────────────────────────────── */
 .overview{display:none;gap:14px;margin-bottom:18px}
@@ -367,25 +374,22 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
 <div class="toolbar"><div class="wrap">
   <span class="count" id="count"></span>
   <div class="seg">
-    <button id="f-all" class="on">All</button>
-    <button id="f-esc">Escalated</button>
+    <button id="v-list" class="on">Dashboard</button>
+    <button id="v-queue">Queues</button>
   </div>
-  <div class="seg">
-    <button id="v-queue" class="on">Queues</button>
-    <button id="v-list">Dashboard</button>
+  <div class="menu">
+    <button class="tool" id="showbtn" aria-haspopup="true">Show ▾</button>
+    <div class="menu-pop wide" id="showpop"></div>
   </div>
-  <select id="sort">
-    <option value="newest">Most recent</option>
-    <option value="urgency">Most urgent</option>
-    <option value="slowest">Longest to read</option>
-    <option value="fastest">Quickest to read</option>
-    <option value="category">Category</option>
-  </select>
   <div class="menu">
     <button class="tool" id="menubtn" aria-haspopup="true">Data ▾</button>
     <div class="menu-pop" id="menupop">
-      <button id="samples">Load the 10 Climb samples</button>
-      <button id="demo">Load the 32-ticket demo set</button>
+      <div class="grp">Instant · replayed from a recorded run</div>
+      <button id="rec-samples">The 10 Climb samples</button>
+      <button id="rec-demo">The 32-ticket demo set</button>
+      <div class="grp">Reads live · costs an API call each</div>
+      <button id="samples">Re-read the 10 samples</button>
+      <button id="demo">Re-read the 32 demo tickets</button>
       <button id="up">Upload a file…</button>
       <button id="clear" class="danger">Clear everything</button>
     </div>
@@ -404,7 +408,7 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const cap=s=>{s=String(s).replace(/_/g,' ');return s[0].toUpperCase()+s.slice(1)};
-let rows=[], escOnly=false, sortBy='newest', openId=null, view='queue';
+let rows=[], escOnly=false, sortBy='newest', openId=null, view='list';
 let pick=null;   // {kind:'urgency'|'category'|'critical', value} — set by clicking a stat
 
 // What each simulated downstream queue is for. Shown on the board so a reviewer can see the
@@ -805,7 +809,7 @@ function status(msg,{spin=false,err=false,hold=0}={}){
   if(hold) st=setTimeout(()=>el.classList.remove('on','err'),hold);
 }
 function busy(on){document.querySelectorAll('.composer button,.menu-pop button,#menubtn').forEach(b=>b.disabled=on)}
-function closeMenu(){$('#menupop').classList.remove('on')}
+function closeMenu(){$('#menupop').classList.remove('on');$('#showpop').classList.remove('on')}
 function ago(iso){
   const s=(Date.now()-new Date(iso))/1000;
   if(s<60) return 'just now';
@@ -830,6 +834,7 @@ function matchesPick(d){
   if(pick.kind==='urgency')  return d.extraction.urgency===pick.value;
   if(pick.kind==='category') return d.extraction.category===pick.value;
   if(pick.kind==='critical') return d.extraction.urgency==='critical';
+  if(pick.kind==='queue')    return d.queue===pick.value || d.escalation_queue===pick.value;
   return true;
 }
 const visible=()=>(escOnly?rows.filter(d=>d.extraction.escalate):rows)
@@ -953,7 +958,6 @@ function applyPick(token){
   else if(kind==='escalated'){pick=null;escOnly=!escOnly}
   else if(kind==='critical'){pick=(pick&&pick.kind==='critical')?null:{kind:'critical'}}
   else pick=(pick&&pick.kind===kind&&pick.value===value)?null:{kind,value};
-  $('#f-all').classList.toggle('on',!escOnly); $('#f-esc').classList.toggle('on',escOnly);
   // A number you click on the dashboard has to take you to the tickets behind it; a filter with
   // nothing visible to filter is a dead control. Clearing it leaves you where you are.
   if(pick||escOnly) setView('queue');
@@ -965,7 +969,43 @@ function wirePicks(){
   });
 }
 
+const SORT_LABELS=[['newest','Most recent'],['urgency','Most urgent'],
+  ['slowest','Longest to read'],['fastest','Quickest to read'],['category','Category']];
+
+// Filter and sort are the same question \u2014 "how do I want to see this list" \u2014 so they live in
+// one menu. The counts come from the rows in hand, so a filter never offers an empty view.
+function renderShowMenu(){
+  const n=k=>rows.filter(k).length;
+  const esc_n=n(d=>d.extraction.escalate), crit=n(d=>d.extraction.urgency==='critical');
+  const review=n(d=>d.queue==='human-review');
+  const on=(t)=>{
+    if(t==='all') return !pick&&!escOnly;
+    if(t==='escalated:1') return escOnly;
+    if(t==='critical:1') return !!pick&&pick.kind==='critical';
+    const [k,v]=t.split(':'); return !!pick&&pick.kind===k&&pick.value===v;
+  };
+  const frow=(token,label,count)=>`<button data-show="pick:${esc(token)}">
+    <span class="tick ${on(token)?'':'off'}">\u2713</span>${esc(label)}<span class="n">${count}</span></button>`;
+  const srow=([k,label])=>`<button data-show="sort:${k}">
+    <span class="tick ${sortBy===k?'':'off'}">\u2713</span>${esc(label)}</button>`;
+  $('#showpop').innerHTML =
+    `<div class="grp">Filter</div>`
+    + frow('all','Everything',rows.length)
+    + frow('escalated:1','Needing a human',esc_n)
+    + frow('critical:1','Critical',crit)
+    + (review?frow('queue:human-review','Sent to human review',review):'')
+    + `<div class="grp">Sort</div>` + SORT_LABELS.map(srow).join('');
+  document.querySelectorAll('#showpop [data-show]').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();
+    const [kind,...rest]=b.dataset.show.split(':'); const token=rest.join(':');
+    if(kind==='sort'){sortBy=token; renderList()}
+    else applyPick(token);
+    closeMenu();
+  });
+}
+
 function renderList(){
+  renderShowMenu();
   // Two views, one question each. Dashboard is the shape of the pile and carries no tickets.
   // Queues is the tickets themselves, grouped by where they were routed.
   const dash=view==='list';
@@ -982,8 +1022,7 @@ function renderList(){
     : (label||escOnly)
       ? `<b>${v.length}</b> of ${rows.length} \u00b7 <i>${esc(label||'escalated')}</i> <button class="clearpick" id="clearpick">clear</button>`
       : `<b>${rows.length}</b> tickets \u00b7 <i>${n} need a human</i>`;
-  const cp=$('#clearpick'); if(cp) cp.onclick=()=>{pick=null;escOnly=false;
-    $('#f-all').classList.add('on');$('#f-esc').classList.remove('on');renderList()};
+  const cp=$('#clearpick'); if(cp) cp.onclick=()=>{pick=null;escOnly=false;renderList()};
 
   if(!rows.length){
     $('#list').innerHTML=`<div class="empty"><h3>What this does</h3>
@@ -991,9 +1030,12 @@ function renderList(){
           and works out <b>who sent it</b>, <b>what kind of request it is</b>, <b>how urgent it is</b>, and
           <b>whether a person needs to see it</b> \u2014 then sends it to the right team.</p>
        <p>To watch it work:</p>
-       <ol><li>Press <span class="kbd">Load 10 samples</span> above, or</li>
-           <li>paste any customer message at the top and press <span class="kbd">Read it</span>.</li></ol>
+       <ol><li><button class="go" id="seed-now">Load the 10 Climb samples</button> — instant, replayed
+               from a recorded run, no API calls.</li>
+           <li>Or paste any customer message at the top and press <span class="kbd">Read it</span> to
+               have the model read one live.</li></ol>
        <p style="margin-top:14px">Then click any ticket to open the full breakdown.</p></div>`;
+    const sn=$('#seed-now'); if(sn) sn.onclick=()=>loadRecorded('samples','Climb samples');
     return;
   }
   if(dash){$('#list').innerHTML='';return}
@@ -1217,6 +1259,19 @@ document.addEventListener('keydown',e=>{
 async function reload(){rows=await api('/tickets?limit=300'); renderList();}
 async function run(fn){busy(true);try{await fn()}catch(e){stopClock();status(e.message,{err:true,hold:9000})}finally{busy(false)}}
 
+// Replay: no model call, so there is nothing to wait for and nothing to go wrong on stage.
+async function loadRecorded(name,label){
+  await run(async()=>{
+    const before=(await api('/queues')).total;
+    const r=await api('/tickets/load-recorded?fixture='+name,{method:'POST'});
+    await reload();
+    const added=(await api('/queues')).total-before;
+    status(added
+      ? `Loaded ${r.count} ${label} from a recorded run — no model calls.`
+      : `Those ${r.count} were already loaded.`, {hold:5000});
+  });
+}
+
 async function loadFixture(name,label){
   await run(async()=>{
     const before=(await api('/queues')).total;
@@ -1251,14 +1306,15 @@ $('#submit').onclick=()=>run(async()=>{
   const d=await api('/tickets',{method:'POST',headers:{'content-type':'application/json'},
     body:JSON.stringify({text:t,source:'ui'})});
   $('#text').value=''; $('#text').style.height='';
-  escOnly=false; sortBy='newest'; $('#sort').value='newest';
-  $('#f-all').classList.add('on'); $('#f-esc').classList.remove('on');
+  escOnly=false; sortBy='newest'; pick=null;
   stopClock();
   await reload(); await openModal(d.id);
   if(d.error) status('The model call failed — keyword rules handled it.',{err:true,hold:7000}); else status('');
 });
 $('#samples').onclick=()=>loadFixture('samples','10 samples');
 $('#demo').onclick=()=>loadFixture('demo','32 demo tickets');
+$('#rec-samples').onclick=()=>loadRecorded('samples','Climb samples');
+$('#rec-demo').onclick=()=>loadRecorded('demo','demo tickets');
 $('#up').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;
   const fd=new FormData();fd.append('file',f);
@@ -1269,11 +1325,8 @@ $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;
 $('#clear').onclick=()=>{if(!confirm('Delete every decision from the audit log?'))return;
   run(async()=>{await api('/tickets',{method:'DELETE'});closeModal();await reload();
     status('Cleared.',{hold:2500})})};
-$('#f-all').onclick=()=>{pick=null;escOnly=false;$('#f-all').classList.add('on');$('#f-esc').classList.remove('on');renderList()};
-$('#f-esc').onclick=()=>{escOnly=true;$('#f-esc').classList.add('on');$('#f-all').classList.remove('on');
-  setView('queue');renderList()};
-$('#sort').onchange=e=>{sortBy=e.target.value;renderList()};
-$('#menubtn').onclick=e=>{e.stopPropagation();$('#menupop').classList.toggle('on')};
+$('#menubtn').onclick=e=>{e.stopPropagation();closeMenu();$('#menupop').classList.toggle('on')};
+$('#showbtn').onclick=e=>{e.stopPropagation();closeMenu();$('#showpop').classList.toggle('on')};
 document.addEventListener('click',()=>closeMenu());
 document.querySelectorAll('#menupop button').forEach(b=>b.addEventListener('click',closeMenu));
 $('#v-list').onclick=()=>{setView('list');renderList()};

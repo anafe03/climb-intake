@@ -100,7 +100,7 @@ resource "google_cloud_run_v2_service" "intake" {
       }
       env {
         name  = "AUDIT_DB_PATH"
-        value = "/srv/data/audit.db"
+        value = "/srv/state/audit.db"
       }
       dynamic "env" {
         for_each = local.present
@@ -116,9 +116,10 @@ resource "google_cloud_run_v2_service" "intake" {
       }
       # Demo tier: in-memory volume so the audit DB survives across requests within an instance.
       # Scale path: Cloud SQL behind app/audit.py.
+      # /srv/state, never /srv/data: a mount at /srv/data would hide the fixtures baked into the image.
       volume_mounts {
         name       = "data"
-        mount_path = "/srv/data"
+        mount_path = "/srv/state"
       }
       startup_probe {
         http_get { path = "/health" }
