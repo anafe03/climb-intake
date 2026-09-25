@@ -218,3 +218,10 @@ def test_explanations_tab_serves_the_one_doc():
     for field in ("Who sent it", "What kind of request", "How urgent", "Escalation", "Where it goes"):
         section = src.text.split("## " + field, 1)[1].split("\n## ", 1)[0]
         assert "### Questions" in section, field
+
+
+def test_deliverables_tab_serves_the_pdf():
+    assert client.get("/deliverables").status_code == 200
+    r = client.get("/deliverables.pdf")
+    assert r.status_code == 200 and r.content[:4] == b"%PDF"
+    assert client.get("/optimization").status_code == 404

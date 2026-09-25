@@ -154,17 +154,25 @@ def explanations_source():
     return PlainTextResponse(EXPLANATIONS.read_text(), media_type="text/markdown")
 
 
+DELIVERABLES = Path(__file__).resolve().parent.parent / "docs" / "deliverables.pdf"
+
+
+@app.get("/deliverables", include_in_schema=False)
+def deliverables_page():
+    """Every requirement in the brief and where it is met. Regenerate the PDF from
+    docs/deliverables.html with Chrome's print-to-pdf when anything it cites moves."""
+    return FileResponse(STATIC / "deliverables.html")
+
+
+@app.get("/deliverables.pdf", include_in_schema=False)
+def deliverables_pdf():
+    return FileResponse(DELIVERABLES, media_type="application/pdf")
+
+
 @app.get("/notes", include_in_schema=False)
 def presenter_notes():
     """Demo walkthrough. Served from the app so it can deep-link into the live ticket list."""
     return FileResponse(STATIC / "presenter.html")
-
-
-@app.get("/optimization", include_in_schema=False)
-def optimization():
-    """Cost, the model comparison, and the one optimisation that pays. Its own page because
-    "what does it cost and could it be cheaper" is the second question every client asks."""
-    return FileResponse(STATIC / "optimization.html")
 
 
 @app.get("/health", tags=["operate"], summary="Is it up, and is the model answering?")

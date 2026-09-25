@@ -1654,6 +1654,14 @@ that same file as cards, one per section, each opening in a pop-up, so there is 
 drift. The intro tab uses the same pattern, plainly: four cards that open the categories, levels,
 topics and queues.
 
+### D117. The deliverables PDF is generated from a source in the repo
+The deliverables checklist PDF cited code by line number, and every one had moved by 50 to 70 lines within
+hours; it also gave the test set as 30 tickets. A document the panel reads cannot go stale that fast. It is
+now built from `docs/deliverables.html`, which links to files rather than line numbers, and printed with
+headless Chrome. The Deliverables tab shows it. The Cost & models tab is gone: its clickable table now opens
+inside the Explanations cost card, and the dashboard no longer carries the model comparison or the
+"AI did not answer" card, since both confused more than they showed.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

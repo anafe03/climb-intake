@@ -358,6 +358,21 @@ consistency, strategies, the thought process I've been giving you."
 - [x] **Urgency accuracy: "say this is our worst accuracy measurement, so push up direction, it's wrong
       basically"** It is the lowest number, and when it is wrong it errs upward.
 
+## Block 15 (2026-09-25)
+
+- [x] **"then keep on the todo list"** Every request goes on this list before work starts.
+- [x] **Dashboard "AI did not answer" card: "not sure what this is"** Confusing, and its link is about
+      something else. Remove it; the fallback is explained on Explanations, When something fails.
+- [x] **"these numbers don't match": $9.21 on the dashboard, $9.68 on the cost table** Both are right but
+      measure different tickets (the 10 on screen vs the 61 test tickets). Label each so it is obvious.
+- [x] **"The same job on a cheaper model" card: "doesn't need to be on dashboard, it's on cost"** Remove.
+- [x] **"cost and models has a popout in explanations, so that can be dropped"** Drop the tab, but keep
+      the clickable numbers by moving that table into the Explanations cost card.
+- [x] **"link the pdf as a tab to show all the stuff we did, as a final tab after API"** It was
+      Downloads/climb-intake-deliverables.pdf, but every line number in it had moved and it said 30 test
+      tickets (33). Rebuilt from docs/deliverables.html with file links instead of line numbers; the
+      Deliverables tab shows it, with a download link. Your original in Downloads is untouched.
+
 ## Still open
 
 - [x] Git remote: github.com/anafe03/climb-intake, pushed by Austin.

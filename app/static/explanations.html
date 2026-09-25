@@ -131,6 +131,22 @@ a.inl{color:var(--coral-deep);font-weight:600;cursor:pointer}
 .faq summary::before{content:"+";color:var(--coral-deep);font-weight:700;display:inline-block;width:18px}
 .faq details[open] summary::before{content:"\2212"}
 .faq details>div{padding:0 2px 12px 18px;font-size:14px;line-height:1.6;color:var(--dim)}
+.pick td{background:#eef6ef}
+.pick td:first-child::after{content:" \2190  running this";color:var(--sage);font-weight:600;font-size:12px}
+tr.bad td{background:#fdeee9}
+tr.bad td b{color:var(--climb-coral-deep,#92351e)}
+.rlink{color:var(--coral-deep);font-weight:650;text-decoration:underline;text-underline-offset:3px}
+.ev{margin-top:28px}
+.ev h3{font-size:15px;margin:22px 0 2px}
+.ev h3 .cnt{font-weight:500;color:var(--dim);font-size:13px;margin-left:8px}
+.ev .about{margin:0 0 8px;color:var(--dim);font-size:13px}
+table.evt td{vertical-align:top;font-size:13px;padding:7px 10px 7px 0}
+table.evt td.ok{color:var(--sage);font-weight:700;width:18px}
+table.evt td.id{font-family:ui-monospace,monospace;font-size:12px;color:var(--dim);white-space:nowrap;width:70px}
+table.evt td.kw{white-space:nowrap;font-size:12px;color:var(--dim)}
+table.evt td.kw b{color:var(--coral-deep)}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.hint{color:var(--dim);font-size:13px;margin:4px 0 8px}
 </style>
 </head>
 <body>
@@ -142,9 +158,9 @@ a.inl{color:var(--coral-deep);font-weight:600;cursor:pointer}
   <a href="/intro">Intro</a>
   <a href="/">Intake</a>
   <a href="/explanations" class="on">Explanations</a>
-  <a href="/optimization">Cost &amp; models</a>
   <a href="/notes">Presenter notes</a>
   <a href="/docs">API</a>
+  <a href="/deliverables">Deliverables</a>
 </div></nav>
 <main class="wrap">
   <p class="grouplabel">Each decision</p><div class="cards" id="fields"></div>
@@ -192,9 +208,86 @@ fetch('/explanations.md').then(r=>r.text()).then(md=>{
       });
       ul.replaceWith(wrap);
     });
+    // The cost card's table is live and clickable: every number opens the tickets behind it.
+    if(s.title==='Cost and model choice'){
+      const t=body.querySelector('table');
+      if(t){ t.id='models'; const ev=document.createElement('div'); ev.id='evidence'; ev.className='ev'; ev.hidden=true;
+             t.after(ev); const hint=document.createElement('p'); hint.className='hint';
+             hint.textContent='Click any number to see the tickets behind it. Averaged over all 61 test tickets.';
+             t.before(hint); renderModels(t); }
+    }
     bg.classList.add('on'); bg.scrollTop=0;
   });
 }).catch(()=>{document.getElementById('fields').textContent='Could not load the explanations.'});
+function lowCell(m){
+  const u=m.urgency_under, c=m.critical_under_clear;
+  if(!u) return '0';
+  if(c) return `<b>${u}, including ${c} clearly critical</b>`;
+  return u===1?'1 (borderline)':`${u} (all borderline)`;
+}
+async function renderModels(t){
+  const r=await fetch('/pricing').then(x=>x.json()).catch(()=>null);
+  if(!r||!r.models.length){t.innerHTML='<tr><td>No measurements on disk.</td></tr>';return}
+  const running=(r.running||'');
+  t.innerHTML=`<tr><th>Model</th><th>Effort</th><th>Escalations caught</th><th>False escalations</th>
+    <th>Urgency read too low</th><th class="num">Cost per 1,000 tickets</th></tr>`+
+  r.models.map((m,i)=>{
+    const name=m.model.split('-20')[0];
+    const here=running.startsWith(name)&&!running.startsWith(name+'-')&&m.effort==='low';
+    const caught=`${m.must_escalate-m.missed_escalations} of ${m.must_escalate}`;
+    return `<tr class="${here?'pick':''}${m.critical_under_called?' bad':''}">
+      <td><code>${esc(name)}</code></td><td>${esc(m.effort)}</td>
+      <td>${here?`<a href="#" id="recall" class="rlink">${caught}</a>`
+        :m.missed_escalations?`<a href="#" class="rlink mk" data-leg="${i}" data-kind="missed">${caught}</a>`:caught}</td>
+      <td>${m.false_escalations?`<a href="#" class="rlink mk" data-leg="${i}" data-kind="false">${m.false_escalations}</a>`:'0'}</td>
+      <td>${m.urgency_under?`<a href="#" class="rlink mk" data-leg="${i}" data-kind="low">${lowCell(m)}</a>`:'0'}</td>
+      <td class="num">$${(m.cost_per_ticket*1000).toFixed(2)}</td></tr>`;
+  }).join('');
+  const rl=document.getElementById('recall'); if(rl) rl.onclick=e=>{e.preventDefault();showRecall()};
+  window._models=r.models;
+  document.querySelectorAll('a.mk').forEach(a=>a.onclick=e=>{e.preventDefault();
+    showMistakes(r.models[+a.dataset.leg],a.dataset.kind)});
+}
+
+let _mist=null;
+async function showMistakes(m,kind){
+  const box=document.getElementById('evidence');
+  if(!_mist) _mist=await fetch('/evidence/mistakes').then(x=>x.json()).catch(()=>null);
+  const name=m.model.split('-20')[0];
+  const leg=_mist&&_mist.legs.find(l=>l.model===name&&l.effort===m.effort);
+  if(!leg){box.innerHTML='<p>Could not load these tickets.</p>';box.hidden=false;return}
+  const title={false:'Escalated when it should not have',low:'Read as less urgent than it is',
+               missed:'Should have escalated, and did not'}[kind];
+  const rows=leg[kind];
+  box.innerHTML=`<h3>${esc(name)}${m.effort!=='low'?' ('+esc(m.effort)+')':''}: ${title}
+      <span class="cnt">${rows.length} ticket${rows.length>1?'s':''}</span></h3>
+    <table class="evt">${rows.map(t=>`<tr>
+      <td class="id">${esc(t.id)}</td>
+      <td>${esc(t.text.length>220?t.text.slice(0,220)+'\u2026':t.text)}</td>
+      <td class="kw">${kind==='low'
+        ? `said <b>${esc(t.said)}</b>, should be ${esc(t.expected)}${t.borderline?'<br>(borderline: both fair)':''}`
+        : ''}</td></tr>`).join('')}</table>`;
+  box.hidden=false;
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function showRecall(){
+  const box=document.getElementById('evidence');
+  const r=await fetch('/evidence/escalation').then(x=>x.json()).catch(()=>null);
+  if(!r){box.innerHTML='<p>Could not load the tickets.</p>';box.hidden=false;return}
+  box.innerHTML=r.groups.map(g=>{
+    const caught=g.tickets.filter(t=>t.caught).length;
+    return `<h3>${esc(g.name)} <span class="cnt">${caught} of ${g.tickets.length} caught</span></h3>
+      <p class="about">${esc(g.about)}</p>
+      <table class="evt">${g.tickets.map(t=>`<tr>
+        <td class="ok">${t.caught?'\u2713':'\u2717'}</td>
+        <td class="id">${esc(t.id)}</td>
+        <td>${esc(t.text.length>150?t.text.slice(0,150)+'\u2026':t.text)}</td>
+        <td class="kw">${t.keywords?'keyword matched too':'<b>no keyword, model only</b>'}</td>
+      </tr>`).join('')}</table>`;
+  }).join('');
+  box.hidden=false;
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+}
 </script>
 </body>
 </html>

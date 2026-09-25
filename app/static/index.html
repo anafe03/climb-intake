@@ -390,9 +390,9 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
   <a href="/intro">Intro</a>
   <a href="/" class="on">Intake</a>
   <a href="/explanations">Explanations</a>
-  <a href="/optimization">Cost &amp; models</a>
   <a href="/notes">Presenter notes</a>
   <a href="/docs">API</a>
+  <a href="/deliverables">Deliverables</a>
 </div></nav>
 
 <div class="composer"><div class="wrap">
@@ -781,9 +781,6 @@ function renderOverview(){
   const p50=lat[Math.floor(lat.length/2)];
   const costs=rows.map(costOf).filter(v=>v!=null);
   const priced=costs.length, spend=priced?costs.reduce((a,b)=>a+b,0):null;
-  // Quality belongs next to the money: a run that was cheap because the model failed is not cheap.
-  const fellBack=rows.filter(d=>d.mode!=='llm').length;
-  const errored=rows.filter(d=>d.error).length;
   const count=(key,get)=>{const m={};rows.forEach(d=>{const v=get(d);m[v]=(m[v]||0)+1});return m};
   const URG_ORDER=['critical','high','medium','low'];
   const bar=(m,colors,kind)=>{
@@ -807,25 +804,7 @@ function renderOverview(){
       ${bar(count('c',d=>d.extraction.category),CAT_COLOR,'category')}</div>
     ${spend!=null?`<div class="ov"><div class="k">What it cost</div>
       <div class="big">$${(spend/Math.max(priced,1)*1000).toFixed(2)}<small>per 1,000 tickets</small></div>
-      <div class="s" style="margin-top:9px">Worked out from what these ${priced} tickets actually used.</div></div>`:''}
-    <div class="ov"><div class="k">AI did not answer</div>
-      <div class="big ${fellBack?'danger':''}">${fellBack}<small>${fellBack===1?'ticket':'tickets'}, so keyword rules handled ${fellBack===1?'it':'them'}</small></div>
-      <div class="s" style="margin-top:9px">${errored?`${errored} returned an error. `:''}<a href="/optimization?show=recall" class="lnk">21 of 21 escalations caught, see them →</a></div></div>
-    ${priceTable&&priceTable.models&&priceTable.models.length?`<div class="ov wide2"><div class="k">The same job on a cheaper model</div>
-      <table class="mini"><caption>Cost per 1,000 tickets</caption>${priceTable.models.map(m=>{
-        const here=(priceTable.running||'').startsWith(m.model.split('-20')[0]) && m.effort==='low';
-        const bad=m.critical_under_called;
-        const note=m.missed_escalations?`missed ${m.missed_escalations} escalation${m.missed_escalations>1?'s':''}`
-          : bad?`read ${m.critical_under_clear} clearly critical ticket${m.critical_under_clear>1?'s':''} as less urgent`
-          : m.false_escalations?`${m.false_escalations} false escalation${m.false_escalations>1?'s':''}`
-          : 'no mistakes';
-        const worst=m.missed_escalations||bad;
-        return `<tr class="${worst?'bad':''}${here?' here':''}">
-          <td><code>${esc(m.model.split('-20')[0])}</code>${m.effort!=='low'?` <i>${esc(m.effort)}</i>`:''}</td>
-          <td class="n">$${(m.cost_per_ticket*1000).toFixed(2)}</td>
-          <td class="w">${esc(note)}</td></tr>`}).join('')}</table>
-      <div class="s" style="margin-top:8px">Measured on ${esc(priceTable.measured_on)}, not estimated.
-        <a href="/optimization" class="lnk">Why not the cheap one →</a></div></div>`:''}
+      <div class="s" style="margin-top:9px">What these ${priced} tickets actually cost to read.</div></div>`:''}
     <div class="ov"><div class="k">Time to read one</div>
       <div class="big">${(p50/1000).toFixed(1)}<small>seconds, median</small></div>
       <div class="legend" style="margin-top:8px"><span>${(lat[lat.length-1]/1000).toFixed(1)}s slowest</span></div></div>`;
@@ -1077,10 +1056,6 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ── actions ───────────────────────────────────────────────────────────── */
-let priceTable=null;
-async function loadPricing(){
-  try{priceTable=await api('/pricing')}catch{priceTable=null}
-}
 async function reload(){rows=await api('/tickets?limit=300'); renderList();}
 async function run(fn){busy(true);try{await fn()}catch(e){stopClock();status(e.message,{err:true,hold:9000})}finally{busy(false)}}
 
@@ -1191,7 +1166,6 @@ setInterval(refreshHealth, 15000);
 (async()=>{
   const h = await refreshHealth() || {};
   const live = h.mode === 'llm';
-  await loadPricing();
   await reload();
   const want=new URL(location).searchParams.get('t');
   if(want && rows.some(r=>r.id===want)) openModal(want);

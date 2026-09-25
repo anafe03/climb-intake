@@ -323,6 +323,9 @@ Every decision records its own cost from the tokens actually used. All 61 labell
 | gpt-5-mini, minimal effort | 21 of 21 | 8 | 2 (all borderline) | $1.30 |
 | gpt-5-nano | **19 of 21** | 1 | **9, including 4 clearly critical** | $0.37 |
 
+The dashboard shows what the tickets on screen cost, so its number differs a little from this average:
+tickets that need more thinking cost more to read.
+
 - **gpt-5 is what I run.** Every escalation caught, fewest mistakes.
 - **Nano is out, however cheap.** It missed 2 escalations and read 4 clearly critical tickets as less urgent,
   including the checkout charging customers twice.

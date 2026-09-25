@@ -27,8 +27,8 @@ diff <(curl -s $BASE/) app/static/index.html >/dev/null \
   && ok "served page matches the working tree" || no "SERVING STALE CODE — rebuild"
 diff <(curl -s $BASE/notes) app/static/presenter.html >/dev/null \
   && ok "presenter notes current at /notes" || no "/notes stale or missing"
-diff <(curl -s $BASE/optimization) app/static/optimization.html >/dev/null \
-  && ok "cost page current at /optimization" || no "/optimization stale or missing"
+diff <(curl -s $BASE/explanations.md) docs/EXPLANATIONS.md >/dev/null \
+  && ok "explanations current at /explanations" || no "/explanations stale or missing"
 
 UP=$(ps -o etime= -p "$(pgrep -f 'limactl.*colima' | head -1)" 2>/dev/null | tr -d ' ')
 case "$UP" in
@@ -99,7 +99,7 @@ echo "── pages run without a script error"
 # page in headless Chrome and fail on any uncaught error in the console.
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 if [ -x "$CHROME" ]; then
-  for P in / /optimization /notes; do
+  for P in / /intro /explanations /notes /deliverables; do
     ERR=$("$CHROME" --headless --disable-gpu --enable-logging=stderr --v=0 --virtual-time-budget=6000 \
           --dump-dom "$BASE$P" 2>&1 >/dev/null | grep -o 'Uncaught[^"]*' | head -1)
     [ -z "$ERR" ] && ok "$P renders cleanly" || no "$P: $ERR"

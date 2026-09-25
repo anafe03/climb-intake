@@ -34,8 +34,8 @@ Read these **in order**. Each one assumes the last.
       order. *Check: can you answer "is it a model or is it rules" in two sentences?*
 - [ ] **`docs/EVAL-llm.md`** — read the **summary table and the per-ticket table**, skim the
       rationales (5 min). *Check: can you say what the weakest number is without looking?*
-- [ ] **<http://localhost:8080/optimization>** (5 min) — the recommendation box, then the model
-      table. *Check: can you say why nano is disqualified at 26x cheaper, in one sentence?*
+- [ ] **Explanations tab, Cost and model choice card** (5 min): the model table; click a number to see its tickets.
+      *Check: can you say why nano is out at 26x cheaper, in one sentence?*
 - [ ] **`docs/STRESS-llm.md`** (5 min) — where it breaks. Read `adv-01` properly; it is the ticket
       to show if anyone doubts the 100%. *Check: can you explain why you are not fixing it?*
 - [ ] **`docs/PANEL-QA.md`** (6 min) — the questions with short answers.
@@ -76,7 +76,7 @@ Do this before rehearsing. You are checking that it makes sense to *you*.
 
 - [ ] `./scripts/preflight.sh` again. Networks change overnight.
 - [ ] Clear and reload the samples so timestamps read "just now".
-- [ ] Three tabs: the app, `/optimization`, `/notes`. Notes on your screen, not the shared one.
+- [ ] Three tabs: the app, `/explanations`, `/notes`. Notes on your screen, not the shared one.
 - [ ] A terminal ready in the repo directory for the API beat.
 - [ ] Know these five numbers cold:
 
