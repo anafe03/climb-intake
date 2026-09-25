@@ -140,6 +140,20 @@ def intro():
     return FileResponse(STATIC / "intro.html")
 
 
+EXPLANATIONS = Path(__file__).resolve().parent.parent / "docs" / "EXPLANATIONS.md"
+
+
+@app.get("/explanations", include_in_schema=False)
+def explanations_page():
+    """The thinking behind the service, rendered from docs/EXPLANATIONS.md so there is one copy."""
+    return FileResponse(STATIC / "explanations.html")
+
+
+@app.get("/explanations.md", include_in_schema=False)
+def explanations_source():
+    return PlainTextResponse(EXPLANATIONS.read_text(), media_type="text/markdown")
+
+
 @app.get("/notes", include_in_schema=False)
 def presenter_notes():
     """Demo walkthrough. Served from the app so it can deep-link into the live ticket list."""

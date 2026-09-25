@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cost &amp; model choice: Climb Intake</title>
+<title>Explanations: Climb Intake</title>
 <style>
 :root{
   --teal:#03323a; --teal-mid:#006172; --coral:#f27557; --coral-deep:#92351e; --cyan:#a2f1f8;
@@ -84,108 +84,96 @@ table.evt td.kw b{color:var(--coral-deep)}
 
 .explain{margin-top:22px;max-width:760px}
 .explain p{margin:0 0 10px;font-size:14px;line-height:1.6}
-.hint{color:var(--dim);font-size:13px;margin:12px 0 0}
-.hint a{color:var(--coral-deep)}
+
+.lead{font-size:17px;line-height:1.65;max-width:760px;margin:6px 0 8px}
+.steps4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 6px}
+.steps4 .c{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.steps4 .c b{display:block;font-size:15px;margin-bottom:4px}
+.steps4 .c span{color:var(--dim);font-size:13px;line-height:1.5}
+@media (max-width:760px){.steps4{grid-template-columns:1fr 1fr}}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+.go{display:inline-block;margin:26px 0 40px;background:var(--coral);color:#fff;font-weight:650;
+  padding:12px 20px;border-radius:9px;text-decoration:none}
+.go:hover{filter:brightness(.95)}
+
+.cardbtn{all:unset;box-sizing:border-box;cursor:pointer;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;justify-content:flex-start;text-align:left;transition:border-color .12s,box-shadow .12s}
+.cardbtn:hover{border-color:var(--coral);box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.cardbtn b{display:block;font-size:15px;margin-bottom:4px}
+.cardbtn span{color:var(--dim);font-size:13px;line-height:1.5}
+.cardbtn em{display:block;margin-top:8px;font-style:normal;font-size:12px;color:var(--coral-deep);font-weight:600}
+.pop-bg{position:fixed;inset:0;background:rgba(3,30,36,.55);display:none;align-items:flex-start;
+  justify-content:center;padding:60px 16px;z-index:50;overflow:auto}
+.pop-bg.on{display:flex}
+.pop{background:var(--paper);border-radius:12px;max-width:760px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.pop-h{display:flex;align-items:center;justify-content:space-between;background:var(--coral);color:#fff;
+  padding:14px 20px;border-radius:12px 12px 0 0;font-weight:650;font-size:16px}
+.pop-h button{all:unset;cursor:pointer;font-size:20px;line-height:1;padding:2px 8px;border-radius:6px;background:rgba(0,0,0,.12)}
+.pop-b{padding:18px 22px 22px}
+.pop-b p{margin:0 0 12px;font-size:14.5px;line-height:1.6}
+a.inl{color:var(--coral-deep);font-weight:600;cursor:pointer}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0 30px}
+@media (max-width:860px){.cards{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.cards{grid-template-columns:1fr}}
+.grouplabel{font:700 10.5px var(--sans,inherit);letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin:22px 0 0}
+.pop{max-width:860px}
+.pop-b h3{font-size:14px;margin:22px 0 8px}
+.pop-b h3.q{border-top:2px solid var(--coral);padding-top:14px;margin-top:26px}
+.pop-b ul,.pop-b ol{padding-left:22px}
+.pop-b li{font-size:14px;line-height:1.6;margin:5px 0}
+.pop-b table{margin:8px 0 12px}
 </style>
 </head>
 <body>
 <header><div class="wrap">
-  <h1>Cost &amp; models</h1>
-  <p id="sub">The same tickets, read by each model</p>
+  <h1>Strategy, design and FAQs</h1>
+  <p>How each decision is made, how it stays consistent, what it costs, and the questions people ask</p>
 </div></header>
 <nav><div class="wrap">
   <a href="/intro">Intro</a>
   <a href="/">Intake</a>
-  <a href="/explanations">Explanations</a>
-  <a href="/optimization" class="on">Cost &amp; models</a>
+  <a href="/explanations" class="on">Explanations</a>
+  <a href="/optimization">Cost &amp; models</a>
   <a href="/notes">Presenter notes</a>
   <a href="/docs">API</a>
 </div></nav>
-
 <main class="wrap">
-
-<table id="models"><tr><td>Loading…</td></tr></table>
-
-<p class="hint">Click any number to see the tickets behind it. The reasoning is on the <a href="/explanations">Explanations</a> tab.</p>
-
-<div id="evidence" class="ev" hidden></div>
-
+  <p class="grouplabel">Each decision</p><div class="cards" id="fields"></div>
+  <p class="grouplabel">Across the whole system</p><div class="cards" id="system"></div>
 </main>
+<div class="pop-bg" id="popbg"><div class="pop"><div class="pop-h"><span id="poptitle"></span><button aria-label="Close" id="popx">×</button></div><div class="pop-b" id="popbody"></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script>
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-
-function lowCell(m){
-  const u=m.urgency_under, c=m.critical_under_clear;
-  if(!u) return '0';
-  if(c) return `<b>${u}, including ${c} clearly critical</b>`;
-  return u===1?'1 (borderline)':`${u} (all borderline)`;
-}
-async function renderModels(){
-  const r=await fetch('/pricing').then(x=>x.json()).catch(()=>null);
-  const t=document.getElementById('models');
-  if(!r||!r.models.length){t.innerHTML='<tr><td>No measurements on disk.</td></tr>';return}
-  const running=(r.running||'');
-  t.innerHTML=`<tr><th>Model</th><th>Effort</th><th>Escalations caught</th><th>False escalations</th>
-    <th>Urgency read too low</th><th class="num">Cost per 1,000 tickets</th></tr>`+
-  r.models.map((m,i)=>{
-    const name=m.model.split('-20')[0];
-    const here=running.startsWith(name)&&!running.startsWith(name+'-')&&m.effort==='low';
-    const caught=`${m.must_escalate-m.missed_escalations} of ${m.must_escalate}`;
-    return `<tr class="${here?'pick':''}${m.critical_under_called?' bad':''}">
-      <td><code>${esc(name)}</code></td><td>${esc(m.effort)}</td>
-      <td>${here?`<a href="#" id="recall" class="rlink">${caught}</a>`
-        :m.missed_escalations?`<a href="#" class="rlink mk" data-leg="${i}" data-kind="missed">${caught}</a>`:caught}</td>
-      <td>${m.false_escalations?`<a href="#" class="rlink mk" data-leg="${i}" data-kind="false">${m.false_escalations}</a>`:'0'}</td>
-      <td>${m.urgency_under?`<a href="#" class="rlink mk" data-leg="${i}" data-kind="low">${lowCell(m)}</a>`:'0'}</td>
-      <td class="num">$${(m.cost_per_ticket*1000).toFixed(2)}</td></tr>`;
-  }).join('');
-  const rl=document.getElementById('recall'); if(rl) rl.onclick=e=>{e.preventDefault();showRecall()};
-  window._models=r.models;
-  document.querySelectorAll('a.mk').forEach(a=>a.onclick=e=>{e.preventDefault();
-    showMistakes(r.models[+a.dataset.leg],a.dataset.kind)});
-  document.getElementById('sub').textContent=`The same ${r.n} tickets, read by each model`;
-}
-
-let _mist=null;
-async function showMistakes(m,kind){
-  const box=document.getElementById('evidence');
-  if(!_mist) _mist=await fetch('/evidence/mistakes').then(x=>x.json()).catch(()=>null);
-  const name=m.model.split('-20')[0];
-  const leg=_mist&&_mist.legs.find(l=>l.model===name&&l.effort===m.effort);
-  if(!leg){box.innerHTML='<p>Could not load these tickets.</p>';box.hidden=false;return}
-  const title={false:'Escalated when it should not have',low:'Read as less urgent than it is',
-               missed:'Should have escalated, and did not'}[kind];
-  const rows=leg[kind];
-  box.innerHTML=`<h3>${esc(name)}${m.effort!=='low'?' ('+esc(m.effort)+')':''}: ${title}
-      <span class="cnt">${rows.length} ticket${rows.length>1?'s':''}</span></h3>
-    <table class="evt">${rows.map(t=>`<tr>
-      <td class="id">${esc(t.id)}</td>
-      <td>${esc(t.text.length>220?t.text.slice(0,220)+'\u2026':t.text)}</td>
-      <td class="kw">${kind==='low'
-        ? `said <b>${esc(t.said)}</b>, should be ${esc(t.expected)}${t.borderline?'<br>(borderline: both fair)':''}`
-        : ''}</td></tr>`).join('')}</table>`;
-  box.hidden=false;
-  box.scrollIntoView({behavior:'smooth',block:'start'});
-}
-async function showRecall(){
-  const box=document.getElementById('evidence');
-  const r=await fetch('/evidence/escalation').then(x=>x.json()).catch(()=>null);
-  if(!r){box.innerHTML='<p>Could not load the tickets.</p>';box.hidden=false;return}
-  box.innerHTML=r.groups.map(g=>{
-    const caught=g.tickets.filter(t=>t.caught).length;
-    return `<h3>${esc(g.name)} <span class="cnt">${caught} of ${g.tickets.length} caught</span></h3>
-      <p class="about">${esc(g.about)}</p>
-      <table class="evt">${g.tickets.map(t=>`<tr>
-        <td class="ok">${t.caught?'\u2713':'\u2717'}</td>
-        <td class="id">${esc(t.id)}</td>
-        <td>${esc(t.text.length>150?t.text.slice(0,150)+'\u2026':t.text)}</td>
-        <td class="kw">${t.keywords?'keyword matched too':'<b>no keyword, model only</b>'}</td>
-      </tr>`).join('')}</table>`;
-  }).join('');
-  box.hidden=false;
-  box.scrollIntoView({behavior:'smooth',block:'start'});
-}
-renderModels().then(()=>{ if(new URL(location).searchParams.get('show')==='recall') showRecall(); });
+// One source: docs/EXPLANATIONS.md. Every "## " section is a card; clicking it opens the section.
+const FIELDS=['Who sent it','What kind of request','How urgent','Escalation','Where it goes'];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const bg=document.getElementById('popbg');
+const close=()=>bg.classList.remove('on');
+document.getElementById('popx').onclick=close;
+bg.onclick=e=>{if(e.target===bg)close()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+fetch('/explanations.md').then(r=>r.text()).then(md=>{
+  const sections=md.split(/^## /m).slice(1).map(chunk=>{
+    const nl=chunk.indexOf('\n'); const title=chunk.slice(0,nl).trim();
+    let body=chunk.slice(nl+1).trim();
+    const m=body.match(/^\*([^*]+)\*\s*/); const summary=m?m[1]:'';
+    if(m) body=body.slice(m[0].length);
+    return {title,summary,body};
+  });
+  const card=(s,i)=>`<button class="cardbtn" data-i="${i}"><b>${esc(s.title)}</b><span>${esc(s.summary)}</span><em>Open \u2192</em></button>`;
+  document.getElementById('fields').innerHTML=sections.map((s,i)=>FIELDS.includes(s.title)?card(s,i):'').join('');
+  document.getElementById('system').innerHTML=sections.map((s,i)=>FIELDS.includes(s.title)?'':card(s,i)).join('');
+  document.querySelectorAll('.cardbtn').forEach(b=>b.onclick=()=>{
+    const s=sections[+b.dataset.i];
+    document.getElementById('poptitle').textContent=s.title;
+    const body=document.getElementById('popbody');
+    body.innerHTML=marked.parse(s.body);
+    body.querySelectorAll('h3').forEach(h=>{ if(h.textContent.trim()==='Questions') h.classList.add('q'); });
+    bg.classList.add('on'); bg.scrollTop=0;
+  });
+}).catch(()=>{document.getElementById('fields').textContent='Could not load the explanations.'});
 </script>
 </body>
 </html>

@@ -299,6 +299,43 @@ The panel's biggest question: **"How are you controlling the determinism of the 
 - **d.** Keyword vs model disagreement: only record and show it, or also act on it (for example, send
   the ticket to human review when they disagree and the model is unsure)?
 
+## Block 12: one explanations doc, less text on screen (2026-09-25)
+
+Austin: "move the strategy of multi model use, small to larger, escalate to larger model, to an
+explanations page that I'll talk about. We want less AI text on the screen. This should all be on a
+FAQs and explanations sheet, one coherent doc, or even a tab for now in the project. Like how to manage
+consistency, strategies, the thought process I've been giving you."
+
+- [x] **One coherent doc**, `docs/EXPLANATIONS.md`, in Austin's voice: the problem, how it decides,
+      how consistency is managed (the thought process), scores and scales, cost and the small-to-large
+      model strategy, what happens when it fails, where it breaks, FAQs, what I'd do with more time.
+      This absorbs proposed items 6 (consistency), 7 (FAQ page), 8 (cost into FAQ), 13 (full scales).
+- [x] **A tab for it** in the app that shows that same doc, so there is one source.
+- [x] **Cost page:** the table only. The strategy text moves to the doc.
+- [x] **FAQs out of the pop-outs** and into the doc.
+
+- [x] **Intro: "make each of these [the four boxes] instead of explanations below a pop up"** Each box
+      opens its details (categories, levels, topics, who-sent-it scale); the tables below go. The
+      queues open from "the right team".
+- [x] **Third tab (Explanations): "something similar but the more technicals of it, like all that FAQs
+      sorted into each category"** Same card layout. One card per field (who, what kind, urgency,
+      escalation, where it goes) with its technical details and FAQs, plus cards for consistency,
+      cost and models, failures, testing. Still one source: docs/EXPLANATIONS.md, one section per card.
+
+- [x] **Ticket pop-ups: "only show the check mark here"** Each pop-up shows only the band or item this
+      ticket landed on and what it means, not the full scale or list. No model name ("The score came
+      from gpt-5..."). "Don't need to repeat this on the modal popup": the eight categories, the full
+      levels, the five topics with their word lists all come out of the ticket pop-ups.
+- [x] **"that'll be in explanations, strategy, architecture, design and FAQs page"** Full criteria per
+      field on the Explanations tab, "all the FAQs for each one in a separate section with each
+      explanation".
+
+- [x] **"The safety net ... like this too in explanations, really separate them out. The intake page is
+      all for a user, they don't need too much, that can go on the next page"** Ticket view: drop the
+      safety-net explanation (one line only when the keyword check changed the answer), drop the
+      repeatability section and Read it again, drop tokens and the model name from the footer. The full
+      explanation lives in the Escalation card on Explanations.
+
 ## Still open
 
 - [x] Git remote: github.com/anafe03/climb-intake, pushed by Austin.

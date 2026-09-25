@@ -96,6 +96,23 @@ table.evt td.kw b{color:var(--coral-deep)}
 .go{display:inline-block;margin:26px 0 40px;background:var(--coral);color:#fff;font-weight:650;
   padding:12px 20px;border-radius:9px;text-decoration:none}
 .go:hover{filter:brightness(.95)}
+
+.cardbtn{all:unset;box-sizing:border-box;cursor:pointer;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;justify-content:flex-start;text-align:left;transition:border-color .12s,box-shadow .12s}
+.cardbtn:hover{border-color:var(--coral);box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.cardbtn b{display:block;font-size:15px;margin-bottom:4px}
+.cardbtn span{color:var(--dim);font-size:13px;line-height:1.5}
+.cardbtn em{display:block;margin-top:8px;font-style:normal;font-size:12px;color:var(--coral-deep);font-weight:600}
+.pop-bg{position:fixed;inset:0;background:rgba(3,30,36,.55);display:none;align-items:flex-start;
+  justify-content:center;padding:60px 16px;z-index:50;overflow:auto}
+.pop-bg.on{display:flex}
+.pop{background:var(--paper);border-radius:12px;max-width:760px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.pop-h{display:flex;align-items:center;justify-content:space-between;background:var(--coral);color:#fff;
+  padding:14px 20px;border-radius:12px 12px 0 0;font-weight:650;font-size:16px}
+.pop-h button{all:unset;cursor:pointer;font-size:20px;line-height:1;padding:2px 8px;border-radius:6px;background:rgba(0,0,0,.12)}
+.pop-b{padding:18px 22px 22px}
+.pop-b p{margin:0 0 12px;font-size:14.5px;line-height:1.6}
+a.inl{color:var(--coral-deep);font-weight:600;cursor:pointer}
 </style>
 </head>
 <body>
@@ -106,6 +123,7 @@ table.evt td.kw b{color:var(--coral-deep)}
 <nav><div class="wrap">
   <a href="/intro" class="on">Intro</a>
   <a href="/">Intake</a>
+  <a href="/explanations">Explanations</a>
   <a href="/optimization">Cost &amp; models</a>
   <a href="/notes">Presenter notes</a>
   <a href="/docs">API</a>
@@ -120,27 +138,29 @@ should know, and which team gets it. That costs time and money. Faster, more acc
 request to the right team sooner, and that leads to better outcomes.</p>
 
 <h2>What this does</h2>
-<p class="lead">It reads each request and decides four things, and it explains every one:</p>
+<p class="lead">It reads each request and decides four things, and explains every one. Click any of them.</p>
 <div class="steps4">
-  <div class="c"><b>Who sent it</b><span>the company if it is named, or a clearly marked best guess</span></div>
-  <div class="c"><b>What kind of request</b><span>one of eight categories</span></div>
-  <div class="c"><b>How urgent</b><span>one of four levels</span></div>
-  <div class="c"><b>Does someone need to know</b><span>five topics always go to a person</span></div>
+  <button class="cardbtn" data-pop="who"><b>Who sent it</b><span>the company if it is named, or a clearly marked best guess</span><em>How it decides →</em></button>
+  <button class="cardbtn" data-pop="what"><b>What kind of request</b><span>one of eight categories</span><em>The eight →</em></button>
+  <button class="cardbtn" data-pop="urgency"><b>How urgent</b><span>one of four levels</span><em>The four →</em></button>
+  <button class="cardbtn" data-pop="escalate"><b>Does someone need to know</b><span>five topics always go to a person</span><em>The five →</em></button>
 </div>
-<p class="lead">Then it sends the request to the right team, and records every decision and the reason
+<p class="lead">Then it sends the request to <a class="inl" data-pop="queues">the right team</a>, and records every decision and the reason
 for it, so any routing can be checked later.</p>
-
-<div class="two">
-  <div><h2>The eight kinds of request</h2><table><tr><th>Category</th><th>What it covers</th></tr><tr><td><b>Billing</b></td><td>charges, invoices, refunds, plan changes, pricing, seats, renewals</td></tr><tr><td><b>Bug</b></td><td>something in the product is broken or behaving wrongly</td></tr><tr><td><b>Security</b></td><td>unauthorised access, credentials, data exposure, vulnerabilities, phishing</td></tr><tr><td><b>Legal / contract</b></td><td>contract disputes, breach claims, legal threats, regulatory demands</td></tr><tr><td><b>Onboarding</b></td><td>implementation, setup, go-live progress for an account</td></tr><tr><td><b>Feature request</b></td><td>asking for something the product does not do yet</td></tr><tr><td><b>Spam</b></td><td>nonsense, solicitations, trolling</td></tr><tr><td><b>Other</b></td><td>a real request that fits none of the above</td></tr></table></div>
-  <div><h2>The four urgency levels</h2><table><tr><th>Level</th><th>What it means</th></tr><tr><td><b>Critical</b></td><td>money moving wrongly, or many people blocked, right now</td></tr><tr><td><b>High</b></td><td>a stated deadline, or real impact on one customer</td></tr><tr><td><b>Medium</b></td><td>a real request with no deadline and contained impact</td></tr><tr><td><b>Low</b></td><td>cosmetic, or explicitly “whenever you get a chance”</td></tr></table>
-    <h2>Five things a person always sees</h2><table><tr><th>Topic</th><th>What it covers</th></tr><tr><td><b>Security incident</b></td><td>someone got in who should not have, credentials not revoked, phishing, a reported hole</td></tr><tr><td><b>Data exposure</b></td><td>they saw someone else&#x27;s data, or theirs was exposed</td></tr><tr><td><b>Legal threat</b></td><td>lawyers, breach of contract, a contract dispute</td></tr><tr><td><b>Compliance request</b></td><td>GDPR, CCPA and similar requests with a legal deadline</td></tr><tr><td><b>Someone senior involved</b></td><td>a CEO, VP, founder or board named on either side</td></tr></table></div>
-</div>
-
-<h2>Where requests go</h2>
-<table><tr><th>Queue</th><th>Who works it</th></tr><tr><td><b>Billing</b></td><td>billing team; paged when money is moving wrongly</td></tr><tr><td><b>Engineering</b></td><td>product bugs; paged when it is critical</td></tr><tr><td><b>Security</b></td><td>security team, always paged</td></tr><tr><td><b>Legal and account management</b></td><td>legal plus the account owner</td></tr><tr><td><b>Customer success</b></td><td>the account team</td></tr><tr><td><b>Product feedback</b></td><td>feature requests, no deadline</td></tr><tr><td><b>Spam review</b></td><td>checked at a glance and discarded</td></tr><tr><td><b>General support</b></td><td>the front line, for everything else</td></tr><tr><td><b>Human review</b></td><td>a person decides, when the reading was unsure</td></tr><tr><td><b>Escalation desk</b></td><td>a person must see it, on top of its own team</td></tr></table>
 
 <a class="go" href="/">See it on the 10 tickets you sent us →</a>
 
 </main>
+
+<div class="pop-bg" id="popbg"><div class="pop" id="pop"></div></div>
+<template id="pop-who"><div class="pop-h"><span>Who sent it</span><button aria-label="Close">×</button></div><div class="pop-b"><p>If the company is named in the ticket, it uses the name. If not, it makes a guess, marks it clearly as a guess, and says how sure it is. A guess never gets recorded as a name.</p><table><tr><th>What the ticket gives it</th><th>What it does</th></tr><tr><td><b>Named in the ticket</b></td><td>it uses the company&#x27;s name: a fact, not a guess</td></tr><tr><td><b>Work email or account number</b></td><td>it knows the company without it being named</td></tr><tr><td><b>Plan, product or job title</b></td><td>it knows the kind of customer</td></tr><tr><td><b>Only that they are a customer</b></td><td>it says so</td></tr><tr><td><b>Nothing to go on</b></td><td>it says “not stated” rather than invent one</td></tr></table></div></template><template id="pop-what"><div class="pop-h"><span>What kind of request</span><button aria-label="Close">×</button></div><div class="pop-b"><p>Every request gets exactly one of these eight categories. If it could fairly be two, it says which other one was close, and if it is not sure enough, a person decides instead.</p><table><tr><th>Category</th><th>What it covers</th></tr><tr><td><b>Billing</b></td><td>charges, invoices, refunds, plan changes, pricing, seats, renewals</td></tr><tr><td><b>Bug</b></td><td>something in the product is broken or behaving wrongly</td></tr><tr><td><b>Security</b></td><td>unauthorised access, credentials, data exposure, vulnerabilities, phishing</td></tr><tr><td><b>Legal / contract</b></td><td>contract disputes, breach claims, legal threats, regulatory demands</td></tr><tr><td><b>Onboarding</b></td><td>implementation, setup, go-live progress for an account</td></tr><tr><td><b>Feature request</b></td><td>asking for something the product does not do yet</td></tr><tr><td><b>Spam</b></td><td>nonsense, solicitations, trolling</td></tr><tr><td><b>Other</b></td><td>a real request that fits none of the above</td></tr></table></div></template><template id="pop-urgency"><div class="pop-h"><span>How urgent</span><button aria-label="Close">×</button></div><div class="pop-b"><p>Nobody writes “this is medium”, so urgency is worked out from the facts: a deadline, money at stake, how far the problem spreads, whether it keeps happening, and whether it is still happening. How angry someone sounds does not count.</p><table><tr><th>Level</th><th>What it means</th></tr><tr><td><b>Critical</b></td><td>money moving wrongly, or many people blocked, right now</td></tr><tr><td><b>High</b></td><td>a stated deadline, or real impact on one customer</td></tr><tr><td><b>Medium</b></td><td>a real request with no deadline and contained impact</td></tr><tr><td><b>Low</b></td><td>cosmetic, or explicitly “whenever you get a chance”</td></tr></table></div></template><template id="pop-escalate"><div class="pop-h"><span>Does someone need to know</span><button aria-label="Close">×</button></div><div class="pop-b"><p>These five topics always go to a person, on top of the team that owns the ticket. It is a separate question from urgency: a checkout bug can be critical and still not need anyone senior, and a CEO’s thank-you note is low urgency but still goes to a person.</p><table><tr><th>Topic</th><th>What it covers</th></tr><tr><td><b>Security incident</b></td><td>someone got in who should not have, credentials not revoked, phishing, a reported hole</td></tr><tr><td><b>Data exposure</b></td><td>they saw someone else&#x27;s data, or theirs was exposed</td></tr><tr><td><b>Legal threat</b></td><td>lawyers, breach of contract, a contract dispute</td></tr><tr><td><b>Compliance request</b></td><td>GDPR, CCPA and similar requests with a legal deadline</td></tr><tr><td><b>Someone senior involved</b></td><td>a CEO, VP, founder or board named on either side</td></tr></table></div></template><template id="pop-queues"><div class="pop-h"><span>Where requests go</span><button aria-label="Close">×</button></div><div class="pop-b"><p>The category decides the team. Critical billing and bug tickets page someone. Anything escalated also gets a copy on the escalation desk.</p><table><tr><th>Queue</th><th>Who works it</th></tr><tr><td><b>Billing</b></td><td>billing team; paged when money is moving wrongly</td></tr><tr><td><b>Engineering</b></td><td>product bugs; paged when it is critical</td></tr><tr><td><b>Security</b></td><td>security team, always paged</td></tr><tr><td><b>Legal and account management</b></td><td>legal plus the account owner</td></tr><tr><td><b>Customer success</b></td><td>the account team</td></tr><tr><td><b>Product feedback</b></td><td>feature requests, no deadline</td></tr><tr><td><b>Spam review</b></td><td>checked at a glance and discarded</td></tr><tr><td><b>General support</b></td><td>the front line, for everything else</td></tr><tr><td><b>Human review</b></td><td>a person decides, when the reading was unsure</td></tr><tr><td><b>Escalation desk</b></td><td>a person must see it, on top of its own team</td></tr></table></div></template>
+<script>
+const bg=document.getElementById('popbg'), box=document.getElementById('pop');
+function openPop(k){box.innerHTML=document.getElementById('pop-'+k).innerHTML;bg.classList.add('on');
+  box.querySelector('button').onclick=()=>bg.classList.remove('on');}
+document.querySelectorAll('[data-pop]').forEach(el=>el.onclick=e=>{e.preventDefault();openPop(el.dataset.pop)});
+bg.onclick=e=>{if(e.target===bg)bg.classList.remove('on')};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')bg.classList.remove('on')});
+</script>
 </body>
 </html>

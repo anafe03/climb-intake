@@ -203,5 +203,18 @@ def test_switching_data_sets_keeps_typed_tickets():
 def test_intro_page_sets_the_scene():
     r = client.get("/intro")
     assert r.status_code == 200
-    for word in ("The problem", "eight kinds of request", "urgency levels", "Where requests go"):
-        assert word in r.text
+    assert "The problem" in r.text
+    # the details are pop-ups now, one per decision plus the queues
+    for pop in ("who", "what", "urgency", "escalate", "queues"):
+        assert f'data-pop="{pop}"' in r.text and f'id="pop-{pop}"' in r.text, pop
+
+
+def test_explanations_tab_serves_the_one_doc():
+    page = client.get("/explanations")
+    src = client.get("/explanations.md")
+    assert page.status_code == 200 and src.status_code == 200
+    assert "## Keeping it consistent" in src.text
+    # every decision gets its own card, each with its own questions
+    for field in ("Who sent it", "What kind of request", "How urgent", "Escalation", "Where it goes"):
+        section = src.text.split("## " + field, 1)[1].split("\n## ", 1)[0]
+        assert "### Questions" in section, field

@@ -110,6 +110,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
 <nav><div class="wrap">
   <a href="/intro">Intro</a>
   <a href="/">Intake</a>
+  <a href="/explanations">Explanations</a>
   <a href="/optimization">Cost &amp; models</a>
   <a href="/notes" class="on">Presenter notes</a>
   <a href="/docs">API</a>
@@ -161,19 +162,20 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
 
   <div class="beat">
     <div class="top"><span class="n">3</span><h2>The escalation argument</h2><span class="time" data-sec="150" data-short="110">2.5 min</span></div>
-    <div class="do"><b>Do</b>Open the former-employee ticket, click <b>Escalate?</b>, and point at the grid.
+    <div class="do"><b>Do</b>Open the former-employee ticket and click <b>Escalate?</b>: it shows what the AI said and
+      what the keyword check said. For the four cases, open <b>Explanations</b>, then <b>Escalation</b>.
       <div id="links-esc"></div></div>
     <div class="say">
       <p>"Two separate readers check every ticket. The model reads it the way a person would. Keyword
       rules look for specific words, like 'former employee' or 'lawyer'. If either one says yes, it
       escalates. Neither one can turn a yes into a no."</p>
-      <p>"So there are four cases. This ticket is top left: both said yes. Top right is why the model is
+      <p>"So there are four cases. This ticket is the first: both said yes. Top right is why the model is
       there: 'Sam finished up with us in June and can still get in' has none of the words, and only the
       model catches it. Bottom left is the price of the keywords: 'we have <i>not</i> had a data breach'
       has the words, so it gets flagged even though the model said no. I'll show you that one live."</p>
       <p>"Is it deterministic? The keyword half is: same words, same answer, every time. The model half
-      isn't guaranteed to be, so I checked. Four tickets, three reads each, same answer every time. And
-      you can check any ticket yourself with <b>Read it again</b>."</p>
+      isn't guaranteed to be, so I checked. I ran the ten tickets you gave me five times each: category, escalation and
+      the queue never changed, and urgency moved by one level on one ticket. It is on the Explanations tab."</p>
     </div>
     <p class="why"><b>If they only remember one thing:</b> the model decides, the keywords are a backup
     that can add a flag but never remove one.</p>

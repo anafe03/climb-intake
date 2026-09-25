@@ -1637,6 +1637,23 @@ than other, which the answer key allows either way.
 **Measured on the earlier instructions, and not re-run:** the four-model comparison on the cost page
 and the recorded demo tickets. Both are records of what the earlier instructions produced.
 
+### D115. The app is for the person working tickets; the reasoning is its own tab
+After the first demo, Austin: less text on screen, and the intake page is for a user. Every explanation
+that is true of all tickets rather than this one moved off the ticket view: full score scales, the
+category list, the urgency signals, the escalation topics and their keyword lists, the four-case grid,
+the safety-net description, the repeat-run section and the FAQs. A ticket pop-up now shows the ticket,
+the decision, the evidence, and only the band or item it landed on. The keyword check is mentioned only
+when it changed the answer, in one sentence saying what it found and what it changed.
+
+### D116. One explanations doc, shown as cards
+`docs/EXPLANATIONS.md` is the single place for the strategy, design and FAQs, written in Austin's voice
+so he can talk from it: one section per decision (who sent it, what kind, urgency, escalation, where it
+goes), each with its full criteria, how it decides and its own Questions part, then consistency, cost
+and the small-then-big model strategy, failures, testing, and next steps. The Explanations tab renders
+that same file as cards, one per section, each opening in a pop-up, so there is no second copy to
+drift. The intro tab uses the same pattern, plainly: four cards that open the categories, levels,
+topics and queues.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the
