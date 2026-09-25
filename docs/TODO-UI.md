@@ -373,6 +373,13 @@ consistency, strategies, the thought process I've been giving you."
       tickets (33). Rebuilt from docs/deliverables.html with file links instead of line numbers; the
       Deliverables tab shows it, with a download link. Your original in Downloads is untouched.
 
+## Block 16 (2026-09-25)
+
+- [x] **"make these bigger: The problem"** Intro section headings.
+- [ ] **"in these [ticket pop-ups] we should show what keywords it caught ... or could it cause multi
+      classification"** Answer first: keyword check as a second opinion on category and urgency, not a vote.
+      Waiting on Austin's call before building.
+
 ## Still open
 
 - [x] Git remote: github.com/anafe03/climb-intake, pushed by Austin.
