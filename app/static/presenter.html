@@ -108,6 +108,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
   </div>
 </div></header>
 <nav><div class="wrap">
+  <a href="/intro">Intro</a>
   <a href="/">Intake</a>
   <a href="/optimization">Cost &amp; models</a>
   <a href="/notes" class="on">Presenter notes</a>
@@ -202,15 +203,15 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
       <p>"33 tickets: the 10 they gave me, plus 23 edge cases I wrote to trap the failure modes, like an
       invoice sent to a legal department, a positive CEO mention, a prompt injection, a SOC 2 request
       that reads like a compliance demand."</p>
-      <p>"Both modes catch every escalation with zero false positives. Urgency is the weak field at 82%
+      <p>"Both modes catch every escalation with zero false positives. Urgency is the weak field at 88%
       exact, but accuracy is the wrong question there. It is a screening test. Under-called, meaning
-      the ticket waits longer than it should: zero. Over-called: 18%. Every mistake is in the safe
+      the ticket waits longer than it should: zero. Over-called: 12%. Every mistake is in the safe
       direction and no critical ticket was ever read as anything less."</p>
       <p>"100% on a set I wrote myself is not a result, so there is a second set built to break it.
       Twelve tickets, each naming its attack. It still never misses, and it over-escalates four
       times, always where the vocabulary of an incident shows up without the incident."</p>
     </div>
-    <p class="why"><b>Lead with the weakness.</b> Volunteering 82% and the four over-escalations before
+    <p class="why"><b>Lead with the weakness.</b> Volunteering 88% and the four over-escalations before
     they find them buys more credibility than five 100%s.</p>
     <p class="why"><b>If they push on 100%:</b> open the stress file and show <code>adv-01</code>,
     the one where the model was right and the guardrail overrode it. Next beat.</p>
@@ -599,8 +600,8 @@ retime();
   document.getElementById('numbers').innerHTML = [
     ['Escalation recall, both modes', '100%'],
     ['False escalations', 'none'],
-    ['Category, strict (model / rules)', '100% / 82%'],
-    ['Urgency exact / tolerant', '82% / 100%'],
+    ['Category, strict (model / rules)', '97% / 82%'],
+    ['Urgency exact / tolerant', '88% / 100%'],
     ['Urgency UNDER-called', '0%'],
     ['Confidence calibration', '100%'],
     ['Gold tickets', '33'],

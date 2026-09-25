@@ -229,6 +229,76 @@ Earlier in this run-through, already done:
 - [x] **"and reset it fresh"** Data menu, "Start fresh: 10 samples, nothing typed", and the demo is
       reset to that now.
 
+## Block 11: after the first demo (2026-09-25)
+
+**Austin's answers (approved 1-5, start on those):**
+- 1: "keyword reading is more a fall back for missed cases": if either marks escalate, escalate (already
+  how it works). No regex for who sent it: named entity recognition is a talking point for the FAQ and
+  decisions, as is regex for emails and account numbers ("probably fine but maybe overkill").
+  **No new build; explanation only.**
+- 2: good, build it.
+- 3: "just one shot probably fine": one worked example in the prompt.
+- 4: no variance cutoff. Show the variance, say we eyeballed it, talk about how you'd scale after.
+- 5: intro page, build it.
+- 6-15: not started until approved.
+
+
+The panel's biggest question: **"How are you controlling the determinism of the classification?"**
+
+### P0: determinism, the biggest thing
+- [x] **1. (Changed by Austin: explanation only, D112)** Keyword reading plus model reading for every field, not just escalation: who sent it,
+      category, urgency, escalation, route. A keyword reader for all of these already exists but only
+      runs when the model is down. Run it on every ticket, record where the two agree and disagree,
+      field by field. Who sent it is the hardest (no fixed list): regex for stated names, sign-offs,
+      email domains and account/invoice numbers.
+- [x] **2. Multi-run test (done, docs/CONSISTENCY.md):** run the 10 Climb tickets 5 times each (50 model calls, about $0.46), and
+      measure how much each field moves: confidence spread, and whether category, urgency or
+      escalation ever flip.
+- [x] **3. One worked example in the prompt (done, D114).** There are none today. Add worked examples, then re-run
+      the multi-run test and show before vs after (about $0.46 more).
+- [x] **4. (Changed by Austin: no cutoff, show the variance, D113)** A variance cutoff: a rule for how much movement is too much, what happens past it, and
+      the production answer (a subject-matter expert validates, and variance is watched).
+
+### P1: pages, in the order you'd present them
+- [x] **5. Intro page first (done, /intro, first in the nav):** set the scene. The problem, what the service does, the categories,
+      urgency levels and escalation topics, before any examples.
+- [ ] **6. Consistency page:** results of 1-4. Multi-run variance per field, keyword vs model
+      agreement, and a live re-run done in the back end (the user never clicks refresh).
+- [ ] **7. FAQ page:** all FAQs move out of the pop-outs to their own page. Adds: the full score scale
+      for each field, how results were tracked, multi-run testing, multi-shot examples, how outputs are
+      validated (strict schema, try/catch, fallback), the variance cutoff, which models and what they
+      cost, and how the regex safety net works (the ~20 patterns).
+- [ ] **8. Cost & models** folds into the FAQ / technical side, not something the end user sees.
+
+### P2: the app is for an end user
+- [ ] **9. Remove model references** from the app: no model names, no "reading with GPT-5" badge, no
+      model/cost comparison card.
+- [ ] **10. Remove code references:** file names, line numbers, rules.py, routing.yaml.
+- [ ] **11. Remove the regex details** (backup word lists, "twenty regular expressions") from the app.
+      They go to the FAQ.
+- [ ] **12. Remove "Read it again"** from the ticket dialog. Multi-run lives on the consistency page.
+- [ ] **13. Score scales:** in the app, keep only the checked band and what it means. The full scale
+      goes to the FAQ.
+
+### P3: presenting as a consultant
+- [ ] **14. Presenter notes reordered:** scene (intro), then the app, then determinism and
+      consistency, then FAQ and technical, then cost. Drop the code-explanation beats. Framed as an
+      FDE presenting to the client.
+- [ ] **15. Panel prep (Daniel is the engagement lead):** consulting questions. "A time you were wrong
+      in front of a client" (this project has real ones: the cheap-model recommendation that was
+      reversed, the FAQ claims that failed a check), how you react, Climb's company values, and "don't
+      make it up: say you'll check and escalate internally".
+
+### Questions before I start
+- **a.** "Remove model references": remove only model *names* and the cost/model card, and still say
+  "the AI" in the app? Or remove any mention of an AI/model?
+- **b.** The escalation four-box grid (model yes/no vs keywords yes/no) is model-and-regex detail.
+  Move it to the FAQ/consistency page with everything else?
+- **c.** "A live demo of the three we run": do you mean re-running a ticket three times on the
+  consistency page, or something else?
+- **d.** Keyword vs model disagreement: only record and show it, or also act on it (for example, send
+  the ticket to human review when they disagree and the model is unsure)?
+
 ## Still open
 
 - [x] Git remote: github.com/anafe03/climb-intake, pushed by Austin.

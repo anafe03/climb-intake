@@ -1,0 +1,947 @@
+{
+  "label": "baseline",
+  "runs": 5,
+  "tickets": [
+    {
+      "id": "climb-01",
+      "text": "Hey, I noticed we got charged $4,200 on our last invoice but I thought we downgraded to the Team plan back in July? Can someone check this and adjust if it's an error?",
+      "runs": 5,
+      "failed": 0,
+      "fields": {
+        "category": {
+          "values": [
+            "billing",
+            "billing",
+            "billing",
+            "billing",
+            "billing"
+          ],
+          "most_common": "billing",
+          "same": 5,
+          "flipped": false
+        },
+        "urgency": {
+          "values": [
+            "medium",
+            "medium",
+            "medium",
+            "medium",
+            "medium"
+          ],
+          "most_common": "medium",
+          "same": 5,
+          "flipped": false
+        },
+        "escalate": {
+          "values": [
+            "no",
+            "no",
+            "no",
+            "no",
+            "no"
+          ],
+          "most_common": "no",
+          "same": 5,
+          "flipped": false
+        },
+        "route": {
+          "values": [
+            "billing-support",
+            "billing-support",
+            "billing-support",
+            "billing-support",
+            "billing-support"
+          ],
+          "most_common": "billing-support",
+          "same": 5,
+          "flipped": false
+        },
+        "who (stated name)": {
+          "values": [
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated"
+          ],
+          "most_common": "not stated",
+          "same": 5,
+          "flipped": false
+        },
+        "category confidence": {
+          "values": [
+            0.8,
+            0.85,
+            0.8,
+            0.9,
+            0.8
+          ],
+          "min": 0.8,
+          "max": 0.9,
+          "spread": 0.1,
+          "sd": 0.04
+        },
+        "who confidence": {
+          "values": [
+            0.6,
+            0.65,
+            0.55,
+            0.6,
+            0.5
+          ],
+          "min": 0.5,
+          "max": 0.65,
+          "spread": 0.15,
+          "sd": 0.051
+        }
+      }
+    },
+    {
+      "id": "climb-02",
+      "text": "The CSV export button on the analytics dashboard has been throwing a 500 error since yesterday afternoon. Tried Chrome and Firefox, same result. Our reporting is due Friday.",
+      "runs": 5,
+      "failed": 0,
+      "fields": {
+        "category": {
+          "values": [
+            "bug",
+            "bug",
+            "bug",
+            "bug",
+            "bug"
+          ],
+          "most_common": "bug",
+          "same": 5,
+          "flipped": false
+        },
+        "urgency": {
+          "values": [
+            "high",
+            "high",
+            "high",
+            "high",
+            "high"
+          ],
+          "most_common": "high",
+          "same": 5,
+          "flipped": false
+        },
+        "escalate": {
+          "values": [
+            "no",
+            "no",
+            "no",
+            "no",
+            "no"
+          ],
+          "most_common": "no",
+          "same": 5,
+          "flipped": false
+        },
+        "route": {
+          "values": [
+            "engineering-triage",
+            "engineering-triage",
+            "engineering-triage",
+            "engineering-triage",
+            "engineering-triage"
+          ],
+          "most_common": "engineering-triage",
+          "same": 5,
+          "flipped": false
+        },
+        "who (stated name)": {
+          "values": [
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated"
+          ],
+          "most_common": "not stated",
+          "same": 5,
+          "flipped": false
+        },
+        "category confidence": {
+          "values": [
+            0.9,
+            0.85,
+            0.96,
+            0.85,
+            0.9
+          ],
+          "min": 0.85,
+          "max": 0.96,
+          "spread": 0.11,
+          "sd": 0.041
+        },
+        "who confidence": {
+          "values": [
+            0.45,
+            0.55,
+            0.3,
+            0.4,
+            0.4
+          ],
+          "min": 0.3,
+          "max": 0.55,
+          "spread": 0.25,
+          "sd": 0.081
+        }
+      }
+    },
+    {
+      "id": "climb-03",
+      "text": "One of our former employees (terminated last week) just logged into the Climb admin console using old credentials that should've been revoked. We can see activity in the audit log from this morning.",
+      "runs": 5,
+      "failed": 0,
+      "fields": {
+        "category": {
+          "values": [
+            "security",
+            "security",
+            "security",
+            "security",
+            "security"
+          ],
+          "most_common": "security",
+          "same": 5,
+          "flipped": false
+        },
+        "urgency": {
+          "values": [
+            "critical",
+            "critical",
+            "critical",
+            "critical",
+            "critical"
+          ],
+          "most_common": "critical",
+          "same": 5,
+          "flipped": false
+        },
+        "escalate": {
+          "values": [
+            "yes",
+            "yes",
+            "yes",
+            "yes",
+            "yes"
+          ],
+          "most_common": "yes",
+          "same": 5,
+          "flipped": false
+        },
+        "route": {
+          "values": [
+            "security-incident-response + human-escalation-desk",
+            "security-incident-response + human-escalation-desk",
+            "security-incident-response + human-escalation-desk",
+            "security-incident-response + human-escalation-desk",
+            "security-incident-response + human-escalation-desk"
+          ],
+          "most_common": "security-incident-response + human-escalation-desk",
+          "same": 5,
+          "flipped": false
+        },
+        "who (stated name)": {
+          "values": [
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated"
+          ],
+          "most_common": "not stated",
+          "same": 5,
+          "flipped": false
+        },
+        "category confidence": {
+          "values": [
+            0.9,
+            0.85,
+            0.8,
+            0.9,
+            0.85
+          ],
+          "min": 0.8,
+          "max": 0.9,
+          "spread": 0.1,
+          "sd": 0.037
+        },
+        "who confidence": {
+          "values": [
+            0.6,
+            0.5,
+            0.6,
+            0.6,
+            0.5
+          ],
+          "min": 0.5,
+          "max": 0.6,
+          "spread": 0.1,
+          "sd": 0.049
+        }
+      }
+    },
+    {
+      "id": "climb-04",
+      "text": "I've reviewed the renewal terms your rep sent and this is not what we agreed to verbally in our Q2 call. If this isn't corrected by end of week we're going to have our legal team review the original MSA for breach.",
+      "runs": 5,
+      "failed": 0,
+      "fields": {
+        "category": {
+          "values": [
+            "legal_contract",
+            "legal_contract",
+            "legal_contract",
+            "legal_contract",
+            "legal_contract"
+          ],
+          "most_common": "legal_contract",
+          "same": 5,
+          "flipped": false
+        },
+        "urgency": {
+          "values": [
+            "high",
+            "high",
+            "high",
+            "high",
+            "high"
+          ],
+          "most_common": "high",
+          "same": 5,
+          "flipped": false
+        },
+        "escalate": {
+          "values": [
+            "yes",
+            "yes",
+            "yes",
+            "yes",
+            "yes"
+          ],
+          "most_common": "yes",
+          "same": 5,
+          "flipped": false
+        },
+        "route": {
+          "values": [
+            "legal-and-account-management + human-escalation-desk",
+            "legal-and-account-management + human-escalation-desk",
+            "legal-and-account-management + human-escalation-desk",
+            "legal-and-account-management + human-escalation-desk",
+            "legal-and-account-management + human-escalation-desk"
+          ],
+          "most_common": "legal-and-account-management + human-escalation-desk",
+          "same": 5,
+          "flipped": false
+        },
+        "who (stated name)": {
+          "values": [
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated"
+          ],
+          "most_common": "not stated",
+          "same": 5,
+          "flipped": false
+        },
+        "category confidence": {
+          "values": [
+            0.8,
+            0.75,
+            0.75,
+            0.9,
+            0.9
+          ],
+          "min": 0.75,
+          "max": 0.9,
+          "spread": 0.15,
+          "sd": 0.068
+        },
+        "who confidence": {
+          "values": [
+            0.6,
+            0.6,
+            0.6,
+            0.65,
+            0.65
+          ],
+          "min": 0.6,
+          "max": 0.65,
+          "spread": 0.05,
+          "sd": 0.024
+        }
+      }
+    },
+    {
+      "id": "climb-05",
+      "text": "hey do u guys sell crypto too??? my uncle said climb was actually a mining operation lol anyway can u send me 500 free credits my discord is xXdarklord99Xx",
+      "runs": 5,
+      "failed": 0,
+      "fields": {
+        "category": {
+          "values": [
+            "spam",
+            "spam",
+            "spam",
+            "spam",
+            "spam"
+          ],
+          "most_common": "spam",
+          "same": 5,
+          "flipped": false
+        },
+        "urgency": {
+          "values": [
+            "low",
+            "low",
+            "low",
+            "low",
+            "low"
+          ],
+          "most_common": "low",
+          "same": 5,
+          "flipped": false
+        },
+        "escalate": {
+          "values": [
+            "no",
+            "no",
+            "no",
+            "no",
+            "no"
+          ],
+          "most_common": "no",
+          "same": 5,
+          "flipped": false
+        },
+        "route": {
+          "values": [
+            "spam-review",
+            "spam-review",
+            "spam-review",
+            "spam-review",
+            "spam-review"
+          ],
+          "most_common": "spam-review",
+          "same": 5,
+          "flipped": false
+        },
+        "who (stated name)": {
+          "values": [
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated"
+          ],
+          "most_common": "not stated",
+          "same": 5,
+          "flipped": false
+        },
+        "category confidence": {
+          "values": [
+            0.98,
+            0.97,
+            0.96,
+            0.97,
+            0.95
+          ],
+          "min": 0.95,
+          "max": 0.98,
+          "spread": 0.03,
+          "sd": 0.01
+        },
+        "who confidence": {
+          "values": [
+            0.25,
+            0.7,
+            0.3,
+            0.3,
+            0.6
+          ],
+          "min": 0.25,
+          "max": 0.7,
+          "spread": 0.45,
+          "sd": 0.183
+        }
+      }
+    },
+    {
+      "id": "climb-06",
+      "text": "We were double-billed for March and April on invoice #88213. Please refund the duplicate charge to the card on file. Let me know if you need anything else from us.",
+      "runs": 5,
+      "failed": 0,
+      "fields": {
+        "category": {
+          "values": [
+            "billing",
+            "billing",
+            "billing",
+            "billing",
+            "billing"
+          ],
+          "most_common": "billing",
+          "same": 5,
+          "flipped": false
+        },
+        "urgency": {
+          "values": [
+            "medium",
+            "medium",
+            "medium",
+            "high",
+            "medium"
+          ],
+          "most_common": "medium",
+          "same": 4,
+          "flipped": true
+        },
+        "escalate": {
+          "values": [
+            "no",
+            "no",
+            "no",
+            "no",
+            "no"
+          ],
+          "most_common": "no",
+          "same": 5,
+          "flipped": false
+        },
+        "route": {
+          "values": [
+            "billing-support",
+            "billing-support",
+            "billing-support",
+            "billing-support",
+            "billing-support"
+          ],
+          "most_common": "billing-support",
+          "same": 5,
+          "flipped": false
+        },
+        "who (stated name)": {
+          "values": [
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated"
+          ],
+          "most_common": "not stated",
+          "same": 5,
+          "flipped": false
+        },
+        "category confidence": {
+          "values": [
+            0.9,
+            0.85,
+            0.8,
+            0.8,
+            0.9
+          ],
+          "min": 0.8,
+          "max": 0.9,
+          "spread": 0.1,
+          "sd": 0.045
+        },
+        "who confidence": {
+          "values": [
+            0.5,
+            0.6,
+            0.6,
+            0.3,
+            0.6
+          ],
+          "min": 0.3,
+          "max": 0.6,
+          "spread": 0.3,
+          "sd": 0.117
+        }
+      }
+    },
+    {
+      "id": "climb-07",
+      "text": "Our CEO is personally asking why the onboarding for our enterprise account still isn't complete after 3 weeks. She's planning to bring this up directly with your leadership team if we don't see progress today.",
+      "runs": 5,
+      "failed": 0,
+      "fields": {
+        "category": {
+          "values": [
+            "onboarding",
+            "onboarding",
+            "onboarding",
+            "onboarding",
+            "onboarding"
+          ],
+          "most_common": "onboarding",
+          "same": 5,
+          "flipped": false
+        },
+        "urgency": {
+          "values": [
+            "critical",
+            "high",
+            "critical",
+            "critical",
+            "critical"
+          ],
+          "most_common": "critical",
+          "same": 4,
+          "flipped": true
+        },
+        "escalate": {
+          "values": [
+            "yes",
+            "yes",
+            "yes",
+            "yes",
+            "yes"
+          ],
+          "most_common": "yes",
+          "same": 5,
+          "flipped": false
+        },
+        "route": {
+          "values": [
+            "customer-success + human-escalation-desk",
+            "customer-success + human-escalation-desk",
+            "customer-success + human-escalation-desk",
+            "customer-success + human-escalation-desk",
+            "customer-success + human-escalation-desk"
+          ],
+          "most_common": "customer-success + human-escalation-desk",
+          "same": 5,
+          "flipped": false
+        },
+        "who (stated name)": {
+          "values": [
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated"
+          ],
+          "most_common": "not stated",
+          "same": 5,
+          "flipped": false
+        },
+        "category confidence": {
+          "values": [
+            0.8,
+            0.8,
+            0.85,
+            0.95,
+            0.85
+          ],
+          "min": 0.8,
+          "max": 0.95,
+          "spread": 0.15,
+          "sd": 0.055
+        },
+        "who confidence": {
+          "values": [
+            0.6,
+            0.6,
+            0.65,
+            0.6,
+            0.6
+          ],
+          "min": 0.6,
+          "max": 0.65,
+          "spread": 0.05,
+          "sd": 0.02
+        }
+      }
+    },
+    {
+      "id": "climb-08",
+      "text": "The dark mode toggle resets every time I refresh the page. Whenever you get a chance.",
+      "runs": 5,
+      "failed": 0,
+      "fields": {
+        "category": {
+          "values": [
+            "bug",
+            "bug",
+            "bug",
+            "bug",
+            "bug"
+          ],
+          "most_common": "bug",
+          "same": 5,
+          "flipped": false
+        },
+        "urgency": {
+          "values": [
+            "low",
+            "low",
+            "low",
+            "low",
+            "low"
+          ],
+          "most_common": "low",
+          "same": 5,
+          "flipped": false
+        },
+        "escalate": {
+          "values": [
+            "no",
+            "no",
+            "no",
+            "no",
+            "no"
+          ],
+          "most_common": "no",
+          "same": 5,
+          "flipped": false
+        },
+        "route": {
+          "values": [
+            "engineering-triage",
+            "engineering-triage",
+            "engineering-triage",
+            "engineering-triage",
+            "engineering-triage"
+          ],
+          "most_common": "engineering-triage",
+          "same": 5,
+          "flipped": false
+        },
+        "who (stated name)": {
+          "values": [
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated"
+          ],
+          "most_common": "not stated",
+          "same": 5,
+          "flipped": false
+        },
+        "category confidence": {
+          "values": [
+            0.8,
+            0.8,
+            0.8,
+            0.9,
+            0.8
+          ],
+          "min": 0.8,
+          "max": 0.9,
+          "spread": 0.1,
+          "sd": 0.04
+        },
+        "who confidence": {
+          "values": [
+            0.3,
+            0.4,
+            0.25,
+            0.3,
+            0.4
+          ],
+          "min": 0.25,
+          "max": 0.4,
+          "spread": 0.15,
+          "sd": 0.06
+        }
+      }
+    },
+    {
+      "id": "climb-09",
+      "text": "I was able to see another company's customer records when I exported our data this morning. This looks like a permissions issue on your end.",
+      "runs": 5,
+      "failed": 0,
+      "fields": {
+        "category": {
+          "values": [
+            "security",
+            "security",
+            "security",
+            "security",
+            "security"
+          ],
+          "most_common": "security",
+          "same": 5,
+          "flipped": false
+        },
+        "urgency": {
+          "values": [
+            "critical",
+            "critical",
+            "critical",
+            "critical",
+            "critical"
+          ],
+          "most_common": "critical",
+          "same": 5,
+          "flipped": false
+        },
+        "escalate": {
+          "values": [
+            "yes",
+            "yes",
+            "yes",
+            "yes",
+            "yes"
+          ],
+          "most_common": "yes",
+          "same": 5,
+          "flipped": false
+        },
+        "route": {
+          "values": [
+            "security-incident-response + human-escalation-desk",
+            "security-incident-response + human-escalation-desk",
+            "security-incident-response + human-escalation-desk",
+            "security-incident-response + human-escalation-desk",
+            "security-incident-response + human-escalation-desk"
+          ],
+          "most_common": "security-incident-response + human-escalation-desk",
+          "same": 5,
+          "flipped": false
+        },
+        "who (stated name)": {
+          "values": [
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated"
+          ],
+          "most_common": "not stated",
+          "same": 5,
+          "flipped": false
+        },
+        "category confidence": {
+          "values": [
+            0.9,
+            0.9,
+            0.9,
+            0.9,
+            0.95
+          ],
+          "min": 0.9,
+          "max": 0.95,
+          "spread": 0.05,
+          "sd": 0.02
+        },
+        "who confidence": {
+          "values": [
+            0.25,
+            0.35,
+            0.3,
+            0.4,
+            0.45
+          ],
+          "min": 0.25,
+          "max": 0.45,
+          "spread": 0.2,
+          "sd": 0.071
+        }
+      }
+    },
+    {
+      "id": "climb-10",
+      "text": "Noticed our checkout flow is charging customers twice on any order over $200 \u2014 happened three times to us this morning alone. Support forwarded me two more emails from other customers with the same issue since 9am. Anyone else seeing this on their end?",
+      "runs": 5,
+      "failed": 0,
+      "fields": {
+        "category": {
+          "values": [
+            "bug",
+            "bug",
+            "bug",
+            "bug",
+            "bug"
+          ],
+          "most_common": "bug",
+          "same": 5,
+          "flipped": false
+        },
+        "urgency": {
+          "values": [
+            "critical",
+            "critical",
+            "critical",
+            "critical",
+            "critical"
+          ],
+          "most_common": "critical",
+          "same": 5,
+          "flipped": false
+        },
+        "escalate": {
+          "values": [
+            "no",
+            "no",
+            "no",
+            "no",
+            "no"
+          ],
+          "most_common": "no",
+          "same": 5,
+          "flipped": false
+        },
+        "route": {
+          "values": [
+            "engineering-oncall",
+            "engineering-oncall",
+            "engineering-oncall",
+            "engineering-oncall",
+            "engineering-oncall"
+          ],
+          "most_common": "engineering-oncall",
+          "same": 5,
+          "flipped": false
+        },
+        "who (stated name)": {
+          "values": [
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated",
+            "not stated"
+          ],
+          "most_common": "not stated",
+          "same": 5,
+          "flipped": false
+        },
+        "category confidence": {
+          "values": [
+            0.8,
+            0.8,
+            0.8,
+            0.85,
+            0.9
+          ],
+          "min": 0.8,
+          "max": 0.9,
+          "spread": 0.1,
+          "sd": 0.04
+        },
+        "who confidence": {
+          "values": [
+            0.6,
+            0.6,
+            0.5,
+            0.6,
+            0.6
+          ],
+          "min": 0.5,
+          "max": 0.6,
+          "spread": 0.1,
+          "sd": 0.04
+        }
+      }
+    }
+  ],
+  "when": "2026-09-25 12:41"
+}

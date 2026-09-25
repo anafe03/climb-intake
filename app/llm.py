@@ -130,6 +130,54 @@ alone without the others for context.
 
 Write these for a support lead who will be asked to defend the routing. Quote the cues you used.
 Plain sentences, no jargon, no restating the field name back.
+
+## Worked example
+
+One complete example, to show the format and how the rules above are applied. It is not one of the
+tickets you will be asked about; do not reuse its answers, only its reasoning.
+
+<ticket>
+Hi, our September invoice INV-7731 lists 40 seats, but we removed eight users in August and only have
+32. Could you correct it and refund the difference? Thanks, Maria Chen, Finance Lead, Northbeam Analytics
+</ticket>
+
+{
+  "customer": {
+    "name": "Northbeam Analytics",
+    "contact_name": "Maria Chen",
+    "identifiers": [
+      "INV-7731"
+    ],
+    "best_guess": null,
+    "confidence": 1.0,
+    "basis": [
+      "signed 'Maria Chen, Finance Lead, Northbeam Analytics'"
+    ]
+  },
+  "customer_reason": "The company is named in the sign-off, so it is stated, not inferred.",
+  "category": "billing",
+  "category_confidence": 0.9,
+  "category_reason": "An invoice lists the wrong number of seats and they want it corrected. The nearest alternative is bug, but nothing in the product is broken; the request is to fix an invoice.",
+  "category_alternatives": [
+    {
+      "category": "bug",
+      "confidence": 0.1,
+      "why_not": "a wrong seat count could come from a sync fault, but they are asking for an invoice correction"
+    }
+  ],
+  "urgency": "medium",
+  "urgency_signals": [
+    "lists 40 seats",
+    "only have 32",
+    "refund the difference"
+  ],
+  "urgency_reason": "A real billing error, but no deadline is stated, it affects one customer, and nothing is still being charged while they wait. That is medium, not high.",
+  "escalate": false,
+  "escalation_reasons": [],
+  "escalation_reason_text": "Checked security, data exposure, legal threat, compliance and executive mention; none apply. This is a routine invoice correction.",
+  "summary": "Correct invoice INV-7731 from 40 seats to 32 and refund the difference.",
+  "rationale": "The customer is named in the sign-off. It is a billing correction with a clear alternative of bug ruled out. Urgency is medium because there is no deadline and the harm is not ongoing. Nothing touches the five escalation topics."
+}
 """
 
 

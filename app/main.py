@@ -133,6 +133,13 @@ def index():
     return FileResponse(STATIC / "index.html")
 
 
+@app.get("/intro", include_in_schema=False)
+def intro():
+    """Setting the scene: the problem, what the service decides, the categories, levels, topics and
+    queues, before any tickets."""
+    return FileResponse(STATIC / "intro.html")
+
+
 @app.get("/notes", include_in_schema=False)
 def presenter_notes():
     """Demo walkthrough. Served from the app so it can deep-link into the live ticket list."""

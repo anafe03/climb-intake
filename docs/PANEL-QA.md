@@ -71,7 +71,7 @@ are marked ambiguous on urgency, 8 on category, 5 on escalate. Escalation recall
 for must-escalate rows.
 
 **What are the numbers?** Both modes hit 100% escalation recall with zero false escalations on the
-33-row gold set. The model wins on urgency (82% exact vs 76%) and on category (100% strict vs 82%).
+33-row gold set. The model wins on urgency (88% exact vs 76%) and on category (97% strict vs 82%).
 **Neither mode ever under-calls urgency** — every miss is in the safe direction, and no critical
 ticket was ever read as less. It costs 0.9¢ and about 16 s per ticket against microseconds and
 nothing. Full tables in `docs/EVAL-llm.md` and `docs/EVAL-rules.md`.

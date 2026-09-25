@@ -1600,6 +1600,43 @@ Beat 2 opened the security-researcher ticket and beat 3 the GDPR spam ticket. Ne
 seeded samples, so on a fresh demo both links would have read "not loaded". Both now use seeded
 tickets, and this was checked by loading `/notes` and confirming every link resolved.
 
+### D112. Keywords are the fallback for missed cases, not a second classifier
+After the first demo the question was how determinism is controlled. Austin's call: the keyword
+layer is a fallback for edge cases the model misses, not a parallel reading of every field. Escalation
+stays as it is: if either the model or a keyword says yes, it escalates.
+
+For who sent it there is deliberately no name regex; company names have no fixed list, so a pattern
+would guess. The honest answers for the panel: named entity recognition is the tool for pulling
+company names out of text, and would be the next step; regex does work for the structured parts, and
+the fallback already uses it for email addresses and account and invoice numbers. That is enough for a
+fallback, and more would be overkill for this build.
+
+### D113. Measuring consistency: 10 tickets, 5 runs each, before and after a worked example
+`scripts/consistency.py` reads each of the 10 Climb tickets 5 times and records every field. Results
+in `docs/CONSISTENCY.md`. Across 100 reads, category, escalation, the queue and the stated customer
+never changed. Urgency moved by one level on one run in five, on 2 of 10 tickets before and 1 of 10
+after. Confidence scores move (category about 0.10, who-sent-it up to 0.45 on the spam ticket, where
+there is nothing to identify the sender) while the answers they describe stay the same.
+
+No variance cutoff, on Austin's call. The results are read by eye and presented that way; the
+production answer is scheduled re-runs on real tickets, tracking flips and spread per field, a full
+re-run before any instruction or model change ships, and a subject-matter expert reviewing the
+tickets that flip.
+
+### D114. One worked example in the instructions
+The instructions had no worked example. Added one complete ticket and answer, written fresh so it
+overlaps none of the tickets being measured; using one of the ten would have let the model copy an
+answer it was then tested on. It is aimed at the medium versus high boundary, which is where urgency
+wobbled, and it is checked against the same answer format the model must produce.
+
+Effect, stated as measured and no more: the two tickets that wobbled stopped wobbling, one other ticket
+wobbled once, and the main scorecard moved urgency from 82% to 88% exact with escalation unchanged.
+Category strict went from 100% to 97%: the SOC 2 report request is now read as legal/contract rather
+than other, which the answer key allows either way.
+
+**Measured on the earlier instructions, and not re-run:** the four-model comparison on the cost page
+and the recorded demo tickets. Both are records of what the earlier instructions produced.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

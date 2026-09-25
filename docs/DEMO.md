@@ -75,9 +75,9 @@ Open `docs/EVAL-llm.md`.
 |---|---|---|
 | Escalation recall | 100% | 100% |
 | False escalations | 0 | 0 |
-| Urgency exact / tolerant | 76% / 97% | 82% / 100% |
+| Urgency exact / tolerant | 76% / 97% | 88% / 100% |
 | Urgency **under**-called | 0% | 0% |
-| Category, strict | 82% | 100% |
+| Category, strict | 82% | 97% |
 | On the 12 adversarial tickets: missed escalations | 3 | **0** |
 
 > "Both layers catch every escalation on the gold set. Push harder — the adversarial set — and the

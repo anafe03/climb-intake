@@ -198,3 +198,10 @@ def test_switching_data_sets_keeps_typed_tickets():
     client.delete("/tickets?keep_source=ui")
     left = client.get("/tickets?limit=100").json()
     assert [d["id"] for d in left] == [typed["id"]]
+
+
+def test_intro_page_sets_the_scene():
+    r = client.get("/intro")
+    assert r.status_code == 200
+    for word in ("The problem", "eight kinds of request", "urgency levels", "Where requests go"):
+        assert word in r.text

@@ -387,6 +387,7 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
   <span class="mode" id="mode">…</span>
 </div></header>
 <nav><div class="wrap">
+  <a href="/intro">Intro</a>
   <a href="/" class="on">Intake</a>
   <a href="/optimization">Cost &amp; models</a>
   <a href="/notes">Presenter notes</a>
@@ -578,9 +579,10 @@ const FAQ={
      'Because "this is junk" is a real answer. If junk counted as "could not decide", real problems would '
      +'get lost in the same pile as the junk.'],
     ['How often does it pick the right team?',
-     'On our 33 test tickets, the model picked the same team we would have every time. The keyword rules '
-     +'on their own got 27 of 33, which is 82%.'],
-    ['If it always picks the right team, how does it still make mistakes?',
+     'On our 33 test tickets, the model picked the same team we would have on 32 of them. The one it did '
+     +'not, a request for a SOC 2 report, could fairly go to either of two teams. The keyword rules on their '
+     +'own got 27 of 33, which is 82%.'],
+    ['If it nearly always picks the right team, how does it still make mistakes?',
      'Each ticket gets three separate answers: which team, how urgent, and whether someone senior needs to '
      +'know. They are graded separately, so one can be right while another is wrong. The cheapest model we '
      +'tried did exactly that. It sent "checkout is charging customers twice" to the bug team, which is '
@@ -589,8 +591,8 @@ const FAQ={
      'Yes, for two reasons. First, picking the team is the easy part: there are only eight teams and most '
      +'tickets clearly belong to one. Every model we tried got it right, even the cheapest, so this number '
      +'cannot tell you which model to use. Second, that 100% counts a ticket as right if it could fairly go '
-     +'to either of two teams. We only checked the stricter version for the main model (still 100%) and the '
-     +'keyword rules (82%), not for the cheaper models. To choose a model, look at the other columns '
+     +'to either of two teams. We only checked the stricter version for the main model (97%, one borderline '
+     +'ticket) and the keyword rules (82%), not for the cheaper models. To choose a model, look at the other columns '
      +'instead: missed escalations, wrong escalations, and urgency read too low.'],
     ['Who wrote the answers you are grading against?',
      'I did, for 23 of the 33 tickets. That is a weakness: I wrote those tickets and the model\u2019s '
@@ -618,11 +620,11 @@ const FAQ={
      +'happening, not because of the shouting. A calm note that checkout is charging customers twice is '
      +'scored critical.'],
     ['How often is urgency right?',
-     'On our 33 main test tickets it matches our answer exactly 82% of the time, and 76% with keyword '
+     'On our 33 main test tickets it matches our answer exactly 88% of the time, and 76% with keyword '
      +'rules alone. That is the weakest number in the system. But what matters more is which way it is wrong.'],
     ['Which way is it wrong?',
      'Almost always the safe way. On the 33 main test tickets, when it got urgency wrong it said a ticket '
-     +'was more urgent than it was, never less (18% of tickets, 24% with keyword rules alone). Across all '
+     +'was more urgent than it was, never less (12% of tickets, 24% with keyword rules alone). Across all '
      +'61 test tickets there was one exception: a ticket about stolen passwords, already locked, that it '
      +'called high where we had said critical, and where high is also a fair answer. A ticket that shows up '
      +'too early just gets moved down by a person. One that shows up too late sits and waits. It is like a '

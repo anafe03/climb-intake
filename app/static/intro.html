@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intro: Climb Intake</title>
+<style>
+:root{
+  --teal:#03323a; --teal-mid:#006172; --coral:#f27557; --coral-deep:#92351e; --cyan:#a2f1f8;
+  --sage:#87a48c; --mint:#c6f0cd;
+  --paper:#f9f9f5; --card:#fff; --sunken:#f2f2ea; --line:#e4e4d8; --line2:#cdcdc0;
+  --ink:#121d1f; --dim:#5d6a6b; --faint:#949c9c;
+  --mono:"SF Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.65 var(--sans);-webkit-font-smoothing:antialiased}
+header{background:var(--teal);color:#fff;padding:22px 0}
+.wrap{max-width:1000px;margin:0 auto;padding:0 26px}
+header h1{margin:0;font-size:20px;font-weight:650}
+header p{margin:5px 0 0;color:var(--cyan);font-size:13.5px}
+nav{background:var(--teal-mid);padding:0}
+nav .wrap{display:flex;gap:2px}
+nav a{color:#cfe9ed;text-decoration:none;font:600 13px var(--sans);padding:11px 16px}
+nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+nav a.on{background:var(--paper);color:var(--teal)}
+main{padding:30px 0 90px}
+h2{font:700 12px var(--sans);letter-spacing:.09em;text-transform:uppercase;
+  margin:42px 0 16px;padding-bottom:9px;border-bottom:2px solid var(--coral)}
+h2:first-of-type{margin-top:6px}
+h3{font-size:17px;font-weight:650;margin:26px 0 8px}
+p{margin:0 0 13px}
+.lead{font-size:16px;color:var(--dim);margin-bottom:22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:16px 0}
+figure{margin:18px 0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;overflow-x:auto}
+figcaption{font-size:13px;color:var(--dim);margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+svg{display:block;margin:0 auto;max-width:100%;height:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0}
+th{text-align:left;font:700 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;
+  color:var(--faint);padding:0 12px 9px 0;border-bottom:1px solid var(--line2)}
+td{padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{font-weight:600;white-space:nowrap}
+code{font:13px var(--mono);background:var(--sunken);padding:2px 6px;border-radius:4px}
+.key{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--dim);margin-top:14px}
+.key span{display:flex;align-items:center;gap:7px}
+.key i{width:13px;height:13px;border-radius:3px;display:inline-block}
+.note{border-left:3px solid var(--sage);background:var(--sunken);border-radius:0 9px 9px 0;
+  padding:13px 16px;margin:16px 0;font-size:14px}
+.note > b:first-child{display:block;margin-bottom:3px}
+.q{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--coral);
+  border-radius:0 11px 11px 0;padding:16px 20px;margin:16px 0}
+.q h3{margin:0 0 7px;font-size:16px}
+.q p:last-child{margin-bottom:0}
+@media print{nav{display:none}body{font-size:11pt}figure{break-inside:avoid}}
+tr.bad td{background:#fdeee9}
+tr.good td{background:#eef6ef}
+tr.bad td b{color:var(--climb-coral-deep,#92351e)}
+
+.rec{border:2px solid var(--coral);border-radius:12px;padding:18px 20px;margin:0 0 26px;background:#fff}
+.rec .lab{font:700 9.5px var(--sans,inherit);letter-spacing:.1em;text-transform:uppercase;color:var(--coral-deep);margin-bottom:6px}
+.rec h3{margin:0 0 8px;font-size:19px}
+.rec p{margin:0 0 8px}
+.rec p:last-child{margin-bottom:0}
+.big3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:0 0 26px}
+.big3 .c{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.big3 .k{font:700 9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.big3 .v{font-size:27px;font-weight:650;line-height:1.1;letter-spacing:-.02em}
+.big3 .s{font-size:12.5px;color:var(--dim);margin-top:5px;line-height:1.5}
+@media (max-width:720px){.big3{grid-template-columns:1fr}}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pick td{background:#eef6ef}
+.pick td:first-child::after{content:" \2190  running this";color:var(--sage);font-weight:600;font-size:12px}
+
+.rlink{color:var(--coral-deep);font-weight:650;text-decoration:underline;text-underline-offset:3px}
+.ev{margin-top:28px}
+.ev h3{font-size:15px;margin:22px 0 2px}
+.ev h3 .cnt{font-weight:500;color:var(--dim);font-size:13px;margin-left:8px}
+.ev .about{margin:0 0 8px;color:var(--dim);font-size:13px}
+table.evt td{vertical-align:top;font-size:13px;padding:7px 10px 7px 0}
+table.evt td.ok{color:var(--sage);font-weight:700;width:18px}
+table.evt td.id{font-family:ui-monospace,monospace;font-size:12px;color:var(--dim);white-space:nowrap;width:70px}
+table.evt td.kw{white-space:nowrap;font-size:12px;color:var(--dim)}
+table.evt td.kw b{color:var(--coral-deep)}
+
+.explain{margin-top:22px;max-width:760px}
+.explain p{margin:0 0 10px;font-size:14px;line-height:1.6}
+
+.lead{font-size:17px;line-height:1.65;max-width:760px;margin:6px 0 8px}
+.steps4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 6px}
+.steps4 .c{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.steps4 .c b{display:block;font-size:15px;margin-bottom:4px}
+.steps4 .c span{color:var(--dim);font-size:13px;line-height:1.5}
+@media (max-width:760px){.steps4{grid-template-columns:1fr 1fr}}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+.go{display:inline-block;margin:26px 0 40px;background:var(--coral);color:#fff;font-weight:650;
+  padding:12px 20px;border-radius:9px;text-decoration:none}
+.go:hover{filter:brightness(.95)}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Ticket intake</h1>
+  <p>Read every support request, decide what it needs, and send it to the right people</p>
+</div></header>
+<nav><div class="wrap">
+  <a href="/intro" class="on">Intro</a>
+  <a href="/">Intake</a>
+  <a href="/optimization">Cost &amp; models</a>
+  <a href="/notes">Presenter notes</a>
+  <a href="/docs">API</a>
+</div></nav>
+
+<main class="wrap">
+
+<h2>The problem</h2>
+<p class="lead">Support requests arrive as free text, from email, forms and chat, and nobody labels them.
+Someone has to read each one and decide what it is, how fast it needs an answer, whether someone senior
+should know, and which team gets it. That takes time, and the dangerous ones, a security breach or a legal
+threat, can sit in the same pile as a password reset.</p>
+
+<h2>What this does</h2>
+<p class="lead">It reads each request and decides four things, and it explains every one:</p>
+<div class="steps4">
+  <div class="c"><b>Who sent it</b><span>the company if it is named, or a clearly marked best guess</span></div>
+  <div class="c"><b>What kind of request</b><span>one of eight categories</span></div>
+  <div class="c"><b>How urgent</b><span>one of four levels</span></div>
+  <div class="c"><b>Does someone need to know</b><span>five topics always go to a person</span></div>
+</div>
+<p class="lead">Then it sends the request to the right team, and records every decision and the reason
+for it, so any routing can be checked later.</p>
+
+<div class="two">
+  <div><h2>The eight kinds of request</h2><table><tr><th>Category</th><th>What it covers</th></tr><tr><td><b>Billing</b></td><td>charges, invoices, refunds, plan changes, pricing, seats, renewals</td></tr><tr><td><b>Bug</b></td><td>something in the product is broken or behaving wrongly</td></tr><tr><td><b>Security</b></td><td>unauthorised access, credentials, data exposure, vulnerabilities, phishing</td></tr><tr><td><b>Legal / contract</b></td><td>contract disputes, breach claims, legal threats, regulatory demands</td></tr><tr><td><b>Onboarding</b></td><td>implementation, setup, go-live progress for an account</td></tr><tr><td><b>Feature request</b></td><td>asking for something the product does not do yet</td></tr><tr><td><b>Spam</b></td><td>nonsense, solicitations, trolling</td></tr><tr><td><b>Other</b></td><td>a real request that fits none of the above</td></tr></table></div>
+  <div><h2>The four urgency levels</h2><table><tr><th>Level</th><th>What it means</th></tr><tr><td><b>Critical</b></td><td>money moving wrongly, or many people blocked, right now</td></tr><tr><td><b>High</b></td><td>a stated deadline, or real impact on one customer</td></tr><tr><td><b>Medium</b></td><td>a real request with no deadline and contained impact</td></tr><tr><td><b>Low</b></td><td>cosmetic, or explicitly “whenever you get a chance”</td></tr></table>
+    <h2>Five things a person always sees</h2><table><tr><th>Topic</th><th>What it covers</th></tr><tr><td><b>Security incident</b></td><td>someone got in who should not have, credentials not revoked, phishing, a reported hole</td></tr><tr><td><b>Data exposure</b></td><td>they saw someone else&#x27;s data, or theirs was exposed</td></tr><tr><td><b>Legal threat</b></td><td>lawyers, breach of contract, a contract dispute</td></tr><tr><td><b>Compliance request</b></td><td>GDPR, CCPA and similar requests with a legal deadline</td></tr><tr><td><b>Someone senior involved</b></td><td>a CEO, VP, founder or board named on either side</td></tr></table></div>
+</div>
+
+<h2>Where requests go</h2>
+<table><tr><th>Queue</th><th>Who works it</th></tr><tr><td><b>Billing</b></td><td>billing team; paged when money is moving wrongly</td></tr><tr><td><b>Engineering</b></td><td>product bugs; paged when it is critical</td></tr><tr><td><b>Security</b></td><td>security team, always paged</td></tr><tr><td><b>Legal and account management</b></td><td>legal plus the account owner</td></tr><tr><td><b>Customer success</b></td><td>the account team</td></tr><tr><td><b>Product feedback</b></td><td>feature requests, no deadline</td></tr><tr><td><b>Spam review</b></td><td>checked at a glance and discarded</td></tr><tr><td><b>General support</b></td><td>the front line, for everything else</td></tr><tr><td><b>Human review</b></td><td>a person decides, when the reading was unsure</td></tr><tr><td><b>Escalation desk</b></td><td>a person must see it, on top of its own team</td></tr></table>
+
+<a class="go" href="/">See it on the 10 tickets you sent us →</a>
+
+</main>
+</body>
+</html>
