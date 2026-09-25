@@ -262,22 +262,22 @@ The panel's biggest question: **"How are you controlling the determinism of the 
 ### P1: pages, in the order you'd present them
 - [x] **5. Intro page first (done, /intro, first in the nav):** set the scene. The problem, what the service does, the categories,
       urgency levels and escalation topics, before any examples.
-- [ ] **6. Consistency page:** results of 1-4. Multi-run variance per field, keyword vs model
+- [x] **6. (done: the Keeping it consistent card on Explanations, Blocks 12-13) Consistency page:** results of 1-4. Multi-run variance per field, keyword vs model
       agreement, and a live re-run done in the back end (the user never clicks refresh).
-- [ ] **7. FAQ page:** all FAQs move out of the pop-outs to their own page. Adds: the full score scale
+- [x] **7. (done: FAQs are the Questions under each Explanations card, Blocks 12-13) FAQ page:** all FAQs move out of the pop-outs to their own page. Adds: the full score scale
       for each field, how results were tracked, multi-run testing, multi-shot examples, how outputs are
       validated (strict schema, try/catch, fallback), the variance cutoff, which models and what they
       cost, and how the regex safety net works (the ~20 patterns).
-- [ ] **8. Cost & models** folds into the FAQ / technical side, not something the end user sees.
+- [x] **8. (done: the Cost and model choice card on Explanations) Cost & models** folds into the FAQ / technical side, not something the end user sees.
 
 ### P2: the app is for an end user
-- [ ] **9. Remove model references** from the app: no model names, no "reading with GPT-5" badge, no
+- [x] **9. (done: no model names or cost card in the app) Remove model references** from the app: no model names, no "reading with GPT-5" badge, no
       model/cost comparison card.
-- [ ] **10. Remove code references:** file names, line numbers, rules.py, routing.yaml.
-- [ ] **11. Remove the regex details** (backup word lists, "twenty regular expressions") from the app.
+- [x] **10. (done: none shown in the app) Remove code references:** file names, line numbers, rules.py, routing.yaml.
+- [x] **11. (done: keyword details are on Explanations) Remove the regex details** (backup word lists, "twenty regular expressions") from the app.
       They go to the FAQ.
-- [ ] **12. Remove "Read it again"** from the ticket dialog. Multi-run lives on the consistency page.
-- [ ] **13. Score scales:** in the app, keep only the checked band and what it means. The full scale
+- [x] **12. (done: removed from the dialog) Remove "Read it again"** from the ticket dialog. Multi-run lives on the consistency page.
+- [x] **13. (done: pop-ups show only the checked band, Block 13) Score scales:** in the app, keep only the checked band and what it means. The full scale
       goes to the FAQ.
 
 ### P3: presenting as a consultant
