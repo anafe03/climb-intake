@@ -382,7 +382,7 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
 </div></nav>
 
 <div class="composer"><div class="wrap">
-  <textarea id="text" rows="1" placeholder="Paste any customer message — don't label it. Press ⌘↵"></textarea>
+  <textarea id="text" rows="1" placeholder="Paste any customer message. Don't label it. Press ⌘↵"></textarea>
   <button class="go" id="submit">Read it</button>
 </div></div>
 
@@ -404,6 +404,7 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
       <div class="grp">Instant · replayed from a recorded run</div>
       <button id="rec-samples">The 10 Climb samples</button>
       <button id="rec-demo">The 32-ticket demo set</button>
+      <button id="rec-fail">3 failed extractions (the model timed out)</button>
       <div class="grp">Reads live · costs an API call each</div>
       <button id="samples">Re-read the 10 samples</button>
       <button id="demo">Re-read the 32 demo tickets</button>
@@ -429,30 +430,30 @@ const cap=s=>{s=String(s).replace(/_/g,' ');return s[0].toUpperCase()+s.slice(1)
 const costOf=d=>(d.usage&&typeof d.usage.cost_usd==='number')?d.usage.cost_usd:null;
 const cents=v=>v==null?null:v>=1?`$${v.toFixed(2)}`:v>=0.01?`${(v*100).toFixed(2)}\u00a2`:`${(v*100).toFixed(3)}\u00a2`;
 let rows=[], escOnly=false, sortBy='newest', openId=null, view='list';
-let pick=null;   // {kind:'urgency'|'category'|'critical', value} — set by clicking a stat
+let pick=null;   // {kind:'urgency'|'category'|'critical', value}: set by clicking a stat
 
 // What each simulated downstream queue is for. Shown on the board so a reviewer can see the
 // routing table's intent, not just its output.
 const QUEUE_PURPOSE={
   'billing-support':'billing team, normal queue',
-  'billing-oncall':'billing, paged — money moving wrongly',
+  'billing-oncall':'billing, paged: money moving wrongly',
   'engineering-triage':'product bugs, normal queue',
-  'engineering-oncall':'paged — critical defects',
+  'engineering-oncall':'paged: critical defects',
   'security-incident-response':'security team, always paged',
   'legal-and-account-management':'legal + the account owner',
   'customer-success':'the account team',
   'product-feedback':'product, no SLA',
   'spam-review':'discarded after a glance',
   'general-support':'front line',
-  'human-review':'a person decides — the classifier was unsure',
+  'human-review':'a person decides: the classifier was unsure',
   'human-escalation-desk':'a human must see this, on top of its own team',
 };
 
 const CATEGORY={billing:'A billing question',bug:'Something is broken',security:'A security problem',
   legal_contract:'A contract or legal matter',onboarding:'An onboarding or delivery issue',
-  feature_request:'A request for something new',spam:'Spam — not a real request',other:'A general question'};
-const URGENCY={low:'Low — whenever',medium:'Medium — normal queue',
-  high:'High — there is a deadline or real impact',critical:'Critical — money or many people affected right now'};
+  feature_request:'A request for something new',spam:'Spam, not a real request',other:'A general question'};
+const URGENCY={low:'Low: whenever',medium:'Medium: normal queue',
+  high:'High: a deadline or real impact',critical:'Critical: money or many people affected right now'};
 const REASON={security_incident:'a possible security incident',data_exposure:'data was exposed to the wrong people',
   legal_threat:'a legal or contract threat',compliance_request:'a regulatory demand with a deadline',
   executive_mention:'an executive is involved'};
@@ -468,7 +469,7 @@ const CATEGORY_DEFS=[
   ['legal_contract','contract disputes, breach claims, legal threats, regulatory demands'],
   ['onboarding','implementation, setup, go-live progress for an account'],
   ['feature_request','asking for capability that does not exist, limit increases, roadmap'],
-  ['spam','nonsense, solicitations, trolling — a real answer, not a failure'],
+  ['spam','nonsense, solicitations, trolling: a real answer, not a failure'],
   ['other','legitimate but fits nothing above'],
 ];
 // Most severe first, everywhere it is shown.
@@ -480,11 +481,11 @@ const URGENCY_DEFS=[
 ];
 const URGENCY_CRITERIA=[
   ['A deadline',
-   'A date the customer is working to, stated or implied \u2014 "due Friday", "before the 30th", "by end of day". '
+   'A date the customer is working to, stated or implied: "due Friday", "before the 30th", "by end of day". '
    +'A real deadline lifts a ticket to at least high, because missing it is a cost even if nothing is broken.'],
   ['Money at stake',
    'How much, and whose. Their own money moving wrongly is worse than an invoice question, and money belonging '
-   +'to <i>their</i> customers is worse again \u2014 that is a ticket that makes a ticket for someone else.'],
+   +'to <i>their</i> customers is worse again: that is a ticket that makes a ticket for someone else.'],
   ['How far it spreads',
    'One person, the whole account, or their end customers. The same bug is medium for one user and critical '
    +'when it reaches everyone, so scope moves the level more than severity of tone does.'],
@@ -530,8 +531,8 @@ function shareBar(x){
     ${parts.map(p=>`<i class="${p.main?'main':''}" style="width:${(p.v/total*100).toFixed(1)}%"></i>`).join('')}
   </div><div class="s">${parts.map(p=>`${p.main?'<b>':''}${esc(cap(p.c))} ${Math.round(p.v/total*100)}%${p.main?'</b>':''}`).join(' · ')}</div>`;
 }
-function li(label,desc,hit){return `<li class="${hit?'hit':''}"><b>${esc(label)}</b> <span>— ${esc(desc)}</span></li>`}
-function liTrig(label,desc,trig,hit){return `<li class="${hit?'hit':''}"><b>${esc(label)}</b> <span>— ${esc(desc)}</span>
+function li(label,desc,hit){return `<li class="${hit?'hit':''}"><b>${esc(label)}:</b> <span>${esc(desc)}</span></li>`}
+function liTrig(label,desc,trig,hit){return `<li class="${hit?'hit':''}"><b>${esc(label)}:</b> <span>${esc(desc)}</span>
   <div class="trig">keywords: ${esc(trig)}</div></li>`}
 // The description is our own static copy, not ticket text, so it may carry markup. Labels are still
 // escaped out of habit — the day one of these comes from data, the escaping is already there.
@@ -545,19 +546,19 @@ const FAQ={
     ['How do you know it is not inventing a customer?',
      'The schema forbids it. <code>name</code> is null unless the company is written in the ticket verbatim; '
      +'anything inferred goes in <code>best_guess</code> with its own score and the cues it rests on. A guess '
-     +'has no path to becoming a name — they are different fields all the way through the audit record.'],
+     +'has no path to becoming a name: they are different fields all the way through the audit record.'],
     ['Then why guess at all?',
      '"Unknown" routes nowhere and tells a human nothing. "Enterprise account using the export feature" is '
      +'enough for someone to pick the ticket up, and it is labelled as an inference so nobody treats it as fact.'],
     ['Is there a number behind "it does not invent customers"?',
      'Yes. On the 33-ticket gold set: customer-name accuracy <b>100%</b>, counting the tickets where the '
-     +'right answer is null, and <b>zero overclaimed sender confidence</b> — a scored safety check that '
+     +'right answer is null, and <b>zero overclaimed sender confidence</b>: a scored safety check that '
      +'fails if a guess is priced above the band its evidence supports. Every guess carried its basis. '
      +'<code>docs/EVAL-llm.md</code>.'],
     ['Is that number a probability?',
      'No. It is a band read off the rubric above, self-reported by the model. It has never been validated '
-     +'against outcomes, so it is a statement of how much the text supports the guess — not a frequency.'],
-    ['Two tickets from the same company — would you know?',
+     +'against outcomes, so it is a statement of how much the text supports the guess, not a frequency.'],
+    ['Two tickets from the same company: would you know?',
      'Not yet. The audit table has no tenant column because the sample tickets carry no customer identity. '
      +'It is the first thing to add the moment there is an auth context.'],
   ],
@@ -569,14 +570,14 @@ const FAQ={
      'Because it is a real answer. If spam were "could not classify", every genuine miss would hide in the '
      +'same bucket as the junk, and the review queue would be useless.'],
     ['How often is the category right?',
-     'On the 33-row gold set the model path is <b>100% strict</b> — it matched gold’s primary label on '
+     'On the 33-row gold set the model path is <b>100% strict</b>: it matched gold’s primary label on '
      +'every row, including all eight the gold set marks as legitimately two categories, so the ambiguity '
      +'tolerance is not doing any work for it. Rules-only is <b>82% strict</b> and only reaches 100% once that '
      +'tolerance is applied. Quoting one number for both modes hid that difference; the scorecard carries '
      +'them separately now.'],
     ['Is 100% not suspicious?',
      'Yes, and the right response to a saturated metric is to stop using it to decide anything. Every model '
-     +'in the bake-off scores 100% on category — gpt-5, mini at two effort levels, and nano. A number that '
+     +'in the bake-off scores 100% on category: gpt-5, mini at two effort levels, and nano. A number that '
      +'cannot tell a frontier model from the cheapest one is not measuring the model; it is measuring that '
      +'eight broad buckets are an easy call on 33 tickets. The columns that do discriminate are missed '
      +'escalations, false escalations and urgency under-calls, which is why those are the ones in bold.'],
@@ -589,7 +590,7 @@ const FAQ={
      'I did. It is the only number in the system that changes behaviour, and it lives in '
      +'<code>app/routing.yaml</code> as one line a support lead can move without an engineer.'],
     ['Would you trust the confidence number?',
-     'As a share of opinion, yes. As a calibrated probability, no — and the interface never calls it one. '
+     'As a share of opinion, yes. As a calibrated probability, no, and the interface never calls it one. '
      +'Calibrating it would need labelled outcomes this system has not collected.'],
   ],
   urgency:[
@@ -600,23 +601,23 @@ const FAQ={
      'It is a judgment, which is why the criteria are written down and the cues are quoted from the ticket. '
      +'You can disagree with the call and still audit how it was reached.'],
     ['Could an angry customer inflate it?',
-     'Tone is not one of the criteria, and the gold set checks it. <code>edge-21</code> — "This is '
-     +'ridiculous. Third month in a row the invoice total doesn\u2019t match our plan!!!" — is scored '
+     'Tone is not one of the criteria, and the gold set checks it. <code>edge-21</code> ("This is '
+     +'ridiculous. Third month in a row the invoice total doesn\u2019t match our plan!!!") is scored '
      +'medium, carried there by the recurrence, not the shouting. <code>climb-10</code> is the mirror: a calm '
      +'report of a checkout charging customers twice is critical. The signals are facts about impact, not '
      +'temperature.'],
     ['How accurate is the urgency call?',
      'Accuracy is the wrong question here, and the scorecard answers the right one instead. Exact agreement '
-     +'is 82% on the model path and 76% rules-only — the weakest numbers in the system. But an urgency '
+     +'is 82% on the model path and 76% rules-only: the weakest numbers in the system. But an urgency '
      +'call is a <b>screening test</b>, and a screening test is not judged on accuracy. Calling a well patient '
      +'sick costs a second look. Calling a sick patient well costs the thing you built the test for.'],
     ['So which way does it get them wrong?',
-     'Always the safe way, on this gold set. Two directions, and only one of them hurts. <b>Under-called — '
-     +'we said calmer than the gold answer, so the ticket waits longer than it should: 0%.</b> Over-called — '
+     'Always the safe way, on this gold set. Two directions, and only one of them hurts. <b>Under-called: '
+     +'we said calmer than the gold answer, so the ticket waits longer than it should: 0%.</b> Over-called: '
      +'we said more urgent, so it arrives early and a person downgrades it: 18% '
      +'on the model path, 24% rules-only. No ticket the gold set calls critical was ever read as anything '
      +'less. Every one of those misses is a ticket that reached a queue faster than it strictly needed to, '
-     +'where a person downgrades it in seconds — not one that sat. <code>docs/EVAL-llm.md</code> reports '
+     +'where a person downgrades it in seconds, not one that sat. <code>docs/EVAL-llm.md</code> reports '
      +'under-calls and over-calls as separate rows for exactly this reason.'],
     ['Why does rules-only over-call more?',
      'Because it should. 24% against the model’s 18% is the deterministic layer being deliberately '
@@ -625,7 +626,7 @@ const FAQ={
     ['Is that not just a tolerant gold set?',
      'The scorecard reports the strict version too: under-calls on tickets the gold set does <i>not</i> mark '
      +'ambiguous on urgency. That row reads <b>none</b> in both modes. Urgency is where the gold set concedes '
-     +'the most — 20 of 33 rows are marked ambiguous, against 8 on category and 5 on escalate — '
+     +'the most, 20 of 33 rows are marked ambiguous, against 8 on category and 5 on escalate, '
      +'because low versus medium is genuinely arguable. The under-call number does not depend on that '
      +'concession.'],
   ],
@@ -641,11 +642,11 @@ const FAQ={
      'Recall, explicitly, and the whole design says so. A missed escalation is a breach nobody looked at; a '
      +'false one is a minute of someone’s afternoon. So the keyword layer may only ever <i>raise</i> a '
      +'ticket, the gold set tolerates over-escalation on marked rows and never tolerates a miss, and urgency '
-     +'is scored by direction rather than by accuracy. The cost of the two errors is not symmetric — so the '
+     +'is scored by direction rather than by accuracy. The cost of the two errors is not symmetric, so the '
      +'metrics are not either.'],
     ['What is the false-positive rate?',
      'Zero, on 22 chances. The 33-ticket gold set splits 11 must-escalate / 22 must-not, and both the model '
-     +'path and rules-only mode score <b>100% escalation recall with zero false escalations</b> — the '
+     +'path and rules-only mode score <b>100% escalation recall with zero false escalations</b>: the '
      +'must-not half is where a false positive would show up. The traps are deliberate: a SOC 2 report '
      +'request (<code>edge-28</code>), a contract-renewal pricing question (<code>edge-25</code>) and an '
      +'invoice copied to a legal department (<code>edge-11</code>) all carry the vocabulary and none of them '
@@ -653,44 +654,44 @@ const FAQ={
     ['Does the flag hold still between runs?',
      'Measured, not assumed: <code>scripts/repeatability.py</code> ran four tickets three times each and the '
      +'escalation flag and category label were unanimous 4/4, with confidence standard deviation averaging '
-     +'0.046. Nothing is pinned — no seed, no temperature control — so that is the natural spread. '
+     +'0.046. Nothing is pinned, no seed, no temperature control, so that is the natural spread. '
      +'The <b>Read it again</b> button lower down runs the same check live on this ticket.'],
     ['100% recall sounds too good. Does it ever get one wrong?',
      'Yes, and there is a set built to make it. <code>scripts/stress.py</code> runs twelve tickets written '
      +'to defeat it, each naming its attack. On those: <b>still no missed escalations</b>, but one false '
-     +'escalation and three more over-escalations. It fails in exactly one direction \u2014 the vocabulary of an '
+     +'escalation and three more over-escalations. It fails in exactly one direction: the vocabulary of an '
      +'incident showing up without the incident: a <i>denied</i> breach, a <i>hypothetical</i> vulnerability, '
      +'someone else\u2019s lawyer, and "a total breach of trust" meant figuratively.'],
     ['Show me the worst one.',
      '<code>adv-01</code>: "To be clear, we have <b>NOT</b> had a data breach. Procurement just needs your SOC 2 '
-     +'report." The model read it correctly \u2014 other, medium, no escalation, reasoning "they explicitly state '
+     +'report." The model read it correctly: other, medium, no escalation, reasoning "they explicitly state '
      +'no breach". Then the keyword layer matched the literal string <i>data breach</i> inside the denial, forced '
      +'the flag on and lifted urgency to critical. <b>The shipped answer is worse than the model\u2019s answer.</b> '
      +'A regex cannot read a negation, and the rules may only raise. That is the price of never missing one, '
-     +'paid out loud \u2014 the audit record names both answers and both overrides, so a reviewer clears it in '
+     +'paid out loud: the audit record names both answers and both overrides, so a reviewer clears it in '
      +'seconds instead of wondering.'],
     ['Why not just fix that?',
      'Because the fix has a worse failure mode. Teaching the patterns to skip negations means a regex deciding '
      +'that "no breach has occurred, but" is safe to ignore, and the first ticket it gets wrong is one that '
      +'sits. The asymmetry is deliberate: I would rather explain a false escalation than a missed one. What is '
-     +'worth doing instead is what the stress set does \u2014 measure how often it happens, name the four shapes '
+     +'worth doing instead is what the stress set does: measure how often it happens, name the four shapes '
      +'it takes, and let a reviewer see the override.'],
     ['Is escalation really just keywords?',
-     'Both halves run, and either one alone can raise the flag \u2014 but you should push on this, because '
+     'Both halves run, and either one alone can raise the flag, but you should push on this, because '
      +'on the 33-row gold set they agree <i>exactly</i>: 11 tickets escalated, all 11 caught by both, '
      +'none by either alone. That is not evidence the model is redundant. It is evidence the gold set '
-     +'cannot tell, because every escalating row in it happens to contain keyword vocabulary \u2014 '
+     +'cannot tell, because every escalating row in it happens to contain keyword vocabulary: '
      +'unsurprising, since the rows and the patterns were written by the same hand.'],
     ['So what does the model actually add?',
      'It was worth measuring rather than asserting. <code>scripts/keyword_free_probe.py</code> runs six '
-     +'tickets that escalate in meaning and contain none of the words the patterns look for \u2014 a '
+     +'tickets that escalate in meaning and contain none of the words the patterns look for: a '
      +'leaver who "finished up with us in June", a British customer instructing <i>solicitors</i> rather '
      +'than lawyers, "the woman who runs our company", a cross-tenant leak described from the other '
      +'direction, and an erasure demand with no acronym. The keyword layer is verified silent on all '
      +'six first. <b>The model caught all five that should escalate, and left the urgent-sounding '
      +'control alone.</b> That is what the second layer buys.'],
     ['Then why keep the keywords at all?',
-     'Because they cannot drift. A prompt edit, a model version, a provider outage \u2014 any of those can '
+     'Because they cannot drift. A prompt edit, a model version, a provider outage: any of those can '
      +'move the model\u2019s behaviour, and none of them touches a regex. The keywords are a floor that '
      +'is version-controlled and testable, and they still work when the model is unreachable: '
      +'rules-only mode holds 100% escalation recall. The model is the ceiling; the keywords are the '
@@ -702,13 +703,13 @@ const FAQ={
   route:[
     ['Is this a real queue?',
      'Simulated, as the brief asks. A queue is a name in <code>app/routing.yaml</code> and a field on the '
-     +'decision. Pointing it at Zendesk, Jira or PagerDuty is one adapter behind the same call — the '
+     +'decision. Pointing it at Zendesk, Jira or PagerDuty is one adapter behind the same call: the '
      +'routing logic does not change.'],
     ['Why copy an escalated ticket instead of moving it?',
      'If it moved, the owning team would never see it. Both get it, and whoever acts first owns it. Moving '
      +'would turn an escalation into a handoff, which is how things get dropped.'],
     ['Who changes routing?',
-     'Support leads, in YAML, without an engineer. That is why the table is data and not code — routing '
+     'Support leads, in YAML, without an engineer. That is why the table is data and not code: routing '
      +'changes far more often than logic does.'],
   ],
 };
@@ -737,7 +738,7 @@ function explainer(key,d){
     const RUNGS=[
       ['0.95 – 1.00','the company is named in the text, so this is a fact, not a guess'],
       ['0.75 – 0.94','a work email domain or an account id pins the org without naming it'],
-      ['0.40 – 0.74','scale, plan, product surface, industry or a stated role — the shape of the customer'],
+      ['0.40 – 0.74','scale, plan, product surface, industry or a stated role: the shape of the customer'],
       ['0.10 – 0.39','only that they are a customer of some kind'],
       ['0.00','nothing in the text identifies them, and we say so rather than invent one'],
     ];
@@ -761,22 +762,22 @@ function explainer(key,d){
     const cc=x.category_confidence;
     const rung=cc>=0.9?0:cc>=0.7?1:cc>=0.5?2:3;
     return head()
-    + call('What kind of request', `<b>${esc(cap(x.category))}</b> at <b>${cc.toFixed(2)}</b> — ${
+    + call('What kind of request', `<b>${esc(cap(x.category))}</b> at <b>${cc.toFixed(2)}</b>: ${
         ['no real alternative','clear, with an arguable neighbour','defensible, the alternative is genuinely arguable',
          'below the bar, so this was diverted to human-review'][rung]}.`)
     + why(x.category_reason)
     + ((x.category_alternatives||[]).length
         ? `<h5>What else was in contention</h5>${shareBar(x)}<ul class="crit">
-            ${li(cap(x.category)+' — chosen', `${cc.toFixed(2)} of the weight`, true)}
-            ${x.category_alternatives.map(a=>li(cap(a.category), `${a.confidence.toFixed(2)} — ${a.why_not}`, false)).join('')}
+            ${li(cap(x.category)+': chosen', `${cc.toFixed(2)} of the weight`, true)}
+            ${x.category_alternatives.map(a=>li(cap(a.category), `${a.confidence.toFixed(2)}: ${a.why_not}`, false)).join('')}
            </ul><p style="font-size:11.5px;color:var(--faint);margin:9px 0 0">Read it as: if ten support
            leads filed this ticket, roughly this is how they would split.</p>`
-        : `<h5>What else was in contention</h5><div class="note calm">Nothing — only one category fits this ticket.</div>`)
+        : `<h5>What else was in contention</h5><div class="note calm">Nothing: only one category fits this ticket.</div>`)
     + `<h5>The scale that score was read off</h5><ul class="crit">
         ${li('0.90 – 1.00','only one category fits; no real alternative',rung===0)}
         ${li('0.70 – 0.89','clear, though a neighbouring category is arguable',rung===1)}
         ${li('0.50 – 0.69','defensible, and a reasonable person could pick the other one',rung===2)}
-        ${li('below 0.50','not confident enough to send to a team — goes to human-review instead',rung===3)}
+        ${li('below 0.50','not confident enough to send to a team: goes to human-review instead',rung===3)}
        </ul>`
     + `<h5>The eight categories</h5><ul class="crit">${CATEGORY_DEFS.map(([k,v])=>li(cap(k),v,k===x.category)).join('')}</ul>`
     + faq('what');
@@ -791,7 +792,7 @@ function explainer(key,d){
     + `<ul class="crit">${URGENCY_DEFS.map(([k,v])=>li(cap(k),v,k===x.urgency)).join('')}</ul>`
     + `<h5>The five things the level is read from</h5>
        <p style="font-size:12px;color:var(--dim);margin:0 0 9px;line-height:1.6">Urgency is never stated
-       in a ticket — nobody writes “this is a medium”. It has to be inferred, and these are the
+       in a ticket: nobody writes “this is a medium”. It has to be inferred, and these are the
        five signals the model is told to weigh. Any one of them can carry a ticket up a level on its own.</p>
        ${ref(URGENCY_CRITERIA)}
        <p class="foot">Tone is not on the list, deliberately. An angry message about a routine billing
@@ -801,7 +802,7 @@ function explainer(key,d){
 
   if(key==='human') return head()
     + call('Does it escalate', x.escalate
-        ? `<b>Yes</b> — ${x.escalation_reasons.map(r=>`<b>${esc(cap(r))}</b>`).join(' and ')}. Copied to <code>${esc(d.escalation_queue||'the escalation desk')}</code> on top of <code>${esc(d.queue)}</code>.`
+        ? `<b>Yes</b>: ${x.escalation_reasons.map(r=>`<b>${esc(cap(r))}</b>`).join(' and ')}. Copied to <code>${esc(d.escalation_queue||'the escalation desk')}</code> on top of <code>${esc(d.queue)}</code>.`
         : `<b>No</b>. None of the five topics applied, so it goes to <code>${esc(d.queue)}</code> and nowhere else.`)
     + why(x.escalation_reason_text)
     + `<h5>The five escalation topics</h5><ul class="crit">${ESC_DEFS.map(([k,v,t])=>
@@ -809,21 +810,21 @@ function explainer(key,d){
        <p style="font-size:11.5px;color:var(--faint);margin:9px 0 0">Both halves read the same five
        topics, and either half alone is enough to raise the flag. The keywords match words. The model
        reads meaning, which is what catches “the woman who runs our company wants an explanation”
-       or a leaver who “finished up with us in June” — no pattern in <code>app/rules.py</code> sees
+       or a leaver who “finished up with us in June”: no pattern in <code>app/rules.py</code> sees
        either. Measured: on six tickets written to be invisible to the keywords, the model caught all
        five that should escalate and left the control alone.</p>`
-    + `<h5>Who ends up involved — four things that get confused for each other</h5><ul class="crit">
+    + `<h5>Who ends up involved: four things that get confused for each other</h5><ul class="crit">
         ${li('Its own team','always. Every ticket is routed to a queue a person works.',true)}
         ${li('On-call, paged now','when urgency is critical. This ticket: '+esc(x.urgency)+'.',x.urgency==='critical')}
         ${li('The escalation desk, on top of its team','only for the five topics above.',x.escalate)}
         ${li('Human review instead of a team','only when the classifier was too unsure to pick one.',d.queue==='human-review')}
        </ul>
        <p style="font-size:11.5px;color:var(--faint);margin:9px 0 0">A checkout bug double-charging
-       customers is critical and gets paged to engineering on-call within minutes — and still does
+       customers is critical and gets paged to engineering on-call within minutes, and still does
        not escalate, because it is a product defect, not a security or legal matter. Speed and
        escalation are separate dials.</p>`
     + `<p class="foot">${x.escalate && d.queue && d.queue.includes('security')
-        ? `Security would treat this as an incident anyway, so the copy is belt-and-braces. What the flag adds here is <b>countability</b> — a ticket in the security queue looks the same whether it is a breach or a question about the SOC 2 report, and without a flag “did we miss one” has no answer.`
+        ? `Security would treat this as an incident anyway, so the copy is belt-and-braces. What the flag adds here is <b>countability</b>: a ticket in the security queue looks the same whether it is a breach or a question about the SOC 2 report, and without a flag “did we miss one” has no answer.`
         : x.escalate
         ? `This is where the flag does real work: <code>${esc(d.queue)}</code> would handle it as ordinary ${esc(cap(x.category))} work, and nobody outside that team would learn about it. The copy is the only signal.`
         : `Routing asks who handles it. The flag asks whether anyone outside that team needs to know. Here, no.`}</p>`
@@ -864,7 +865,7 @@ function explainer(key,d){
           'an unsure ticket goes to a person, not a team')}
         ${step(5,'Does a human need a copy?',
           x.escalate ? 'yes → also <code>'+esc(d.escalation_queue)+'</code>' : 'no → nothing added',
-          'escalated tickets are copied, never moved — the owning team still sees them')}
+          'escalated tickets are copied, never moved: the owning team still sees them')}
        </ul>`
     + `<p class="foot">The table lives in <code>app/routing.yaml</code> as data, not code, because support
        leads change routing far more often than engineers change logic.</p>`
@@ -922,17 +923,17 @@ const visible=()=>(escOnly?rows.filter(d=>d.extraction.escalate):rows)
 const AUDIT_FIELDS=[
  ['id','The decision id. Appears in the JSON log line and in the shareable URL for this ticket.'],
  ['created_at','When the decision was made, UTC. The audit table is indexed on it.'],
- ['ticket.source','Where it came from — the web form, an upload, an API client. Half of the idempotency key.'],
+ ['ticket.source','Where it came from: the web form, an upload, an API client. Half of the idempotency key.'],
  ['ticket.external_id','The sending system\u2019s own id. The other half of the idempotency key: resubmitting returns this same decision rather than making a second one.'],
  ['mode','Which path produced it: <code>llm</code>, or <code>llm_fallback_rules</code> when the model failed and keyword rules stepped in.'],
  ['model','The exact model version. Pinned here so a decision can be reproduced against the model that made it.'],
- ['extraction','What shipped — the fields the downstream queue acts on.'],
+ ['extraction','What shipped: the fields the downstream queue acts on.'],
  ['llm_extraction','What the model said <i>before</i> the guardrails ran. Keeping both is what makes "did a rule change this?" answerable.'],
  ['rule_hits','Every guardrail that matched, with the exact text it matched on.'],
  ['overrides','The changes those rules made, in order. Empty when nothing moved.'],
  ['queue / escalation_queue','Where it was routed, and the human copy if there was one.'],
  ['latency_ms','Wall time for the whole decision, including retries.'],
- ['usage','Tokens in and out, how many were cached, and reasoning tokens — this is the cost of the decision.'],
+ ['usage','Tokens in and out, how many were cached, and reasoning tokens: this is the cost of the decision.'],
  ['error','Present only when the model call failed. The reason the fallback ran.'],
 ];
 function auditTable(d){
@@ -979,7 +980,7 @@ function renderQueueBoard(){
         <span class="n">${byQueue[q].length}</span>
         <span class="desc">${esc(QUEUE_PURPOSE[q]||'')}</span></div>
       ${byQueue[q].length ? byQueue[q].map(ticketCard).join('')
-        : '<div class="qempty">empty — nothing routed here</div>'}
+        : '<div class="qempty">empty: nothing routed here</div>'}
     </div>`).join('');
   document.querySelectorAll('.tk').forEach(t=>t.onclick=()=>openModal(t.dataset.id));
 }
@@ -1009,7 +1010,7 @@ function renderOverview(){
       ? (a,b)=>URG_ORDER.indexOf(a)-URG_ORDER.indexOf(b)   // severity, not popularity
       : (a,b)=>m[b]-m[a]);
     const on=k=>pick&&pick.kind===kind&&pick.value===k;
-    return `<div class="dist">${keys.map(k=>`<i data-pick="${kind}:${esc(k)}" class="${on(k)?'sel':''}" style="width:${m[k]/rows.length*100}%;background:${colors[k]||'#cdcdc0'}" title="${esc(cap(k))} ${m[k]} — click to filter"></i>`).join('')}</div>
+    return `<div class="dist">${keys.map(k=>`<i data-pick="${kind}:${esc(k)}" class="${on(k)?'sel':''}" style="width:${m[k]/rows.length*100}%;background:${colors[k]||'#cdcdc0'}" title="${esc(cap(k))} ${m[k]}: click to filter"></i>`).join('')}</div>
       <div class="legend">${keys.map(k=>`<span class="pickable ${on(k)?'on':''}" data-pick="${kind}:${esc(k)}"><b style="background:${colors[k]||'#cdcdc0'}"></b>${esc(cap(k))} ${m[k]}</span>`).join('')}</div>`;
   };
   el.innerHTML=`
@@ -1130,9 +1131,9 @@ function renderList(){
     $('#list').innerHTML=`<div class="empty"><h3>What this does</h3>
        <p>Customer requests arrive as freeform text and nobody labels them. This service reads each one
           and works out <b>who sent it</b>, <b>what kind of request it is</b>, <b>how urgent it is</b>, and
-          <b>whether a person needs to see it</b> \u2014 then sends it to the right team.</p>
+          <b>whether a person needs to see it</b>, then sends it to the right team.</p>
        <p>To watch it work:</p>
-       <ol><li><button class="go" id="seed-now">Load the 10 Climb samples</button> — instant, replayed
+       <ol><li><button class="go" id="seed-now">Load the 10 Climb samples</button>: instant, replayed
                from a recorded run, no API calls.</li>
            <li>Or paste any customer message at the top and press <span class="kbd">Read it</span> to
                have the model read one live.</li></ol>
@@ -1172,27 +1173,27 @@ async function openModal(id){
     guard=`<div class="note calm"><b>Two rules fired in order, and the second undid the first.</b>
       <div class="steps">${steps}</div>
       <p style="margin:10px 0 0"><b>Net effect: nothing changed.</b> What shipped is exactly what the reading said
-      \u2014 ${esc(cap(x.category))}, ${esc(x.urgency)} urgency, ${x.escalate?'escalated':'not escalated'}. A keyword
+     : ${esc(cap(x.category))}, ${esc(x.urgency)} urgency, ${x.escalate?'escalated':'not escalated'}. A keyword
       rule matched a word in the text and raised the ticket; then a later rule recognised the ticket as
       ${esc(cap(x.category))} and put it back. Every step is kept because an auditor asking \u201cdid anything touch
       this ticket?\u201d deserves the real sequence, not just the outcome.</p></div>`;
   else if(d.rule_hits.length)
-    guard=`<div class="note calm"><b>A rule matched, and it agreed with the reading — nothing changed.</b><br>
+    guard=`<div class="note calm"><b>A rule matched, and it agreed with the reading: nothing changed.</b><br>
       ${d.rule_hits.map(h=>`<code>${esc(h.rule)} on “${esc(h.matched)}”</code>`).join('')}</div>`;
   else guard=`<div class="note calm"><b>No rule matched.</b> None of the escalation patterns appear in this
-      ticket, so the model's reading ships exactly as it came back.</div>`;
+      ticket, so ${L?"the model's reading ships exactly as it came back":"nothing raised it"}.</div>`;
 
   // What the layer IS, ahead of what it did here. A reader seeing a rule name for the first time
   // needs to know where it came from before the result means anything.
   const guardIntro=`<p class="prose" style="margin:0 0 11px">A second pass, after the model answers.
-    About twenty regular expressions in <code>app/rules.py</code> — plain word matching, no model —
+    About twenty regular expressions in <code>app/rules.py</code>, plain word matching with no model,
     run over the <b>original ticket text</b>, not over what the model said about it, so a word the
     model glossed over still gets seen. Each pattern belongs to one of the five escalation topics.
     <br><br>
     They are allowed to do exactly two things: raise the escalation flag, and lift urgency to a floor.
-    They can never lower either, and they never touch the category. That asymmetry is the whole
-    design — a missed escalation is the expensive failure, an extra one costs a person a minute
-    — so the layer is built to only ever err upward.</p>`;
+    They can never lower either, and they never touch the category. A missed escalation is the
+    expensive failure and an extra one costs a person a minute, so the layer is built to only ever
+    err upward.</p>`;
 
   // A stated name is a fact. Anything else is an inference, shown with its score and never promoted.
   const conf=x.customer.confidence||0;
@@ -1221,6 +1222,13 @@ async function openModal(id){
     <div class="mbody">
       <div class="sec"><h3>The request, exactly as it arrived</h3>
         <div class="req">${esc(d.ticket.text)}</div></div>
+      ${d.error?`<div class="sec"><h3>The model call failed, so keyword rules handled it</h3>
+        <div class="note changed"><b>${/Timeout/.test(d.error)?'The model did not answer in time.':'The model call returned an error.'}</b>
+          The ticket was not dropped. The keyword rules read it instead and it was routed anyway.
+          They catch an escalation when it uses the words they know. They cannot weigh context,
+          so a ticket that needs judgement can come out wrong, and a ticket they are unsure about
+          goes to <code>human-review</code> for a person.
+          <div class="steps"><div class="step"><span class="n">!</span><code>${esc(d.error)}</code></div></div></div></div>`:''}
       <h2 class="ssec">1 &middot; What it worked out <span>click any box to open how it decided</span></h2>
       <div class="sec">
         <div class="facts">
@@ -1236,12 +1244,15 @@ async function openModal(id){
           <div class="f" data-x="human"><div class="how">How?</div><div class="k">Escalate?</div>
             <div class="v ${x.escalate?'yes':'none'}">${x.escalate?'Yes':'No'}</div>
             <div class="s">${x.escalate?'Because '+x.escalation_reasons.map(r=>REASON[r]||cap(r)).join(', and ')+'.'
-              :'Not a security, legal or executive matter — it goes to its own team.'}
+              :(d.mode!=='llm'
+                ? 'No escalation words found. Without the model, nothing here can judge whether one was needed.'
+                : 'Not a security, legal or executive matter, so it goes to its own team.')}
               ${moved('escalate')?` Model first said ${L.escalate?'yes':'no'}.`:''}</div></div>
           <div class="f" data-x="route"><div class="how">How?</div><div class="k">Where it goes</div>
             <div class="v"><code class="qp">${esc(d.queue)}</code></div>
             <div class="s">${d.escalation_queue
               ? `and a copy to <code class="qp esc">${esc(d.escalation_queue)}</code> for a human`
+              : d.queue==='human-review' ? 'a person decides, because the reading was unsure'
               : 'no human copy needed'}</div></div>
         </div></div>
       <h2 class="ssec">2 &middot; The reasoning behind it</h2>
@@ -1253,7 +1264,7 @@ async function openModal(id){
         answer this is to run it rather than assert it. This reads <b>the same ticket twice more</b>, right
         now, and compares every field.
         <br><br>
-        What has to match is what changes where the ticket goes — category, urgency, the escalation flag
+        What has to match is what changes where the ticket goes: category, urgency, the escalation flag
         and the queue. Confidence and wording are expected to move a little, and are shown moving rather
         than scored as failures.</p>
         <div class="rc" id="rc"></div>
@@ -1263,8 +1274,6 @@ async function openModal(id){
         sample, not a tax you pay on every request. Offline, the same check runs across the whole gold set
         in <code>scripts/repeatability.py</code>.</p>
       </div>
-      ${d.error?`<div class="sec"><h3>The model call failed, so keyword rules handled it</h3>
-        <div class="note"><code>${esc(d.error)}</code></div></div>`:''}
       <div class="meta">
         <span>read by ${esc(d.model||'keyword rules')}</span>
         <span>took ${esc(took(d.latency_ms))}</span>
@@ -1311,14 +1320,14 @@ async function openModal(id){
           : 'The decision moved between reads.'}</b>
           ${r.stable
             ? `Every field that decides where this ticket goes came back identical. What moved was the
-               confidence and the wording — shown below, because hiding it would be the dishonest
+               confidence and the wording: shown below, because hiding it would be the dishonest
                version of this answer.`
             : `A field that changes routing did not reproduce. That is the number worth knowing, and it
                is why this check exists.`}</div>
         <table><thead><tr><th></th>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}<th></th></tr></thead>
           <tbody>${decisive.map(row).join('')}
             <tr><td colspan="${r.runs+3}" style="padding-top:14px;border:0">
-              <span class="subh">Allowed to move — not part of the routing decision</span></td></tr>
+              <span class="subh">Allowed to move, not part of the routing decision</span></td></tr>
             ${soft.map(row).join('')}</tbody></table>
         <p class="foot">Read by ${esc(r.models.join(', '))} · ${r.latency_ms.map(m=>(m/1000).toFixed(1)+'s').join(' · ')}.
           Nothing here was saved or routed.</p>`;
@@ -1374,7 +1383,7 @@ async function loadRecorded(name,label){
     await reload();
     const added=(await api('/queues')).total-before;
     status(added
-      ? `Loaded ${r.count} ${label} from a recorded run — no model calls.`
+      ? `Loaded ${r.count} ${label} from a recorded run: no model calls.`
       : `Those ${r.count} were already loaded.`, {hold:5000});
   });
 }
@@ -1393,8 +1402,8 @@ async function loadFixture(name,label){
     const added=(await api('/queues')).total-before;
     await reload();
     const failed=r.decisions.filter(d=>d.error).length;
-    if(failed) status(`${failed} of ${r.count} fell back to keyword rules — open one to see the error.`,{err:true,hold:9000});
-    else if(added===0) status(`Those ${r.count} tickets were already read — showing them. Press Clear all to run them again.`,{hold:8000});
+    if(failed) status(`${failed} of ${r.count} fell back to keyword rules: open one to see the error.`,{err:true,hold:9000});
+    else if(added===0) status(`Those ${r.count} tickets were already read: showing them. Press Clear all to run them again.`,{hold:8000});
     else status(`Read ${added} ticket${added===1?'':'s'}.`,{hold:4000});
   });
 }
@@ -1416,12 +1425,13 @@ $('#submit').onclick=()=>run(async()=>{
   escOnly=false; sortBy='newest'; pick=null;
   stopClock();
   await reload(); await openModal(d.id);
-  if(d.error) status('The model call failed — keyword rules handled it.',{err:true,hold:7000}); else status('');
+  if(d.error) status('The model call failed: keyword rules handled it.',{err:true,hold:7000}); else status('');
 });
 $('#samples').onclick=()=>loadFixture('samples','10 samples');
 $('#demo').onclick=()=>loadFixture('demo','32 demo tickets');
 $('#rec-samples').onclick=()=>loadRecorded('samples','Climb samples');
 $('#rec-demo').onclick=()=>loadRecorded('demo','demo tickets');
+$('#rec-fail').onclick=()=>loadRecorded('failures','failed extractions');
 $('#up').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;
   const fd=new FormData();fd.append('file',f);
@@ -1451,14 +1461,14 @@ async function refreshHealth(){
   let h; try { h = await api('/health'); } catch { return null; }
   const m = $('#mode'), live = h.mode === 'llm', failing = h.last_model_call === 'failing';
   m.className = 'mode' + (live && !failing ? '' : ' off');
-  m.textContent = !live ? 'no API key — keyword rules only'
-    : failing ? `${h.model} unreachable — keyword rules only`
+  m.textContent = !live ? 'no API key: keyword rules only'
+    : failing ? `${h.model} unreachable: keyword rules only`
     : `reading with ${h.model}`;
   const was = lastHealth && lastHealth.last_model_call;
   if (failing && h.last_model_error && was !== 'failing')
     status(`Model calls are failing, so tickets are being read by keyword rules. ${h.last_model_error.slice(0,140)}`, {err:true});
   if (!failing && was === 'failing')
-    status(`Model is reachable again — ${h.model}.`, {hold:5000});
+    status(`Model is reachable again: ${h.model}.`, {hold:5000});
   lastHealth = h;
   return h;
 }

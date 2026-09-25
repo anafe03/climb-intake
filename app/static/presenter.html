@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Presenter notes — Climb Intake</title>
+<title>Presenter notes: Climb Intake</title>
 <style>
 :root{
   --teal:#03323a; --coral:#f27557; --coral-deep:#92351e; --cyan:#a2f1f8;
@@ -98,7 +98,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
 </head>
 <body>
 <header><div class="wrap">
-  <h1>Presenter notes — Climb Intake</h1>
+  <h1>Presenter notes: Climb Intake</h1>
   <p>Open the app in another tab. Links below jump straight to the ticket for each beat.
 </p>
   <div class="plan">
@@ -122,7 +122,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
     <div class="top"><span class="n">0</span><h2>What the problem is</h2><span class="time" data-sec="45" data-short="40">45 sec</span></div>
     <div class="say">
       <p>"Requests arrive as freeform text. Nobody labels them. Somebody still has to read each one and
-      decide who handles it and how fast — and get the dangerous ones in front of a person."</p>
+      decide who handles it and how fast, and get the dangerous ones in front of a person."</p>
       <p>"This reads them and makes that decision. The part I care about is that it shows its work."</p>
     </div>
     <p class="why"><b>Don't</b> open with the architecture. Open with a ticket.</p>
@@ -148,13 +148,13 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
       <div id="links-walk"></div></div>
     <div class="say">
       <p>"Left is exactly what arrived. Right is what it worked out. Every box opens to show how it decided."</p>
-      <p><b>Who sent it</b> — "Nobody names a company. Rather than shrug, it infers who this is and
-      attaches a score and the evidence. A guess never becomes a fact — the name field stays empty."</p>
-      <p><b>How urgent</b> — "Critical, and it quotes the exact phrases it read that from."</p>
-      <p><b>Needs a human</b> — "Yes, and it names which of the five escalation topics fired, and lists
+      <p><b>Who sent it</b>: "Nobody names a company. Rather than shrug, it infers who this is and
+      attaches a score and the evidence. A guess never becomes a fact: the name field stays empty."</p>
+      <p><b>How urgent</b>: "Critical, and it quotes the exact phrases it read that from."</p>
+      <p><b>Needs a human</b>: "Yes, and it names which of the five escalation topics fired, and lists
       the ones it checked and ruled out."</p>
     </div>
-    <p class="why"><b>Expect a question here.</b> Whoever asks "how does it decide X" — click the box for
+    <p class="why"><b>Expect a question here.</b> Whoever asks "how does it decide X": click the box for
     X. That is what the boxes are for.</p>
   </div>
 
@@ -164,14 +164,14 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
     <div class="say">
       <p>"A missed escalation is the one failure their brief calls unacceptable. So escalation doesn't
       rest on the model alone."</p>
-      <p>"The model reads the ticket. Then keyword rules run over the raw text — not the model's output —
+      <p>"The model reads the ticket. Then keyword rules run over the raw text, not the model's output,
       and they may only ever <i>raise</i> the flag. There is no code path that lowers it."</p>
       <p>"Both layers catch 100% of the must-escalate tickets on the gold set. Independently."</p>
     </div>
     <div class="do"><b>Then</b>Open the spam email that mentions GDPR.<div id="links-spam"></div></div>
     <div class="say">
       <p>"Marketing copy with the word GDPR in it. A rule escalated it. A second rule recognised it as
-      spam and put it back. Net change: nothing — what shipped is exactly what the model said."</p>
+      spam and put it back. Net change: nothing. What shipped is exactly what the model said."</p>
       <p>"The audit keeps all three steps, because an auditor asking whether anything touched this
       ticket deserves the real sequence, not just the outcome."</p>
     </div>
@@ -183,14 +183,14 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
     <div class="do"><b>Do</b>Switch the toolbar from <b>Ticket list</b> to <b>Queue board</b>.</div>
     <div class="say">
       <p>"Same tickets, grouped by the queue they were routed to. Each queue says what it is for."</p>
-      <p>"Category picks the queue. Urgency can override it — critical bugs go to engineering-oncall,
+      <p>"Category picks the queue. Urgency can override it: critical bugs go to engineering-oncall,
       not triage. And an escalated ticket is <i>copied</i> to the escalation desk, not moved, so the
       owning team still sees it."</p>
       <p>"The empty ones matter too. Nothing reached billing-oncall today, which is the correct answer,
       not a gap."</p>
     </div>
     <p class="why"><b>This is the routing requirement, visible.</b> The table behind it is
-    <code>app/routing.yaml</code> — data, not code, because support leads change routing far more often
+    <code>app/routing.yaml</code>: data, not code, because support leads change routing far more often
     than engineers change logic.</p>
   </div>
 
@@ -198,20 +198,20 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
     <div class="top"><span class="n">5</span><h2>The numbers, and where it breaks</h2><span class="time" data-sec="150" data-short="70">2.5 min</span></div>
     <div class="do"><b>Do</b>Read from the sidebar. Have <code>docs/STRESS-llm.md</code> open in a tab.</div>
     <div class="say">
-      <p>"33 tickets: the 10 they gave me, plus 23 edge cases I wrote to trap the failure modes — an
+      <p>"33 tickets: the 10 they gave me, plus 23 edge cases I wrote to trap the failure modes, like an
       invoice sent to a legal department, a positive CEO mention, a prompt injection, a SOC 2 request
       that reads like a compliance demand."</p>
       <p>"Both modes catch every escalation with zero false positives. Urgency is the weak field at 82%
-      exact — but accuracy is the wrong question there. It is a screening test. Under-called, meaning
+      exact, but accuracy is the wrong question there. It is a screening test. Under-called, meaning
       the ticket waits longer than it should: zero. Over-called: 18%. Every mistake is in the safe
       direction and no critical ticket was ever read as anything less."</p>
       <p>"100% on a set I wrote myself is not a result, so there is a second set built to break it.
-      Twelve tickets, each naming its attack. It still never misses — and it over-escalates four
+      Twelve tickets, each naming its attack. It still never misses, and it over-escalates four
       times, always where the vocabulary of an incident shows up without the incident."</p>
     </div>
     <p class="why"><b>Lead with the weakness.</b> Volunteering 82% and the four over-escalations before
     they find them buys more credibility than five 100%s.</p>
-    <p class="why"><b>If they push on 100%:</b> open the stress file and show <code>adv-01</code> —
+    <p class="why"><b>If they push on 100%:</b> open the stress file and show <code>adv-01</code>,
     the one where the model was right and the guardrail overrode it. Next beat.</p>
     <p class="why"><b>In the 15-minute cut:</b> the recall line and the under-called-zero line. Skip
     the stress set unless asked.</p>
@@ -222,13 +222,13 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
     <div class="do"><b>Do</b>Paste this in and read it live: <code>To be clear, we have NOT had a data
     breach. Procurement just needs your SOC 2 report before renewal. Where do I download it?</code></div>
     <div class="say">
-      <p>"Watch what it does. The model reads it correctly — general question, medium urgency, no
+      <p>"Watch what it does. The model reads it correctly: general question, medium urgency, no
       escalation, and its reasoning literally says 'they explicitly state no breach'."</p>
       <p>"Then the keyword layer matches the string 'data breach' inside the denial, forces the flag on
       and lifts urgency to critical. The shipped answer is worse than the model's answer."</p>
       <p>"I am not fixing that. Teaching a regex to skip negations means a regex deciding that 'no
       breach has occurred, but' is safe to ignore, and the first ticket it gets wrong is one that sits.
-      I would rather explain a false escalation than a missed one — so the audit record names both
+      I would rather explain a false escalation than a missed one, so the audit record names both
       answers and both overrides, and a reviewer clears it in seconds."</p>
     </div>
     <p class="why"><b>This is the strongest two minutes in the demo.</b> Showing the system being wrong,
@@ -238,24 +238,20 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
 
   <div class="beat">
     <div class="top"><span class="n">7</span><h2>What it costs, and why not something cheaper</h2><span class="time" data-sec="120" data-short="60">2 min</span></div>
-    <div class="do"><b>Do</b>Open <a href="/optimization" target="_blank">Cost &amp; models</a>. Recommendation box, then the table.</div>
+    <div class="do"><b>Do</b>Open <a href="/optimization" target="_blank">Cost &amp; models</a>. Then click <b>11 of 11</b>.</div>
     <div class="say">
-      <p>"Nine dollars per thousand tickets. Every decision carries its own price, computed from the
-      tokens the provider reported — it is on the footer of any ticket you open."</p>
-      <p>"The obvious question is whether something cheaper would do, so I measured it. Nano is
-      twenty-six times cheaper, scores 100% on category, and is disqualified: it read three critical
-      tickets as high, one of them a ticket they gave me. Those sit."</p>
-      <p>"I also built the cascade — cheap model first, expensive one for the risky ones. It lost
-      money. 29% worse, because the tickets you choose to re-read are the hard ones and a hard ticket
-      costs double. The version that works lets the keyword layer do the triage, because it is free:
-      38% cheaper, one model call either way."</p>
-      <p>"It ships off. At nine dollars a thousand there is nothing to optimise, and the simpler system
-      is the one I would hand over. Revisit at fifty thousand a month."</p>
+      <p>"This is the same 33 tickets read by four models. gpt-5 costs about a cent a ticket, nine
+      dollars a thousand, and it is the only one with no mistakes."</p>
+      <p>"Nano is the cheapest by a mile, and it read three critical tickets as high. One of them is a
+      ticket you gave me, the checkout charging customers twice. A critical ticket that looks high
+      waits. So nano is out, however cheap it is."</p>
+      <p>Click <b>11 of 11</b>. "And this answers whether it is just keywords. Every ticket that should
+      have escalated, and whether a keyword fired. The red ones had no keyword at all. The model
+      caught them on its own."</p>
     </div>
-    <p class="why"><b>The point of this beat is judgement, not thrift.</b> You measured three cheaper
-    options, can price each one, and declined all three with a reason. That is the answer to "would you
-    make good calls on our infrastructure".</p>
-    <p class="why"><b>In the 15-minute cut:</b> the recommendation box and the nano row. Sixty seconds.</p>
+    <p class="why"><b>If they ask about cheaper setups:</b> mini is five times cheaper and makes one
+    extra false escalation. It is a fair option at scale. You measured it and chose not to take it.</p>
+    <p class="why"><b>In the 15-minute cut:</b> the nano row and the click. Sixty seconds.</p>
   </div>
 
   <div class="beat">
@@ -299,7 +295,7 @@ curl -s -X POST localhost:8080/tickets/upload -F 'file=@/tmp/t.csv' | jq '.count
     <div class="do"><b>Then open the generated docs</b><code>localhost:8080/docs</code></div>
     <div class="say"><p>"Schema is Pydantic, so the OpenAPI spec is generated, not maintained. If a
     downstream team wants a client, they generate it from this."</p></div>
-    <p class="why"><b>In the 15-minute cut:</b> run only the first two commands — classify, then
+    <p class="why"><b>In the 15-minute cut:</b> run only the first two commands: classify, then
     explain. That is the whole point of the beat.</p>
     <p class="why"><b>If asked about idempotency:</b> POST the same ticket twice with an
     <code>external_id</code> and show the identical decision id comes back. Upstream systems retry;
@@ -317,39 +313,39 @@ docker exec $(docker compose ps -q) id -un</pre></div>
 
     <div class="do"><b>Walk the Dockerfile</b>Four things worth pointing at.</div>
     <div class="say">
-      <p><b>Pinned lockfile</b> — "It installs from a committed lockfile, not version ranges, so a build
+      <p><b>Pinned lockfile</b>: "It installs from a committed lockfile, not version ranges, so a build
       today and a build next month produce the same image."</p>
-      <p><b>Layer order</b> — "Dependencies copy before app code, so editing a template doesn't
+      <p><b>Layer order</b>: "Dependencies copy before app code, so editing a template doesn't
       re-download the world."</p>
-      <p><b>Non-root</b> — "Runs as uid 10001. The audit database is on a named volume, so it survives
-      a restart — I test that."</p>
-      <p><b>Healthcheck</b> — "Hits <code>/health</code>, which reports whether a model is reachable, so
+      <p><b>Non-root</b>: "Runs as uid 10001. The audit database is on a named volume, so it survives
+      a restart: I test that."</p>
+      <p><b>Healthcheck</b>: "Hits <code>/health</code>, which reports whether a model is reachable, so
       an orchestrator knows the difference between up and degraded."</p>
     </div>
 
-    <div class="do"><b>Then the IaC</b><code>infra/terraform/</code> — four resources.</div>
+    <div class="do"><b>Then the IaC</b><code>infra/terraform/</code>: eight resources.</div>
     <div class="say">
       <p>"Artifact Registry for the image. Secret Manager for the API key. A service account scoped to
       read that one secret, nothing else. Cloud Run with startup and liveness probes on
       <code>/health</code>, min zero max three instances."</p>
-      <p>"The key is never in the image and never in the repo — it's injected at runtime from Secret
+      <p>"The key is never in the image and never in the repo: it's injected at runtime from Secret
       Manager."</p>
     </div>
     <div class="cmd"><pre>cd infra/terraform && tofu validate</pre></div>
     <p class="why"><b>In the 15-minute cut:</b> <code>docker compose ps</code>, name the four Dockerfile
-    points in one sentence each, say the Terraform stands up four resources, and state what is not
+    points in one sentence each, say the Terraform stands up eight resources, and state what is not
     verified. Skip the walkthrough.</p>
-    <p class="why"><b>Say this plainly:</b> the container is verified — built, run, exercised, restarted.
+    <p class="why"><b>Say this plainly:</b> the container is verified: built, run, exercised, restarted.
     The Terraform passes validate against the real provider schema but has <b>never been applied</b>,
     because there's no GCP project wired up. Claiming otherwise is the kind of thing that unravels in
     the first follow-up question.</p>
 
     <div class="do extra-only"><b>If they push on scale</b>The order matters more than the list.</div>
     <div class="say extra-only">
-      <p>"First Cloud SQL, because SQLite is single-writer and I measured where that ceiling is —
+      <p>"First Cloud SQL, because SQLite is single-writer and I measured where that ceiling is,
       hundreds of requests per second on one box, which is further out than people assume."</p>
       <p>"Then async intake: accept, return 202, classify on a worker. That's not taste. I measured
-      model latency at concurrency 1, 4 and 8, and the tail is the model itself, not contention —
+      model latency at concurrency 1, 4 and 8, and the tail is the model itself, not contention,
       41 seconds against a 15 second median with a single request in flight. A synchronous handler
       that can block that long is a design the numbers reject."</p>
       <p>"Then the Message Batches API for backfills, at half the cost, since those aren't latency
@@ -365,8 +361,8 @@ docker exec $(docker compose ps -q) id -un</pre></div>
     <div class="say">
       <p>"Two sinks on purpose. SQLite because the explain view needs to query it. A JSON line on stdout
       because that's what Cloud Logging or CloudWatch ingests with no extra plumbing."</p>
-      <p>"The record keeps <b>both</b> answers — what the model said, and what shipped after the rules
-      ran — plus every rule that fired with the exact text it matched, token counts, latency, and which
+      <p>"The record keeps <b>both</b> answers, what the model said and what shipped after the rules
+      ran, plus every rule that fired with the exact text it matched, token counts, latency, and which
       mode produced it."</p>
     </div>
     <p class="why"><b>The line that lands:</b> "If a customer asks in March why their February ticket
@@ -382,34 +378,34 @@ docker exec $(docker compose ps -q) id -un</pre></div>
       <p><b>The latency tail.</b> "p95 was 78 seconds and four consecutive tickets were slow, which
       looks exactly like rate-limit backoff. I tested it at concurrency 1, 4 and 8. At concurrency 1,
       with nothing to rate limit, a ticket still took 41 seconds. My hypothesis was wrong and the tail
-      is the model. That's why intake should be async — measured, not assumed."</p>
+      is the model. That's why intake should be async: measured, not assumed."</p>
       <p><b>An eval whose spec was the bug.</b> "I added confidence scoring, then added expected bands
       to the gold set. Two failed immediately. Both were my error: I'd conflated 'we have no company
       name' with 'we don't know who this is'. A sender who writes 'I'm a security researcher' is
       identified with high confidence. I fixed the test, not the model."</p>
       <p><b>A screen that was visibly broken while every check passed.</b> "Clicking a field made the
       card go blank. The DOM was right, the class was applied, no JavaScript error, all tests green.
-      It was a class-name collision — <code>.open</code> was already used elsewhere with opacity zero.
+      It was a class-name collision: <code>.open</code> was already used elsewhere with opacity zero.
       Only rendering it in a browser and reading the pixels found it."</p>
     </div>
     <p class="why"><b>Then land it:</b> "Each of those is in the decision log with the measurement that
-    settled it. That's the habit I'd bring to a customer engagement — the thing that changes my mind
+    settled it. That's the habit I'd bring to a customer engagement: the thing that changes my mind
     is a number, and I write down what changed it."</p>
   </div>
 
   <h2 class="section extra-only">13 · Design decisions <span class="tag">30 min only</span></h2>
   <div class="beat extra">
     <div class="top"><span class="n">13</span><h2>Open the decision log</h2><span class="time" data-sec="90" data-short="0">1.5 min</span></div>
-    <div class="do"><b>Do</b>Open <code>docs/DECISIONS.md</code>. Don't read it — scroll it, then pick two.</div>
+    <div class="do"><b>Do</b>Open <code>docs/DECISIONS.md</code>. Don't read it: scroll it, then pick two.</div>
     <div class="say">
       <p>"33 entries. Each one says what I chose, what I rejected, and what I'd say if pushed. The top
       names which calls were product decisions rather than engineering ones."</p>
-      <p><b>Pick D26</b> — "This one reverses an earlier decision. I originally refused to guess the
+      <p><b>Pick D26</b>: "This one reverses an earlier decision. I originally refused to guess the
       customer at all. That was technically honest and operationally useless, because nine of ten
-      tickets name nobody. It now infers, scores the inference, and shows the evidence — but a guess
+      tickets name nobody. It now infers, scores the inference, and shows the evidence, but a guess
       never enters the name field. I marked the old decision superseded rather than quietly editing
       it, so the reasoning change is visible."</p>
-      <p><b>Pick D16</b> — "Low confidence routes to a human review queue rather than a guessed team.
+      <p><b>Pick D16</b>: "Low confidence routes to a human review queue rather than a guessed team.
       A wrong guess costs that team time and hides the uncertainty. A review queue makes it visible and
       gives you a stream of genuinely hard cases to label."</p>
     </div>
@@ -422,16 +418,16 @@ docker exec $(docker compose ps -q) id -un</pre></div>
     of their brief, and the beat that shows it.</p>
     <table class="cov">
       <tr><th>Their requirement</th><th>Shown in</th></tr>
-      <tr><td>Accept tickets via API or batch upload</td><td>Beat 1 (typed live) · Beat 7 (curl, CSV upload)</td></tr>
-      <tr><td>Extract customer, category, urgency, escalation flag</td><td>Beat 2 — the four boxes, each openable</td></tr>
-      <tr><td>Route to a correct simulated downstream queue</td><td>Beat 4 — the queue board</td></tr>
-      <tr><td>Flag escalations, low tolerance for misses</td><td>Beat 3 — the two-layer argument + 100% recall</td></tr>
-      <tr><td>A view to see how a ticket was classified and why</td><td>Beat 2 — the whole point of the pop-outs</td></tr>
-      <tr><td>Containerize + cloud deploy plan</td><td>Beat 8 — compose, Dockerfile, Terraform</td></tr>
-      <tr><td>Log every routing decision and its reasoning for audit</td><td>Beat 6 and Beat 9 — audit record + JSON log lines</td></tr>
-      <tr><td>Runs in a local dev environment</td><td>Beat 8 — it is the container you have been clicking</td></tr>
-      <tr><td>Source in a git repository</td><td>33 commits; the log is a record of what changed and why</td></tr>
-      <tr><td>IaC to stand it up in a cloud</td><td>Beat 8 — <code>infra/terraform</code>, validated not applied</td></tr>
+      <tr><td>Accept tickets via API or batch upload</td><td>Beat 1 (typed live) · Beat 9 (curl, CSV upload)</td></tr>
+      <tr><td>Extract customer, category, urgency, escalation flag</td><td>Beat 2: the four boxes, each openable</td></tr>
+      <tr><td>Route to a correct simulated downstream queue</td><td>Beat 4: the queue board</td></tr>
+      <tr><td>Flag escalations, low tolerance for misses</td><td>Beat 3: the two-layer argument + 100% recall</td></tr>
+      <tr><td>A view to see how a ticket was classified and why</td><td>Beat 2: the whole point of the pop-outs</td></tr>
+      <tr><td>Containerize + cloud deploy plan</td><td>Beat 10: compose, Dockerfile, Terraform</td></tr>
+      <tr><td>Log every routing decision and its reasoning for audit</td><td>Beat 8 and Beat 11: audit record + JSON log lines</td></tr>
+      <tr><td>Runs in a local dev environment</td><td>Beat 10: it is the container you have been clicking</td></tr>
+      <tr><td>Source in a git repository</td><td>The commit log is a record of what changed and why</td></tr>
+      <tr><td>IaC to stand it up in a cloud</td><td>Beat 10: <code>infra/terraform</code>, validated not applied</td></tr>
       <tr><td>README with a deploy plan</td><td>Point at it; do not read it aloud</td></tr>
     </table>
     <p class="why"><b>The one thing you cannot claim:</b> the Terraform has never been applied. Say so
@@ -455,13 +451,13 @@ docker exec $(docker compose ps -q) id -un</pre></div>
     <div class="say"><p><b>"What happens on a duplicate?"</b></p></div>
     <div class="do"><b>Do</b>Press <b>Load 10 samples</b> twice.</div>
     <p class="why">Nothing duplicates. Idempotent on source plus external id, enforced by a unique index
-    rather than a check in the request path — because a check-then-insert races, and it did.</p>
+    rather than a check in the request path, because a check-then-insert races, and it did.</p>
   </div>
 
   <h2 class="section">Questions you should expect</h2>
   <div class="beat">
     <div class="q"><h4>Is it deterministic, or a model?</h4>
-      <p>Both, and the split is the design. The model reads — urgency, category, who is writing.
+      <p>Both, and the split is the design. The model reads: urgency, category, who is writing.
       Deterministic code decides anything that must not be probabilistic: escalation floors, routing,
       idempotency, the audit. One line: the model produces a reading, rules produce the decision.</p></div>
     <div class="q"><h4>Who assigns the confidence score?</h4>
@@ -470,18 +466,18 @@ docker exec $(docker compose ps -q) id -un</pre></div>
       <code>rules.py</code>. The pop-out names which one ran, per ticket.</p></div>
     <div class="q"><h4>Why guess the customer at all?</h4>
       <p>Nine of ten tickets name nobody, and "unknown" is useless to whoever picks it up. So it guesses,
-      scores the guess, and shows the evidence — but never writes a guess into the name field. In
+      scores the guess, and shows the evidence, but never writes a guess into the name field. In
       production this comes from the authenticated sender and the inference becomes the cross-check.</p></div>
     <div class="q"><h4>Why doesn't a full outage escalate?</h4>
       <p>Escalation is about topic, not severity. An outage is critical and goes to on-call. A CEO
       thank-you note escalates at low urgency. Conflating them would either flood the escalation desk
       or hide calm executive mentions.</p></div>
     <div class="q"><h4>What would you do next?</h4>
-      <p>Asynchronous intake — accept, return 202, classify on a worker. That is not a preference: I
+      <p>Asynchronous intake: accept, return 202, classify on a worker. That is not a preference: I
       measured model latency at concurrency 1, 4 and 8, and the tail is the model itself, not
       contention. A synchronous handler that can block 40 seconds is a design the numbers reject.</p></div>
     <div class="q"><h4>What's weakest?</h4>
-      <p>I wrote 23 of the 33 gold answers myself, so they encode my judgment about what is right — the
+      <p>I wrote 23 of the 33 gold answers myself, so they encode my judgment about what is right: the
       ten they provided are the only independent rows. The 12-ticket stress set pushes back on that, but
       I wrote those too. With more time: real tickets, two labellers, inter-rater agreement, and a
       held-out split so prompt tuning can't overfit.</p></div>
@@ -491,7 +487,7 @@ docker exec $(docker compose ps -q) id -un</pre></div>
 <aside>
   <div class="box"><h3>Numbers</h3><table id="numbers"><tr><td>loading…</td><td></td></tr></table></div>
   <div class="box warn"><h3>Before you start</h3><ul>
-    <li>Run <code>./scripts/preflight.sh</code> — everything should pass except the git remote.</li>
+    <li>Run <code>./scripts/preflight.sh</code>: everything should pass except the git remote.</li>
     <li>Badge top-right should read a model name, not "keyword rules only".</li>
     <li>Load the 32 demo set beforehand; it takes about 90 seconds.</li>
     <li>Have this page in a second tab, not on the shared screen.</li>
@@ -509,7 +505,7 @@ const BASE = location.origin;
 const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 function link(id, label, field){
-  if(!id) return `<a class="tk off">${esc(label)} — not loaded</a>`;
+  if(!id) return `<a class="tk off">${esc(label)}, not loaded</a>`;
   const q = field ? `?t=${id}&x=${field}` : `?t=${id}`;
   return `<a class="tk" href="${BASE}/${q}" target="climb-app">${esc(label)}</a>`;
 }
@@ -537,7 +533,7 @@ function retime(){
   const mins = Math.round(sec/60);
   const target = long ? 30 : 15;
   document.getElementById('runtime').textContent =
-    `${mins} min of material, ~${target - mins} min for questions — target ${target} min`;
+    `${mins} min of material, ~${target - mins} min for questions: target ${target} min`;
 }
 document.getElementById('p15').onclick = () => {
   document.body.classList.remove('long');
@@ -574,7 +570,7 @@ retime();
   st.className = 'status ' + (live ? 'up' : 'down');
   st.textContent = live
     ? `Service up · ${health.provider} · ${health.model} · ${rows.length} tickets loaded`
-    : 'Service is in keyword-rules mode — add an API key to .env before demoing';
+    : 'Service is in keyword-rules mode: add an API key to .env before demoing';
 
   const idor = findBy(rows, 'security researcher') || findBy(rows, 'idor');
   const spam = findBy(rows, 'gdpr-compliant') || findBy(rows, 'lead lists');

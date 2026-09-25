@@ -94,38 +94,41 @@ improvement but still put a rubric ahead of the answer.
 - [x] Swept stale numbers out of PANEL-QA, STATUS, PREP, DEMO and HOW-IT-WORKS. STATUS still
       recommended nano, which the evidence now disqualifies.
 
-## Block 6: final run-through comments (2026-09-25)
+## Block 6: final run-through comments (2026-09-25)  (DONE)
 
 Austin's words are quoted so nothing is paraphrased away.
 
-- [ ] **"we probably should have more extraction cases and failed extraction"**
-      The dashboard says "Failed extractions: 0" and nothing in the demo ever shows one happening.
-      Add real failed-extraction cases (a genuine model failure that fell back to keyword rules, not a
-      mock) so the card can show a nonzero and a click shows what fallback looks like. Add more
-      extraction cases: customer names, contacts and identifiers, the fields the gold set barely tests.
-- [ ] **"It costs 0.9¢ a ticket, about $9 per thousand, or roughly what one support hour costs per
-      forty thousand tickets" / "wtf does this mean, cite it or something"**
-      The support-hour comparison is uncited and I made it up. Delete it.
-- [ ] **"the saving is a few dollars a month ... Revisit at about 50,000 tickets a month, where the
-      38% saving becomes real money" / "wtf does this mean what 38% and 50k"**
-      Unexplained jargon. Delete.
-- [ ] **"what do you mean cached token, 90% of input tokens are cache reads at a tenth of the price"**
-      Unexplained. Delete from the cost page.
-- [ ] **Escalation recall "100%, 11 of 11 on the gold set, and no miss on the 12 adversarial
-      tickets either" / "this should be clickable to show them"**
-      Make it clickable. The click shows the actual tickets and whether each was caught.
-- [ ] **"keyword rules only ... 100% none none none 0.0s $0 $0 free" / "why do we do keyword rules
-      only for escalation" / "did you make the change to if it doesn't hit keyword rules to ask the
-      model just in case it's not in the keywords" / "i dont understand this keyword rules only"**
-      Answer plainly: the model reads every ticket; keywords are a second check on top, never
-      instead. That row is the fallback when there is no API key, which is not a choice anyone makes
-      in production, and putting it in a model comparison made it look like one. Remove it from the
-      table. Show the proof that the model catches what keywords miss.
-- [ ] **"most of the stuff in cost I don't understand, just the table is fine comparing them, the
-      rest is superfluous"**
-      Cut the cost page to the comparison table.
-- [ ] **"remove superfluousness and AI writing with the - in them"**
-      No em dashes in anything a person reads in the app. Plain sentences.
+- [x] **"we probably should have more extraction cases and failed extraction"**
+      *Failed:* three real failures recorded by `scripts/record_failures.py`. Each is a genuine
+      model call that timed out, not a mock, then fell back to keyword rules. Data menu, "3 failed
+      extractions". They show the range: climb-03 still escalates on a keyword, climb-01 still
+      routes, and kf-02 (a legal threat written with "solicitors") loses its escalation but lands in
+      human-review for a person. The failure notice now sits right under the ticket text, not at the
+      bottom, and the Escalate box no longer claims "not a legal matter" on a fallback ticket.
+      *Extraction:* `data/extraction_cases.jsonl`, ten tickets on names, contacts and identifiers,
+      two of them traps (a company named that is not the customer). Model: 10 of 10 names, 5 of 5
+      identifiers. Keyword rules: 6 of 10 and 2 of 5. `docs/EXTRACTION-llm.md`, `EXTRACTION-rules.md`.
+- [x] **Support-hour comparison, "cite it or something"** Deleted. It was uncited and I made it up.
+- [x] **"what 38% and 50k"** Deleted from the cost page and from your beat 7 script, so you are not
+      saying anything on stage you would have to look up.
+- [x] **"what do you mean cached token"** Deleted from the cost page.
+- [x] **Escalation recall "should be clickable to show them"** "11 of 11" on the cost page opens every
+      ticket that should escalate, across the gold set, the adversarial set and the no-keyword set,
+      with whether a keyword also fired. The dashboard links straight to it.
+- [x] **"why do we do keyword rules only for escalation" / "did you make the change to ask the model
+      if it doesn't hit keyword rules"** It already works that way, and the table made it look like it
+      didn't. The model reads every ticket first (`pipeline.py` line 91); the keywords run after it as
+      an extra check (line 115). Removed the "keyword rules only" row from the model table; it was the
+      no-API-key fallback, not a choice. Proof: 21 of 21 escalations caught, 8 of them with no
+      keyword at all.
+- [x] **"just the table is fine comparing them, the rest is superfluous"** The cost page is the table.
+- [x] **"remove AI writing with the - in them"** No spaced em dashes left in anything visible on the
+      three pages. Paired dashes became commas, single ones colons, and every changed line was read;
+      the joins that read badly were rewritten by hand.
+
+Also found on the way:
+- [x] The presenter requirement table pointed at beat numbers from before the renumbering, and said
+      the Terraform has four resources (it has eight).
 
 Earlier in this run-through, already done:
 - [x] "intake is good except don't say the same thing three times" (D100)

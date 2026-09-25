@@ -1518,6 +1518,43 @@ function. Both parse fine and fail at runtime. Preflight now loads `/`, `/optimi
 in headless Chrome and fails on any uncaught console error. Verified by putting the bug back in the
 running container and watching the check catch it.
 
+### D102. The model already reads every ticket; the table made it look otherwise
+Austin: "why do we do keyword rules only for escalation, did you make the change to ask the model if
+it doesn't hit keyword rules." The design has always been the other way round: the model reads every
+ticket (`pipeline.py` line 91) and the keywords run afterwards as a second check (line 115). What
+misled was a "keyword rules only" row in the model comparison, free and 100% on the gold set. That
+is the fallback when there is no API key, not an option anyone would choose, and a comparison table
+presents every row as a choice. Removed it.
+
+The answer is now clickable rather than asserted: "11 of 11" on the cost page opens every ticket that
+should escalate across three sets, with whether a keyword also fired. 21 of 21 caught, 8 with no
+keyword at all.
+
+### D103. Failures you can show, recorded for real
+"Failed extractions: 0" on the dashboard was true and showed nothing. Three real failures now load
+from the Data menu, produced by sending real tickets to the real model with a 200 ms deadline so the
+call genuinely times out (`scripts/record_failures.py`). Timeouts are the failure that actually
+happens here; real reads have run past 40 seconds. The three show what the fallback does and does
+not do: a keyword-bearing security ticket still escalates, a billing ticket still routes, and a legal
+threat written with "solicitors" loses its escalation but goes to human-review, because the keyword
+classifier was unsure.
+
+### D104. Extraction gets its own cases
+The gold set tests routing far more than extraction. `data/extraction_cases.jsonl` is ten tickets on
+customer names, contacts and identifiers, including a company named in the text that is not the
+customer (a Salesforce integration) and two companies in one ticket. Model path: 10 of 10 names and
+5 of 5 identifiers. Keyword rules: 6 of 10 and 2 of 5. This one is a clear gap between the layers
+rather than another 100%, and it is the argument for the model on extraction.
+
+### D105. Plain writing, and nothing said on stage that needs looking up
+Austin cut the cost page to its table, and asked for the dashes out: "AI writing with the - in them."
+Every spaced em dash in the three pages was replaced, paired ones with commas and single ones with
+colons, and each changed line was read; about a dozen joins that came out wrong were rewritten by
+hand. Deleted from the cost page: an uncited "one support hour" comparison I had made up, the 38% and
+50,000 line, and the caching line, none of which he could explain. His beat 7 script said the same
+38% and 50,000 line out loud, so it is rewritten too: the rule is that nothing in the script should
+be something he would have to look up mid-sentence.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

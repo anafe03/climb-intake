@@ -1,0 +1,149 @@
+{
+  "set": "failures",
+  "recorded_at": "2026-09-25T15:35:58Z",
+  "model": null,
+  "decisions": [
+    {
+      "id": "8cce11b78060",
+      "created_at": "2026-09-25T15:35:58.054+00:00",
+      "ticket": {
+        "text": "One of our former employees (terminated last week) just logged into the Climb admin console using old credentials that should've been revoked. We can see activity in the audit log from this morning.",
+        "source": "failures",
+        "external_id": "climb-03"
+      },
+      "mode": "llm_fallback_rules",
+      "model": null,
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": null,
+          "confidence": 0.0,
+          "basis": []
+        },
+        "customer_reason": "Nothing in the text identifies the sender \u2014 no name, domain, account reference, or scale cue.",
+        "category": "security",
+        "category_confidence": 0.8,
+        "category_reason": "Keyword match put this in 'security'. This is the fallback classifier, which counts cue words rather than reading the request, so it cannot weigh a near alternative and reports none.",
+        "category_alternatives": [],
+        "urgency": "critical",
+        "urgency_signals": [],
+        "urgency_reason": "No urgency cue words matched, so this defaults to 'medium'.",
+        "escalate": true,
+        "escalation_reasons": [
+          "security_incident"
+        ],
+        "escalation_reason_text": "Escalation is decided by the guardrail regexes that run after this step, not by the keyword classifier.",
+        "summary": "One of our former employees (terminated last week) just logged into the Climb admin console using old credentials that should've been revoke",
+        "rationale": "Keyword-rules mode (no model available): category 'security' by cue words, urgency 'medium'. Escalation is decided by the guardrail layer."
+      },
+      "llm_extraction": null,
+      "rule_hits": [
+        {
+          "rule": "security.unauthorized_access",
+          "reason": "security_incident",
+          "matched": "credentials",
+          "effect": "escalate: false -> true; reason +security_incident; urgency medium -> critical"
+        }
+      ],
+      "overrides": [
+        "security.unauthorized_access forced escalate=true (matched 'credentials')",
+        "security.unauthorized_access lifted urgency medium -> critical"
+      ],
+      "queue": "security-incident-response",
+      "escalation_queue": "human-escalation-desk",
+      "latency_ms": 417,
+      "usage": {},
+      "error": "APITimeoutError: Request timed out."
+    },
+    {
+      "id": "122d4d20b26a",
+      "created_at": "2026-09-25T15:35:58.313+00:00",
+      "ticket": {
+        "text": "Hey, I noticed we got charged $4,200 on our last invoice but I thought we downgraded to the Team plan back in July? Can someone check this and adjust if it's an error?",
+        "source": "failures",
+        "external_id": "climb-01"
+      },
+      "mode": "llm_fallback_rules",
+      "model": null,
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "a customer on the Team plan",
+          "confidence": 0.45,
+          "basis": [
+            "plan referenced: \u201cTeam plan\u201d"
+          ]
+        },
+        "customer_reason": "No company is named. Guessed from plan referenced: \u201cTeam plan\u201d.",
+        "category": "billing",
+        "category_confidence": 0.6,
+        "category_reason": "Keyword match put this in 'billing'. This is the fallback classifier, which counts cue words rather than reading the request, so it cannot weigh a near alternative and reports none.",
+        "category_alternatives": [],
+        "urgency": "medium",
+        "urgency_signals": [
+          "$4,200"
+        ],
+        "urgency_reason": "Cue words set 'medium': $4,200.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "Escalation is decided by the guardrail regexes that run after this step, not by the keyword classifier.",
+        "summary": "Hey, I noticed we got charged $4,200 on our last invoice but I thought we downgraded to the Team plan back in July? Can someone check this a",
+        "rationale": "Keyword-rules mode (no model available): category 'billing' by cue words, urgency 'medium'. Escalation is decided by the guardrail layer."
+      },
+      "llm_extraction": null,
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "billing-support",
+      "escalation_queue": null,
+      "latency_ms": 258,
+      "usage": {},
+      "error": "APITimeoutError: Request timed out."
+    },
+    {
+      "id": "1c7ab543902b",
+      "created_at": "2026-09-25T15:35:58.559+00:00",
+      "ticket": {
+        "text": "We've asked our solicitors to look over the agreement, because what you've delivered is not what was signed for. Expect to hear from them this week.",
+        "source": "failures",
+        "external_id": "kf-02"
+      },
+      "mode": "llm_fallback_rules",
+      "model": null,
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": null,
+          "confidence": 0.0,
+          "basis": []
+        },
+        "customer_reason": "Nothing in the text identifies the sender \u2014 no name, domain, account reference, or scale cue.",
+        "category": "other",
+        "category_confidence": 0.3,
+        "category_reason": "Keyword match put this in 'other'. This is the fallback classifier, which counts cue words rather than reading the request, so it cannot weigh a near alternative and reports none.",
+        "category_alternatives": [],
+        "urgency": "medium",
+        "urgency_signals": [],
+        "urgency_reason": "No urgency cue words matched, so this defaults to 'medium'.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "Escalation is decided by the guardrail regexes that run after this step, not by the keyword classifier.",
+        "summary": "We've asked our solicitors to look over the agreement, because what you've delivered is not what was signed for. Expect to hear from them th",
+        "rationale": "Keyword-rules mode (no model available): category 'other' by cue words, urgency 'medium'. Escalation is decided by the guardrail layer."
+      },
+      "llm_extraction": null,
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "human-review",
+      "escalation_queue": null,
+      "latency_ms": 245,
+      "usage": {},
+      "error": "APITimeoutError: Request timed out."
+    }
+  ]
+}
