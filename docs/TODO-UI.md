@@ -135,8 +135,35 @@ Earlier in this run-through, already done:
 - [x] "how it works sucks, it can be dropped for now" (D100)
 - [x] The comparison card on the dashboard, measured not estimated: "I don't need that math" (D99)
 
+## Block 7: plain English, and the API page (2026-09-25)  (DONE)
+
+- [x] **"how is that possible [100% category] if it has false escalation and misclassified urgency,
+      that's wrong right, make sure you don't hallucinate"**
+      Checked against the saved bake-off. Not a contradiction: each ticket gets three separate answers
+      (team, urgency, escalation) graded separately. Nano sent the checkout double-charge to the bug
+      team (right) and called it high instead of critical (wrong). What *was* misleading: "every model
+      scores 100%" was the lenient score, where a ticket that fits two teams counts either way. The
+      strict score was only measured for gpt-5 (100%) and keyword rules (82%), never mini or nano.
+      The FAQ now says so.
+- [x] **"none of these make sense, write them in plain English for a high schooler"**
+      The pasted paragraphs were from the old cost page; the live page no longer has them (the tab
+      was stale, refresh it). The same claims lived in the FAQ, so every FAQ group is rewritten
+      plainly: no "saturated metric", "recall", "screening test", "deterministic layer", "gold set".
+      Every number was re-checked against saved results, and one was wrong in my own draft and fixed
+      (the repeat test was four tickets, not all of them). Plain answers to "why is picking the team
+      not in the table" and "why not just use the free keyword rules" are in beat 7 of the notes.
+- [x] **API page: "try it out and an example already populated, redundant, confusing, one needs to
+      be dropped, whatever is best practice"**
+      The editor is open from the start: one box per endpoint, already filled in, Execute under it.
+      No Example Value panel, no Try it out or Cancel. The schema list at the bottom that repeated
+      each endpoint's own Schema tab is collapsed away.
+- [x] **API page: "there's no toggle here, why have it, just one option"**
+      Hidden. The server never looks at the Accept header, so the dropdown changed nothing on any
+      endpoint, including the one that technically lists two types.
+- [x] **"don't miss any of this"**. Also removed the dashes from the API page's own text, which the
+      earlier sweep had missed because they were written as escape codes.
+
 ## Still open
 
-- [ ] No git remote. The only unmet deliverable, and it needs your GitHub account — `preflight.sh`
-      fails on exactly this one check.
+- [x] Git remote: github.com/anafe03/climb-intake, pushed by Austin.
 - [ ] Terraform validates but has never been applied. Needs a GCP project.

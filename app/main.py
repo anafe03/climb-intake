@@ -12,7 +12,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -31,8 +32,8 @@ escalation flag or the urgency, never lower either. The routing table in `app/ro
 the result to a queue. Every step is written to SQLite and to a JSON-line audit log before the
 response is returned.
 
-**Two modes.** With a provider key set, the model path runs. Without one — or if the model call
-fails — the same request is served by the keyword classifier alone and `mode` says so. The API
+**Two modes.** With a provider key set, the model path runs. Without one, or if the model call
+fails, the same request is served by the keyword classifier alone and `mode` says so. The API
 shape is identical either way, so nothing downstream has to care.
 
 **Idempotency.** `(source, external_id)` is unique. Re-posting a ticket you already sent returns
@@ -54,6 +55,7 @@ app = FastAPI(
     version="0.1.0",
     description=DESCRIPTION,
     openapi_tags=TAGS,
+    docs_url=None,  # served below, configured for a person reading it rather than the defaults
 )
 STATIC = Path(__file__).with_name("static")
 DATA = Path(__file__).resolve().parent.parent / "data"
@@ -96,6 +98,36 @@ def seed_recorded() -> None:
         log.warning("could not seed recorded set '%s': %s", which, e)
 
 
+# The default Swagger page shows each request twice: an "Example Value" panel, then a "Try it out"
+# button that opens an editable copy of the same example. Opening the editor from the start leaves
+# one box, already filled in, with Execute under it. The media-type dropdown is hidden because this
+# API does not negotiate formats: every endpoint returns one format whatever the Accept header says,
+# so the control changes nothing. The schema list at the bottom repeats what each endpoint's own
+# "Schema" tab already shows, so it is collapsed out of the way.
+DOCS_CSS = """
+<style>
+.response-control-media-type,
+.opblock-section-request-body .content-type-wrapper,
+.opblock-section-request-body .opblock-section-header label { display: none !important; }
+.try-out { display: none !important; }
+</style>
+"""
+
+
+@app.get("/docs", include_in_schema=False)
+def api_docs():
+    page = get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=f"{app.title} API",
+        swagger_ui_parameters={
+            "tryItOutEnabled": True,
+            "defaultModelsExpandDepth": -1,
+            "displayRequestDuration": True,
+        },
+    )
+    return HTMLResponse(page.body.decode().replace("</head>", DOCS_CSS + "</head>"))
+
+
 @app.get("/", include_in_schema=False)
 def index():
     return FileResponse(STATIC / "index.html")
@@ -109,7 +141,7 @@ def presenter_notes():
 
 @app.get("/architecture", include_in_schema=False)
 def architecture():
-    """Diagrams and decision rules — the page to open when someone asks how it works."""
+    """Diagrams and decision rules: the page to open when someone asks how it works."""
     return FileResponse(STATIC / "architecture.html")
 
 
@@ -124,7 +156,7 @@ def optimization():
 def health():
     """`ok` is false when a model is configured but its last call failed.
 
-    The service still answers in that state — on the keyword rules — so a plain 200 would hide a
+    The service still answers in that state, on the keyword rules, so a plain 200 would hide a
     real degradation. `mode` tells you which path the next ticket will take.
     """
     last = pipeline.LAST_MODEL_CALL
@@ -206,8 +238,8 @@ FIXTURES = {
 def load_samples(fixture: str = "samples"):
     """Convenience for demos: ingest a bundled ticket fixture.
 
-    - `samples` — the ten provided tickets
-    - `demo` — a wider set covering every category, urgency, and escalation reason
+    - `samples`: the ten provided tickets
+    - `demo`: a wider set covering every category, urgency, and escalation reason
     """
     if fixture not in FIXTURES:
         raise HTTPException(400, f"unknown fixture '{fixture}'; expected one of {sorted(FIXTURES)}")
@@ -228,13 +260,13 @@ def load_recorded(fixture: str = "samples"):
 
     These are not fixtures or mock answers: every row was produced by the pipeline reading that
     ticket for real, and the model name, token counts, latency and reasoning are the ones from that
-    run. What is *not* happening is a fresh call \u2014 the answers were computed earlier and are being
+    run. What is *not* happening is a fresh call. The answers were computed earlier and are being
     loaded, the way a database restore loads real rows without re-running the transactions.
 
     A demo should read *one* ticket live, because that is the part worth watching. Replaying the
     rest removes several minutes of spinner and the risk that a flaky connection decides how the
-    presentation goes. These are real decisions from a real run \u2014 recorded by
-    `scripts/record_fixture.py`, model and token usage preserved \u2014 not hand-written fixtures.
+    presentation goes. These are real decisions from a real run, recorded by
+    `scripts/record_fixture.py` with model and token usage preserved, not hand-written fixtures.
 
     `source` is rewritten to `recorded:<set>` so the audit record says where each row came from and
     a replay of the same set twice is idempotent rather than duplicated.
@@ -373,7 +405,7 @@ def recheck(decision_id: str, runs: int = 2):
     Nothing is persisted and nothing is routed: a recheck is a consistency probe, not a decision,
     so it never enters a queue or the audit store. `stable` is true when every field that decides
     where the ticket goes agreed across all reads. Confidence and free text are reported but not
-    scored — they are expected to move, and pretending otherwise would be a claim this system
+    scored: they are expected to move, and pretending otherwise would be a claim this system
     cannot support.
     """
     original = audit.get(decision_id)
@@ -448,7 +480,7 @@ def escalation_evidence():
 
 @app.get("/queues", tags=["read"], summary="Every queue and how deep it is")
 def queues():
-    """All configured queues, including the ones nothing routed to — an empty queue is a fact
+    """All configured queues, including the ones nothing routed to: an empty queue is a fact
     worth showing, not a row to hide."""
     counts = audit.queue_counts()
     return {"total": audit.total(), "queues": [{"name": q, "count": counts.get(q, 0)} for q in routing.all_queues()]}

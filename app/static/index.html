@@ -543,174 +543,141 @@ function ref(items){return `<ul class="ref">${items.map(([k,v])=>
 // to them. Sourced from docs/PANEL-QA.md so the page and the prep doc cannot drift apart.
 const FAQ={
   who:[
-    ['How do you know it is not inventing a customer?',
-     'The schema forbids it. <code>name</code> is null unless the company is written in the ticket verbatim; '
-     +'anything inferred goes in <code>best_guess</code> with its own score and the cues it rests on. A guess '
-     +'has no path to becoming a name: they are different fields all the way through the audit record.'],
+    ['How do you know it is not making up a customer?',
+     'It keeps two things apart. A company name is only filled in if the ticket actually says it. '
+     +'Anything else is marked as a guess, with how sure it is and which words it based the guess on. A '
+     +'guess can never end up in the name field.'],
     ['Then why guess at all?',
-     '"Unknown" routes nowhere and tells a human nothing. "Enterprise account using the export feature" is '
-     +'enough for someone to pick the ticket up, and it is labelled as an inference so nobody treats it as fact.'],
-    ['Is there a number behind "it does not invent customers"?',
-     'Yes. On the 33-ticket gold set: customer-name accuracy <b>100%</b>, counting the tickets where the '
-     +'right answer is null, and <b>zero overclaimed sender confidence</b>: a scored safety check that '
-     +'fails if a guess is priced above the band its evidence supports. Every guess carried its basis. '
-     +'<code>docs/EVAL-llm.md</code>.'],
-    ['Is that number a probability?',
-     'No. It is a band read off the rubric above, self-reported by the model. It has never been validated '
-     +'against outcomes, so it is a statement of how much the text supports the guess, not a frequency.'],
-    ['Two tickets from the same company: would you know?',
-     'Not yet. The audit table has no tenant column because the sample tickets carry no customer identity. '
-     +'It is the first thing to add the moment there is an auth context.'],
+     '"Unknown" tells the person picking up the ticket nothing. "A paying customer using the export '
+     +'feature" helps them, and because it is marked as a guess, nobody treats it as a fact.'],
+    ['How often does it get the customer right?',
+     'On our 33 test tickets, every time, including the ones where the right answer was "not stated". We '
+     +'also wrote 10 tickets just to test names and account numbers, including two tricks: a company '
+     +'mentioned that is not the customer, and two companies in one ticket. The model got 10 of 10 names and '
+     +'5 of 5 account numbers. Keyword rules alone got 6 of 10 and 2 of 5.'],
+    ['Is that score a probability?',
+     'No. It is the model\u2019s own rating of how much the ticket supports the guess, using the scale '
+     +'shown above. Nobody has checked it against real outcomes, so it is not a true probability.'],
+    ['Would it know two tickets came from the same company?',
+     'Not yet. The sample tickets do not say who sent them, so there was nothing to group by. It is the '
+     +'first thing to add once tickets come with a login attached.'],
   ],
   what:[
-    ['What if a ticket is genuinely two categories?',
-     'It says so. The runner-up is named with its share and a clause on what rules it out. Below 0.50 the '
-     +'ticket goes to <code>human-review</code> instead of being forced into a team’s queue.'],
-    ['Why is spam a category rather than a failure?',
-     'Because it is a real answer. If spam were "could not classify", every genuine miss would hide in the '
-     +'same bucket as the junk, and the review queue would be useless.'],
-    ['How often is the category right?',
-     'On the 33-row gold set the model path is <b>100% strict</b>: it matched gold’s primary label on '
-     +'every row, including all eight the gold set marks as legitimately two categories, so the ambiguity '
-     +'tolerance is not doing any work for it. Rules-only is <b>82% strict</b> and only reaches 100% once that '
-     +'tolerance is applied. Quoting one number for both modes hid that difference; the scorecard carries '
-     +'them separately now.'],
+    ['What if a ticket fits two teams?',
+     'It tells you. It names the second-best team, how close it was, and why it lost. If it is less than '
+     +'50% sure, the ticket goes to a person to decide, instead of being guessed into a team.'],
+    ['Why is spam its own category?',
+     'Because "this is junk" is a real answer. If junk counted as "could not decide", real problems would '
+     +'get lost in the same pile as the junk.'],
+    ['How often does it pick the right team?',
+     'On our 33 test tickets, the model picked the same team we would have every time. The keyword rules '
+     +'on their own got 27 of 33, which is 82%.'],
+    ['If it always picks the right team, how does it still make mistakes?',
+     'Each ticket gets three separate answers: which team, how urgent, and whether someone senior needs to '
+     +'know. They are graded separately, so one can be right while another is wrong. The cheapest model we '
+     +'tried did exactly that. It sent "checkout is charging customers twice" to the bug team, which is '
+     +'right, but called it high when it should have been critical, which is wrong.'],
     ['Is 100% not suspicious?',
-     'Yes, and the right response to a saturated metric is to stop using it to decide anything. Every model '
-     +'in the bake-off scores 100% on category: gpt-5, mini at two effort levels, and nano. A number that '
-     +'cannot tell a frontier model from the cheapest one is not measuring the model; it is measuring that '
-     +'eight broad buckets are an easy call on 33 tickets. The columns that do discriminate are missed '
-     +'escalations, false escalations and urgency under-calls, which is why those are the ones in bold.'],
-    ['Who wrote the answers you are scoring against?',
-     'I did, for 23 of the 33 rows. That is a real circularity risk: the edge cases and the prompt came from '
-     +'the same head, so the model agreeing with them is weaker evidence than it looks. The ten provided Climb '
-     +'tickets are the independent subset, and the model is 10/10 strict on those. A larger set labelled by two '
-     +'people who did not write the prompt is the first thing I would buy with more time.'],
+     'Yes, for two reasons. First, picking the team is the easy part: there are only eight teams and most '
+     +'tickets clearly belong to one. Every model we tried got it right, even the cheapest, so this number '
+     +'cannot tell you which model to use. Second, that 100% counts a ticket as right if it could fairly go '
+     +'to either of two teams. We only checked the stricter version for the main model (still 100%) and the '
+     +'keyword rules (82%), not for the cheaper models. To choose a model, look at the other columns '
+     +'instead: missed escalations, wrong escalations, and urgency read too low.'],
+    ['Who wrote the answers you are grading against?',
+     'I did, for 23 of the 33 tickets. That is a weakness: I wrote those tickets and the model\u2019s '
+     +'instructions, so it agreeing with me proves less than it looks. The 10 tickets Climb gave me are the '
+     +'fair test, and it got all 10 right. With more time, I would have two other people label real tickets.'],
     ['Who chose 0.50?',
-     'I did. It is the only number in the system that changes behaviour, and it lives in '
-     +'<code>app/routing.yaml</code> as one line a support lead can move without an engineer.'],
+     'I did. It is the one number that changes where a ticket goes: under 50% sure, a person decides. It '
+     +'sits in a settings file, <code>app/routing.yaml</code>, that a support lead can change without an engineer.'],
     ['Would you trust the confidence number?',
-     'As a share of opinion, yes. As a calibrated probability, no, and the interface never calls it one. '
-     +'Calibrating it would need labelled outcomes this system has not collected.'],
+     'As the model\u2019s own sense of how sure it is, yes. As a real probability, no. To know it is right 70% '
+     +'of the time when it says 70%, we would need to check it against real outcomes, and we have not.'],
   ],
   urgency:[
-    ['Does high urgency escalate?',
-     'No, and that is deliberate. Urgency is speed; escalation is topic. A full outage is critical and pages '
-     +'on-call without escalating. A CEO thank-you note escalates at low urgency.'],
-    ['Is urgency not just subjective?',
-     'It is a judgment, which is why the criteria are written down and the cues are quoted from the ticket. '
-     +'You can disagree with the call and still audit how it was reached.'],
-    ['Could an angry customer inflate it?',
-     'Tone is not one of the criteria, and the gold set checks it. <code>edge-21</code> ("This is '
-     +'ridiculous. Third month in a row the invoice total doesn\u2019t match our plan!!!") is scored '
-     +'medium, carried there by the recurrence, not the shouting. <code>climb-10</code> is the mirror: a calm '
-     +'report of a checkout charging customers twice is critical. The signals are facts about impact, not '
-     +'temperature.'],
-    ['How accurate is the urgency call?',
-     'Accuracy is the wrong question here, and the scorecard answers the right one instead. Exact agreement '
-     +'is 82% on the model path and 76% rules-only: the weakest numbers in the system. But an urgency '
-     +'call is a <b>screening test</b>, and a screening test is not judged on accuracy. Calling a well patient '
-     +'sick costs a second look. Calling a sick patient well costs the thing you built the test for.'],
-    ['So which way does it get them wrong?',
-     'Always the safe way, on this gold set. Two directions, and only one of them hurts. <b>Under-called: '
-     +'we said calmer than the gold answer, so the ticket waits longer than it should: 0%.</b> Over-called: '
-     +'we said more urgent, so it arrives early and a person downgrades it: 18% '
-     +'on the model path, 24% rules-only. No ticket the gold set calls critical was ever read as anything '
-     +'less. Every one of those misses is a ticket that reached a queue faster than it strictly needed to, '
-     +'where a person downgrades it in seconds, not one that sat. <code>docs/EVAL-llm.md</code> reports '
-     +'under-calls and over-calls as separate rows for exactly this reason.'],
-    ['Why does rules-only over-call more?',
-     'Because it should. 24% against the model’s 18% is the deterministic layer being deliberately '
-     +'twitchy: it matches words, cannot weigh context, and is built to fail upward. The model is the more '
-     +'precise reader; the rules are the floor under it. Neither has ever under-called.'],
-    ['Is that not just a tolerant gold set?',
-     'The scorecard reports the strict version too: under-calls on tickets the gold set does <i>not</i> mark '
-     +'ambiguous on urgency. That row reads <b>none</b> in both modes. Urgency is where the gold set concedes '
-     +'the most, 20 of 33 rows are marked ambiguous, against 8 on category and 5 on escalate, '
-     +'because low versus medium is genuinely arguable. The under-call number does not depend on that '
-     +'concession.'],
+    ['Does high urgency mean it escalates?',
+     'No. Urgency is how fast. Escalation is whether someone senior needs to know. They are separate. '
+     +'"Checkout is charging customers twice" is critical, so an engineer is paged, but nobody senior needs '
+     +'to hear about it. "Our CEO loves the new report" is low urgency, but it still goes to someone senior, '
+     +'because the CEO is involved.'],
+    ['Is urgency not just a guess?',
+     'It is a judgment call, which is why the rules for it are written down and the words it used are '
+     +'quoted from the ticket. You can disagree with a call and still see exactly how it was made.'],
+    ['Could an angry customer make their ticket look more urgent?',
+     'No. How angry someone sounds is not one of the things it looks at. "This is ridiculous. Third month '
+     +'in a row the invoice total doesn\u2019t match our plan!!!" is scored medium, because it keeps '
+     +'happening, not because of the shouting. A calm note that checkout is charging customers twice is '
+     +'scored critical.'],
+    ['How often is urgency right?',
+     'It matches our answer exactly 82% of the time, and 76% with keyword rules alone. That is the weakest '
+     +'number in the system. But what matters more is which way it is wrong.'],
+    ['Which way is it wrong?',
+     'Always the safe way. When it gets urgency wrong, it says a ticket is more urgent than it is, never '
+     +'less. That happened on 18% of tickets (24% with keyword rules alone). A ticket that shows up too '
+     +'early just gets moved down by a person. A ticket that shows up too late sits and waits, and that '
+     +'never happened. Not one critical ticket was read as less than critical. It is like a doctor: telling '
+     +'a healthy person to come back for a check-up costs a little. Sending a sick person home costs a lot.'],
+    ['Why do keyword rules alone overreact more?',
+     'Keyword rules only look for words. They cannot tell "we had a breach" from "we have not had a '
+     +'breach". So they are set up to overreact rather than miss something. The model reads the whole '
+     +'sentence, so it overreacts less. Neither one ever said a ticket was calmer than it was.'],
+    ['Did you just go easy on the grading?',
+     'Some tickets could fairly be either low or medium, and those count as right either way. But the '
+     +'"never too calm" result does not depend on that. Even counting only the tickets with one clear '
+     +'answer, it never said a ticket was calmer than it was.'],
   ],
   human:[
-    ['Why not let the model decide escalation on its own?',
-     'Because a missed escalation is the one failure that is unacceptable, and a prompt change can quietly '
-     +'move a model’s behaviour. The keyword layer is a floor that cannot drift: it is version-controlled, '
-     +'testable, and only ever raises.'],
-    ['Then why not just rules?',
-     'Rules cannot read "our data reached the wrong audience" without the word breach in it. The model catches '
-     +'meaning; the regexes catch words. Neither alone covers both.'],
-    ['Are you optimising for recall or precision?',
-     'Recall, explicitly, and the whole design says so. A missed escalation is a breach nobody looked at; a '
-     +'false one is a minute of someone’s afternoon. So the keyword layer may only ever <i>raise</i> a '
-     +'ticket, the gold set tolerates over-escalation on marked rows and never tolerates a miss, and urgency '
-     +'is scored by direction rather than by accuracy. The cost of the two errors is not symmetric, so the '
-     +'metrics are not either.'],
-    ['What is the false-positive rate?',
-     'Zero, on 22 chances. The 33-ticket gold set splits 11 must-escalate / 22 must-not, and both the model '
-     +'path and rules-only mode score <b>100% escalation recall with zero false escalations</b>: the '
-     +'must-not half is where a false positive would show up. The traps are deliberate: a SOC 2 report '
-     +'request (<code>edge-28</code>), a contract-renewal pricing question (<code>edge-25</code>) and an '
-     +'invoice copied to a legal department (<code>edge-11</code>) all carry the vocabulary and none of them '
-     +'escalate. Numbers in <code>docs/EVAL-llm.md</code> and <code>docs/EVAL-rules.md</code>.'],
-    ['Does the flag hold still between runs?',
-     'Measured, not assumed: <code>scripts/repeatability.py</code> ran four tickets three times each and the '
-     +'escalation flag and category label were unanimous 4/4, with confidence standard deviation averaging '
-     +'0.046. Nothing is pinned, no seed, no temperature control, so that is the natural spread. '
-     +'The <b>Read it again</b> button lower down runs the same check live on this ticket.'],
-    ['100% recall sounds too good. Does it ever get one wrong?',
-     'Yes, and there is a set built to make it. <code>scripts/stress.py</code> runs twelve tickets written '
-     +'to defeat it, each naming its attack. On those: <b>still no missed escalations</b>, but one false '
-     +'escalation and three more over-escalations. It fails in exactly one direction: the vocabulary of an '
-     +'incident showing up without the incident: a <i>denied</i> breach, a <i>hypothetical</i> vulnerability, '
-     +'someone else\u2019s lawyer, and "a total breach of trust" meant figuratively.'],
-    ['Show me the worst one.',
-     '<code>adv-01</code>: "To be clear, we have <b>NOT</b> had a data breach. Procurement just needs your SOC 2 '
-     +'report." The model read it correctly: other, medium, no escalation, reasoning "they explicitly state '
-     +'no breach". Then the keyword layer matched the literal string <i>data breach</i> inside the denial, forced '
-     +'the flag on and lifted urgency to critical. <b>The shipped answer is worse than the model\u2019s answer.</b> '
-     +'A regex cannot read a negation, and the rules may only raise. That is the price of never missing one, '
-     +'paid out loud: the audit record names both answers and both overrides, so a reviewer clears it in '
-     +'seconds instead of wondering.'],
-    ['Why not just fix that?',
-     'Because the fix has a worse failure mode. Teaching the patterns to skip negations means a regex deciding '
-     +'that "no breach has occurred, but" is safe to ignore, and the first ticket it gets wrong is one that '
-     +'sits. The asymmetry is deliberate: I would rather explain a false escalation than a missed one. What is '
-     +'worth doing instead is what the stress set does: measure how often it happens, name the four shapes '
-     +'it takes, and let a reviewer see the override.'],
-    ['Is escalation really just keywords?',
-     'Both halves run, and either one alone can raise the flag, but you should push on this, because '
-     +'on the 33-row gold set they agree <i>exactly</i>: 11 tickets escalated, all 11 caught by both, '
-     +'none by either alone. That is not evidence the model is redundant. It is evidence the gold set '
-     +'cannot tell, because every escalating row in it happens to contain keyword vocabulary: '
-     +'unsurprising, since the rows and the patterns were written by the same hand.'],
-    ['So what does the model actually add?',
-     'It was worth measuring rather than asserting. <code>scripts/keyword_free_probe.py</code> runs six '
-     +'tickets that escalate in meaning and contain none of the words the patterns look for: a '
-     +'leaver who "finished up with us in June", a British customer instructing <i>solicitors</i> rather '
-     +'than lawyers, "the woman who runs our company", a cross-tenant leak described from the other '
-     +'direction, and an erasure demand with no acronym. The keyword layer is verified silent on all '
-     +'six first. <b>The model caught all five that should escalate, and left the urgent-sounding '
-     +'control alone.</b> That is what the second layer buys.'],
+    ['Is escalation just keyword matching?',
+     'No. The model reads every ticket first. Then the keyword rules run as a second check. Either one can '
+     +'flag a ticket, and neither can un-flag it. On the cost page, click <b>11 of 11</b> to see every ticket '
+     +'that should have been flagged: 21 of 21 were caught, and 8 of them had no keyword at all, so only the '
+     +'model could have caught them.'],
+    ['What does the model catch that keywords miss?',
+     'Anything said in a way the word list does not expect. A British customer who "asked our '
+     +'<i>solicitors</i> to look at the agreement" (the list knows lawyer, not solicitor). "The woman who '
+     +'runs our company" instead of CEO. Someone who "finished up with us in June" instead of former '
+     +'employee. The same problem written in Spanish. The model caught all of these. The keywords caught none.'],
     ['Then why keep the keywords at all?',
-     'Because they cannot drift. A prompt edit, a model version, a provider outage: any of those can '
-     +'move the model\u2019s behaviour, and none of them touches a regex. The keywords are a floor that '
-     +'is version-controlled and testable, and they still work when the model is unreachable: '
-     +'rules-only mode holds 100% escalation recall. The model is the ceiling; the keywords are the '
-     +'floor. Neither is the system.'],
-    ['Why escalate a security ticket that already goes to security?',
-     'Countability. A ticket sitting in the security queue looks identical whether it is a breach or a '
-     +'question about the SOC 2 report. Without the flag, "did we miss one" has no answer.'],
+     'Because they never change. If the model is updated, or its instructions are edited, or it goes down, '
+     +'the keyword rules still work exactly the same. When the model is unreachable, they still catch every '
+     +'flagged ticket in our 33 test tickets.'],
+    ['Does it ever flag a ticket that did not need it?',
+     'Yes, on purpose. We wrote 12 tickets to try to trick it. It never missed one that needed flagging. But '
+     +'it flagged 4 that did not: one said "we have <b>not</b> had a data breach", one asked "<i>if</i> we '
+     +'found a security hole, who do we tell", one mentioned a different company\u2019s lawyer, and one said "a '
+     +'total breach of trust" as an expression. The words were there, the problem was not.'],
+    ['Show me the worst one.',
+     '"To be clear, we have <b>NOT</b> had a data breach. Procurement just needs your SOC 2 report." The model '
+     +'got it right: no flag. Then the keyword rules saw the words "data breach", ignored the "not", and '
+     +'flagged it anyway. So the final answer is worse than the model\u2019s answer. You can see both answers, '
+     +'and which rule changed it, in the ticket\u2019s details.'],
+    ['Why not fix that?',
+     'Because the fix is riskier than the problem. To fix it, the keyword rules would have to decide when '
+     +'"breach" does not count. The first time they guess wrong, a real breach gets ignored. A wrong flag '
+     +'costs someone a minute. A missed breach costs a lot more. So it is built to flag too much, not too little.'],
+    ['How often does it flag something it should not?',
+     'On our 33 test tickets, never. 22 of them should not be flagged, and some were written to look like '
+     +'they should: a request for a SOC 2 report, a question about when a contract renews, an invoice sent to '
+     +'a legal department. None were flagged. The 12 trick tickets are where the 4 above came from.'],
+    ['Does it give the same answer twice?',
+     'We ran four tickets three times each. Whether to flag came back the same every time. You can try '
+     +'it on any ticket with the <b>Read it again</b> button.'],
+    ['Why flag a security ticket that already goes to the security team?',
+     'So it can be counted. In the security team\u2019s queue, a real breach and a question about a '
+     +'compliance report look the same. The flag is how you can later answer "did we miss any?"'],
   ],
   route:[
     ['Is this a real queue?',
-     'Simulated, as the brief asks. A queue is a name in <code>app/routing.yaml</code> and a field on the '
-     +'decision. Pointing it at Zendesk, Jira or PagerDuty is one adapter behind the same call: the '
-     +'routing logic does not change.'],
-    ['Why copy an escalated ticket instead of moving it?',
-     'If it moved, the owning team would never see it. Both get it, and whoever acts first owns it. Moving '
-     +'would turn an escalation into a handoff, which is how things get dropped.'],
-    ['Who changes routing?',
-     'Support leads, in YAML, without an engineer. That is why the table is data and not code: routing '
-     +'changes far more often than logic does.'],
+     'It is a stand-in, as the brief asks. Each queue is a name in a settings file. Connecting it to a real '
+     +'tool like Zendesk, Jira or PagerDuty would mean adding one connector. How tickets get sorted would '
+     +'not change.'],
+    ['Why copy a flagged ticket instead of moving it?',
+     'If it moved, the team that owns it would never see it. Both get it, and whoever acts first takes it. '
+     +'Moving it would be a hand-off, and hand-offs are where things get dropped.'],
+    ['Who changes where tickets go?',
+     'A support lead can, by editing a settings file, without needing an engineer. That is on purpose: '
+     +'where tickets go changes much more often than how the system works.'],
   ],
 };
 function faq(key){

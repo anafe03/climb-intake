@@ -1555,6 +1555,28 @@ hand. Deleted from the cost page: an uncited "one support hour" comparison I had
 38% and 50,000 line out loud, so it is rewritten too: the rule is that nothing in the script should
 be something he would have to look up mid-sentence.
 
+### D106. "100% on category" was right, and still misleading
+Austin: how can a model score 100% on category and still make false escalations and wrong urgency
+calls? It can, because each ticket gets three separate answers graded separately. Nano sent the
+checkout double-charge to the bug team, which is right, and called it high instead of critical,
+which is wrong. What was misleading is that "every model scores 100%" used the lenient score, where a
+ticket that fits two teams counts either way; the strict score was never measured for mini or nano.
+The FAQ now says both things in plain words.
+
+### D107. Every FAQ answer rewritten for someone who has not read the code
+"Write them in plain English for a high schooler." The FAQ had drifted into the vocabulary of the
+decision log: saturated metric, recall, screening test, deterministic layer, gold set, circularity.
+Rewritten throughout, with each number re-checked against the saved results rather than copied from
+the previous wording. That re-check caught one of my own: the repeat-run claim covered four tickets,
+not "the same tickets". Duplicated answers in the escalation group were merged (twelve down to nine).
+
+### D108. The API page shows each request once
+The default Swagger page shows a request's example, then a Try it out button that opens an editable
+copy of the same example. `/docs` is now served with the editor open from the start: one filled-in
+box and Execute. The media-type dropdown is hidden because the server ignores the Accept header, so
+it changed nothing on any endpoint. The schema list at the bottom, which repeated each endpoint's own
+Schema tab, is collapsed.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

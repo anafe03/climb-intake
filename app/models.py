@@ -44,8 +44,8 @@ class Customer(BaseModel):
     """Who sent the ticket.
 
     Two separate things, deliberately kept apart:
-      * `name` / `contact_name` — stated verbatim in the text. Facts.
-      * `best_guess` + `confidence` + `basis` — an inference from context when nothing is stated.
+      * `name` / `contact_name`: stated verbatim in the text. Facts.
+      * `best_guess` + `confidence` + `basis`: an inference from context when nothing is stated.
         Downstream can gate on the confidence; a reader can audit the reasoning.
     """
     name: Optional[str] = Field(default=None, description="Company or account name ONLY if stated verbatim in the ticket, else null.")
