@@ -110,9 +110,15 @@ table.evt td.kw b{color:var(--coral-deep)}
   <p><b>Why not the cheapest:</b> nano missed 2 of the 21 escalations, and read 4 clearly critical
   tickets as less urgent, including the checkout charging customers twice. A critical ticket read as
   less urgent waits in a normal queue instead of paging someone.</p>
-  <p><b>A cheaper setup we tested:</b> send plain tickets to the cheap model (mini), and only send a
-  ticket to gpt-5 when the backup word list spots something risky in it. On the 33 main test tickets
-  that cost 38% less, and it added one false escalation and one urgency call that was too low.</p>
+  <p><b>A cheaper setup we tested:</b> use the cheap model (mini) by default, and only use gpt-5 when a
+  ticket looks risky. The free keyword list decides which is which before any model reads it. If it
+  spots security, legal or senior-person words, or urgent wording, gpt-5 reads the ticket. Otherwise
+  mini does. Each ticket is read once, by one model. About half the tickets went to each, and mini
+  costs about a fifth as much, so the bill fell 38%. The price: on the 33 main test tickets it made one
+  false escalation and one urgency call too low that gpt-5 on its own did not.</p>
+  <p><b>Why not ask mini first, then gpt-5 if it looks unsure?</b> We tried that too. It costs 29% more,
+  not less, because every risky ticket gets paid for twice: once by mini, then again by gpt-5. And the
+  risky tickets are the expensive ones, because they take the most thinking.</p>
   <p><b>Why we did not switch:</b> 38% of about $9 is about $3.50 a month at 1,000 tickets. At 50,000
   tickets a month it is about $170 a month. That is roughly where I would start to consider it. The
   38% was measured; the 50,000 is my judgement call, not a measurement.</p>
@@ -137,25 +143,48 @@ async function renderModels(){
   const running=(r.running||'');
   t.innerHTML=`<tr><th>Model</th><th>Effort</th><th>Escalations caught</th><th>False escalations</th>
     <th>Urgency read too low</th><th class="num">Cost per 1,000 tickets</th></tr>`+
-  r.models.map(m=>{
+  r.models.map((m,i)=>{
     const name=m.model.split('-20')[0];
     const here=running.startsWith(name)&&!running.startsWith(name+'-')&&m.effort==='low';
     const caught=`${m.must_escalate-m.missed_escalations} of ${m.must_escalate}`;
     return `<tr class="${here?'pick':''}${m.critical_under_called?' bad':''}">
       <td><code>${esc(name)}</code></td><td>${esc(m.effort)}</td>
       <td>${here?`<a href="#" id="recall" class="rlink">${caught}</a>`
-        :m.missed_escalations?`<b>${caught}</b>`:caught}</td>
-      <td>${m.false_escalations}</td>
-      <td>${lowCell(m)}</td>
+        :m.missed_escalations?`<a href="#" class="rlink mk" data-leg="${i}" data-kind="missed">${caught}</a>`:caught}</td>
+      <td>${m.false_escalations?`<a href="#" class="rlink mk" data-leg="${i}" data-kind="false">${m.false_escalations}</a>`:'0'}</td>
+      <td>${m.urgency_under?`<a href="#" class="rlink mk" data-leg="${i}" data-kind="low">${lowCell(m)}</a>`:'0'}</td>
       <td class="num">$${(m.cost_per_ticket*1000).toFixed(2)}</td></tr>`;
   }).join('');
   const rl=document.getElementById('recall'); if(rl) rl.onclick=e=>{e.preventDefault();showRecall()};
+  window._models=r.models;
+  document.querySelectorAll('a.mk').forEach(a=>a.onclick=e=>{e.preventDefault();
+    showMistakes(r.models[+a.dataset.leg],a.dataset.kind)});
   document.getElementById('sub').textContent=`The same ${r.n} tickets, read by each model`;
 }
 
+let _mist=null;
+async function showMistakes(m,kind){
+  const box=document.getElementById('evidence');
+  if(!_mist) _mist=await fetch('/evidence/mistakes').then(x=>x.json()).catch(()=>null);
+  const name=m.model.split('-20')[0];
+  const leg=_mist&&_mist.legs.find(l=>l.model===name&&l.effort===m.effort);
+  if(!leg){box.innerHTML='<p>Could not load these tickets.</p>';box.hidden=false;return}
+  const title={false:'Escalated when it should not have',low:'Read as less urgent than it is',
+               missed:'Should have escalated, and did not'}[kind];
+  const rows=leg[kind];
+  box.innerHTML=`<h3>${esc(name)}${m.effort!=='low'?' ('+esc(m.effort)+')':''}: ${title}
+      <span class="cnt">${rows.length} ticket${rows.length>1?'s':''}</span></h3>
+    <table class="evt">${rows.map(t=>`<tr>
+      <td class="id">${esc(t.id)}</td>
+      <td>${esc(t.text.length>220?t.text.slice(0,220)+'\u2026':t.text)}</td>
+      <td class="kw">${kind==='low'
+        ? `said <b>${esc(t.said)}</b>, should be ${esc(t.expected)}${t.borderline?'<br>(borderline: both fair)':''}`
+        : ''}</td></tr>`).join('')}</table>`;
+  box.hidden=false;
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+}
 async function showRecall(){
   const box=document.getElementById('evidence');
-  if(!box.hidden){box.hidden=true;return}
   const r=await fetch('/evidence/escalation').then(x=>x.json()).catch(()=>null);
   if(!r){box.innerHTML='<p>Could not load the tickets.</p>';box.hidden=false;return}
   box.innerHTML=r.groups.map(g=>{

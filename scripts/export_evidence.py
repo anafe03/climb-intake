@@ -122,5 +122,36 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--mistakes" not in sys.argv:
     raise SystemExit(main())
+
+
+def export_mistakes() -> None:
+    """Every model's mistakes as tickets, so each number in the cost table can be clicked."""
+    legs = []
+    for f in sorted(RES.glob("bakeoff-*.json")):
+        saved = json.loads(f.read_text())
+        model = f.stem[len("bakeoff-"):].rsplit("-", 1)
+        false, low, missed = [], [], []
+        order = {"low": 0, "medium": 1, "high": 2, "critical": 3}
+        for r, d in zip(saved["rows"], saved["decisions"]):
+            x, e = d["extraction"], r["expected"]
+            amb = set(r.get("ambiguous") or [])
+            item = {"id": r["id"], "text": r["text"]}
+            if e["escalate"] and not x["escalate"]:
+                missed.append(item)
+            if not e["escalate"] and x["escalate"] and "escalate" not in amb:
+                false.append(item)
+            if order[x["urgency"]] < order[e["urgency"]]:
+                low.append({**item, "said": x["urgency"], "expected": e["urgency"],
+                            "borderline": "urgency" in amb})
+        legs.append({"model": model[0], "effort": model[1],
+                     "false": false, "low": low, "missed": missed})
+    out = ROOT / "data" / "measured" / "model_mistakes.json"
+    out.write_text(json.dumps({"legs": legs}, indent=2))
+    for l in legs:
+        print(f"{l['model']:12} {l['effort']:8} false {len(l['false'])} low {len(l['low'])} missed {len(l['missed'])}")
+
+
+if __name__ == "__main__" and "--mistakes" in sys.argv:
+    export_mistakes()

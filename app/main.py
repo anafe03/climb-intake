@@ -480,6 +480,18 @@ def escalation_evidence():
     return json.loads(EVIDENCE.read_text())
 
 
+MISTAKES = Path(__file__).resolve().parent.parent / "data" / "measured" / "model_mistakes.json"
+
+
+@app.get("/evidence/mistakes", tags=["read"], summary="The tickets behind each model's mistakes")
+def model_mistakes():
+    """For each model in the cost table: the tickets it wrongly escalated, read as less urgent, or
+    missed. What a click on a number in the table shows."""
+    if not MISTAKES.exists():
+        raise HTTPException(404, "no mistakes file; run scripts/export_evidence.py --mistakes")
+    return json.loads(MISTAKES.read_text())
+
+
 @app.get("/queues", tags=["read"], summary="Every queue and how deep it is")
 def queues():
     """All configured queues, including the ones nothing routed to: an empty queue is a fact
