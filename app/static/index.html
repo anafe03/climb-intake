@@ -1028,7 +1028,7 @@ function renderOverview(){
       <div class="s" style="margin-top:9px"><b>$${(spend/Math.max(priced,1)*1000).toFixed(2)}</b> per 1,000 tickets</div></div>`:''}
     <div class="ov"><div class="k">Failed extractions</div>
       <div class="big ${fellBack?'danger':''}">${fellBack}<small>${fellBack===1?'ticket':'tickets'} fell back to keyword rules</small></div>
-      <div class="s" style="margin-top:9px">${errored?`${errored} returned an error. `:''}<a href="/optimization" class="lnk">100% escalation recall on the gold set →</a></div></div>
+      <div class="s" style="margin-top:9px">${errored?`${errored} returned an error. `:''}<a href="/optimization?show=recall" class="lnk">21 of 21 escalations caught, see them →</a></div></div>
     ${priceTable&&priceTable.models&&priceTable.models.length?`<div class="ov wide2"><div class="k">The same job on a cheaper model</div>
       <table class="mini">${priceTable.models.map(m=>{
         const here=(priceTable.running||'').startsWith(m.model.split('-20')[0]) && m.effort==='low';

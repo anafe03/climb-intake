@@ -434,6 +434,18 @@ def pricing_table():
     return {"models": out, "measured_on": "the 33-ticket gold set", "running": llm.active_model()}
 
 
+EVIDENCE = Path(__file__).resolve().parent.parent / "data" / "measured" / "escalation_evidence.json"
+
+
+@app.get("/evidence/escalation", tags=["read"], summary="The tickets behind the escalation recall number")
+def escalation_evidence():
+    """Every ticket that should have escalated, whether it was caught, and whether a keyword rule
+    also matched. The "no keyword" rows are the ones only the model could have caught."""
+    if not EVIDENCE.exists():
+        raise HTTPException(404, "no evidence on disk; run scripts/export_evidence.py")
+    return json.loads(EVIDENCE.read_text())
+
+
 @app.get("/queues", tags=["read"], summary="Every queue and how deep it is")
 def queues():
     """All configured queues, including the ones nothing routed to — an empty queue is a fact

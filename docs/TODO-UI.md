@@ -94,6 +94,44 @@ improvement but still put a rubric ahead of the answer.
 - [x] Swept stale numbers out of PANEL-QA, STATUS, PREP, DEMO and HOW-IT-WORKS. STATUS still
       recommended nano, which the evidence now disqualifies.
 
+## Block 6: final run-through comments (2026-09-25)
+
+Austin's words are quoted so nothing is paraphrased away.
+
+- [ ] **"we probably should have more extraction cases and failed extraction"**
+      The dashboard says "Failed extractions: 0" and nothing in the demo ever shows one happening.
+      Add real failed-extraction cases (a genuine model failure that fell back to keyword rules, not a
+      mock) so the card can show a nonzero and a click shows what fallback looks like. Add more
+      extraction cases: customer names, contacts and identifiers, the fields the gold set barely tests.
+- [ ] **"It costs 0.9¢ a ticket, about $9 per thousand, or roughly what one support hour costs per
+      forty thousand tickets" / "wtf does this mean, cite it or something"**
+      The support-hour comparison is uncited and I made it up. Delete it.
+- [ ] **"the saving is a few dollars a month ... Revisit at about 50,000 tickets a month, where the
+      38% saving becomes real money" / "wtf does this mean what 38% and 50k"**
+      Unexplained jargon. Delete.
+- [ ] **"what do you mean cached token, 90% of input tokens are cache reads at a tenth of the price"**
+      Unexplained. Delete from the cost page.
+- [ ] **Escalation recall "100%, 11 of 11 on the gold set, and no miss on the 12 adversarial
+      tickets either" / "this should be clickable to show them"**
+      Make it clickable. The click shows the actual tickets and whether each was caught.
+- [ ] **"keyword rules only ... 100% none none none 0.0s $0 $0 free" / "why do we do keyword rules
+      only for escalation" / "did you make the change to if it doesn't hit keyword rules to ask the
+      model just in case it's not in the keywords" / "i dont understand this keyword rules only"**
+      Answer plainly: the model reads every ticket; keywords are a second check on top, never
+      instead. That row is the fallback when there is no API key, which is not a choice anyone makes
+      in production, and putting it in a model comparison made it look like one. Remove it from the
+      table. Show the proof that the model catches what keywords miss.
+- [ ] **"most of the stuff in cost I don't understand, just the table is fine comparing them, the
+      rest is superfluous"**
+      Cut the cost page to the comparison table.
+- [ ] **"remove superfluousness and AI writing with the - in them"**
+      No em dashes in anything a person reads in the app. Plain sentences.
+
+Earlier in this run-through, already done:
+- [x] "intake is good except don't say the same thing three times" (D100)
+- [x] "how it works sucks, it can be dropped for now" (D100)
+- [x] The comparison card on the dashboard, measured not estimated: "I don't need that math" (D99)
+
 ## Still open
 
 - [ ] No git remote. The only unmet deliverable, and it needs your GitHub account — `preflight.sh`

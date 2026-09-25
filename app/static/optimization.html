@@ -70,12 +70,23 @@ tr.bad td b{color:var(--climb-coral-deep,#92351e)}
 td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .pick td{background:#eef6ef}
 .pick td:first-child::after{content:" \2190 running this";color:var(--sage);font-weight:600;font-size:12px}
+
+.rlink{color:var(--coral-deep);font-weight:650;text-decoration:underline;text-underline-offset:3px}
+.ev{margin-top:28px}
+.ev h3{font-size:15px;margin:22px 0 2px}
+.ev h3 .cnt{font-weight:500;color:var(--dim);font-size:13px;margin-left:8px}
+.ev .about{margin:0 0 8px;color:var(--dim);font-size:13px}
+table.evt td{vertical-align:top;font-size:13px;padding:7px 10px 7px 0}
+table.evt td.ok{color:var(--sage);font-weight:700;width:18px}
+table.evt td.id{font-family:ui-monospace,monospace;font-size:12px;color:var(--dim);white-space:nowrap;width:70px}
+table.evt td.kw{white-space:nowrap;font-size:12px;color:var(--dim)}
+table.evt td.kw b{color:var(--coral-deep)}
 </style>
 </head>
 <body>
 <header><div class="wrap">
-  <h1>Cost &amp; model choice</h1>
-  <p>What a decision costs, what a cheaper one would cost you, and the one optimisation that pays</p>
+  <h1>Cost &amp; models</h1>
+  <p>The same 33 tickets, read by each model</p>
 </div></header>
 <nav><div class="wrap">
   <a href="/">Intake</a>
@@ -86,149 +97,47 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 
 <main class="wrap">
 
-<div class="rec">
-  <div class="lab">Recommendation</div>
-  <h3>Run <code>gpt-5</code> at low reasoning effort. Do not optimise this yet.</h3>
-  <p>It is the only configuration measured with <b>no missed escalations, no false escalations and no
-  urgency under-calls</b> on the gold set. It costs <b>0.9&cent; a ticket</b> &mdash; about <b>$9 per
-  thousand</b>, or roughly what one support hour costs per forty thousand tickets.</p>
-  <p>Two cheaper options are real and measured, and both are below. Neither is worth taking at this
-  volume: the saving is a few dollars a month and the cost is a class of error you then have to
-  explain. <b>Revisit at about 50,000 tickets a month</b>, where the 38% saving becomes real money
-  and is worth the extra failure mode.</p>
-</div>
-
-<div class="big3">
-  <div class="c"><div class="k">Cost per ticket</div><div class="v">0.914&cent;</div>
-    <div class="s">$9.14 per thousand. 90% of input tokens are cache reads at a tenth of the price.</div></div>
-  <div class="c"><div class="k">Escalation recall</div><div class="v">100%</div>
-    <div class="s">11 of 11 on the gold set, and no miss on the 12 adversarial tickets either.</div></div>
-  <div class="c"><div class="k">Failed extractions</div><div class="v">0</div>
-    <div class="s">No ticket fell back to keyword rules across 33 gold + 12 adversarial reads.</div></div>
-</div>
-
-<h2>Every model, scored and priced together</h2>
-
-<p>Same prompt, same schema, same guardrails, 33 gold tickets. Only the model and its reasoning
-effort change. <b>Read the error columns first</b> &mdash; the cost column decides nothing until the
-error columns are acceptable.</p>
-
 <table>
-  <tr><th>Model</th><th>Effort</th><th>Escalation recall</th><th>Missed</th><th>False esc.</th>
-      <th>Urgency under-called</th><th>p50</th><th class="num">Cost / ticket</th><th class="num">Per 1,000</th><th>vs top</th></tr>
-  <tr class="pick"><td><code>gpt-5</code></td><td>low</td><td><b>100%</b></td><td>none</td><td>none</td>
-      <td>none</td><td>16.1 s</td><td class="num">0.914&cent;</td><td class="num">$9.14</td><td>1.00&times;</td></tr>
-  <tr><td><code>gpt-5-mini</code></td><td>low</td><td><b>100%</b></td><td>none</td><td>1 &mdash; SOC&nbsp;2 request</td>
-      <td>1 &mdash; low vs medium</td><td>9.9 s</td><td class="num">0.184&cent;</td><td class="num">$1.84</td><td>0.20&times;</td></tr>
-  <tr><td><code>gpt-5-mini</code></td><td>minimal</td><td><b>100%</b></td><td>none</td><td>3</td>
-      <td>1 &mdash; low vs medium</td><td>5.5 s</td><td class="num">0.127&cent;</td><td class="num">$1.27</td><td>0.14&times;</td></tr>
-  <tr class="bad"><td><code>gpt-5-nano</code></td><td>low</td><td><b>100%</b></td><td>none</td><td>1</td>
-      <td><b>3 critical read as high</b></td><td>7.0 s</td><td class="num">0.035&cent;</td><td class="num">$0.35</td><td>0.04&times;</td></tr>
-  <tr><td>keyword rules only</td><td>&mdash;</td><td><b>100%</b></td><td>none</td><td>none</td>
-      <td>none</td><td>0.0 s</td><td class="num">$0</td><td class="num">$0</td><td>free</td></tr>
+  <tr><th>Model</th><th>Effort</th><th>Escalations caught</th><th>False escalations</th>
+      <th>Urgency read too low</th><th class="num">Cost per ticket</th><th class="num">Per 1,000</th></tr>
+  <tr class="pick"><td><code>gpt-5</code></td><td>low</td>
+      <td><a href="#" id="recall" class="rlink">11 of 11</a></td><td>0</td><td>0</td>
+      <td class="num">0.914&cent;</td><td class="num">$9.14</td></tr>
+  <tr><td><code>gpt-5-mini</code></td><td>low</td><td>11 of 11</td><td>1</td><td>1</td>
+      <td class="num">0.184&cent;</td><td class="num">$1.84</td></tr>
+  <tr><td><code>gpt-5-mini</code></td><td>minimal</td><td>11 of 11</td><td>3</td><td>1</td>
+      <td class="num">0.127&cent;</td><td class="num">$1.27</td></tr>
+  <tr class="bad"><td><code>gpt-5-nano</code></td><td>low</td><td>11 of 11</td><td>1</td>
+      <td><b>3, all critical tickets</b></td>
+      <td class="num">0.035&cent;</td><td class="num">$0.35</td></tr>
 </table>
 
-<p><b>Category accuracy is not in that table on purpose.</b> Every model scores 100% on it, including
-the one disqualified below. A number that cannot separate a frontier model from the cheapest one is
-measuring the task, not the model, so it does not belong in a decision table. Strict category
-accuracy does separate the two <i>modes</i> &mdash; 100% on the model path against 82% rules-only
-&mdash; and that is in the scorecards.</p>
-
-<div class="note">
-  <b>Why <code>gpt-5-nano</code> is disqualified at 26&times; cheaper</b>
-  It read three <em>critical</em> tickets as high, one of them a provided sample: the checkout flow
-  double-charging customers. Those tickets sit. It scores 100% on category and 100% on escalation
-  recall while doing it, which is the whole argument for reporting urgency by direction &mdash; an
-  accuracy score calls nano a bargain.
-</div>
-
-<div class="note">
-  <b>And why the free row is not the answer either</b>
-  Keyword rules alone score 100% on the gold set and then miss three escalations out of twelve on the
-  adversarial set &mdash; a leak described as "probably nothing", credentials written
-  <code>cr3ds</code>, and the same incident in Spanish. Free is not cheap if it misses one.
-</div>
-
-<h2>The four levers, in order of return</h2>
-
-<table>
-  <tr><th>Lever</th><th>Effect</th><th>What it costs</th><th>Status</th></tr>
-  <tr><td><b>Prompt caching</b></td>
-      <td>~90% of input tokens are cache reads at a tenth of the price</td>
-      <td>Nothing. The system prompt is a stable prefix, free once the first call warms it.</td>
-      <td><b>On</b></td></tr>
-  <tr><td><b>Reasoning effort</b></td>
-      <td>The dominant output-token lever. Moving to <code>low</code> roughly halved output tokens
-          and took the cost from 1.72&cent; to 0.91&cent;.</td>
-      <td>Judgment on hard rows. Mini at <code>minimal</code> tripled its false escalations.</td>
-      <td><b>On</b> (<code>low</code>)</td></tr>
-  <tr><td><b>A smaller model</b></td>
-      <td>5&times; to 26&times; cheaper</td>
-      <td>The error profile changes <em>shape</em>, not just magnitude &mdash; see the table.</td>
-      <td>Not taken</td></tr>
-  <tr><td><b>Cascade</b></td>
-      <td>Pick the reader per ticket. <b>38% cheaper</b> done right, <b>29% more expensive</b> done
-          the obvious way.</td>
-      <td>Complexity, and the cheap model's errors on the half it handles.</td>
-      <td>Built, off by default</td></tr>
-</table>
-
-<h2>I built the cascade. The obvious version loses money.</h2>
-
-<p>Worth showing because the arithmetic looks fine right up until you measure it. Draft every ticket
-on <code>gpt-5-mini</code>, then re-read on <code>gpt-5</code> when the draft escalates, calls it
-high or critical, or is unsure. 58% got re-read, so the naive sum says about 22% saved.</p>
-
-<table>
-  <tr><th>Arrangement</th><th>Missed esc.</th><th>False esc.</th><th>Critical under-called</th>
-      <th class="num">Cost / ticket</th><th>vs <code>gpt-5</code></th></tr>
-  <tr><td><code>gpt-5</code> on everything</td><td>none</td><td>none</td><td>no</td>
-      <td class="num">0.914&cent;</td><td>&mdash;</td></tr>
-  <tr class="bad"><td>Draft on mini, re-read the risky ones</td><td>none</td><td>none</td><td>no</td>
-      <td class="num">1.179&cent;</td><td><b>29% more expensive</b></td></tr>
-  <tr class="good"><td>Triage on the keyword layer, one call</td><td>none</td><td>1</td><td>no</td>
-      <td class="num">0.567&cent;</td><td><b>38% cheaper</b></td></tr>
-</table>
-
-<div class="note">
-  <b>Why the draft version loses: adverse selection</b>
-  The tickets a cascade chooses to re-read are, by construction, the hard ones &mdash; they escalate,
-  or they are urgent. A hard ticket costs nearly double the average on the expensive model &mdash;
-  <b>1.73&cent; against a 0.91&cent; average</b> &mdash; so the draft becomes pure overhead on most of
-  the spend and the saving never arrives. It is invisible if you reason about an average cost per
-  ticket instead of pricing each one.
-</div>
-
-<p><b>The version that works does the triage for free.</b> The keyword layer already reads every
-ticket &mdash; it is the guardrail. Let it choose the reader instead of paying a model to choose:
-anything that trips an escalation pattern, or reads as high urgency on keywords alone, goes to
-<code>gpt-5</code>; everything else goes to <code>gpt-5-mini</code>. <b>One model call either way.</b>
-17 of 33 tickets took the expensive path and the bill fell 38%.</p>
-
-<p>What it costs is mini's error profile on the half it handles: one false escalation, the SOC&nbsp;2
-document request again, and one low-versus-medium urgency disagreement. Nothing missed and no
-critical ticket under-called, which are the two results that would rule it out. Turn it on with
-<code>LLM_CASCADE=1 CASCADE_TRIAGE=rules</code>.</p>
-
-<h2>If volume grew</h2>
-
-<table>
-  <tr><th>Tickets / month</th><th>On <code>gpt-5</code></th><th>With the keyword cascade</th><th>Worth switching?</th></tr>
-  <tr><td class="num">1,000</td><td class="num">$9</td><td class="num">$6</td><td>No. $3 a month.</td></tr>
-  <tr><td class="num">10,000</td><td class="num">$91</td><td class="num">$57</td><td>Probably not.</td></tr>
-  <tr><td class="num">50,000</td><td class="num">$457</td><td class="num">$284</td><td>Now it is a conversation.</td></tr>
-  <tr><td class="num">500,000</td><td class="num">$4,570</td><td class="num">$2,835</td><td>Yes, and revisit the prompt too.</td></tr>
-</table>
-
-<p>Before any of that, the cheaper lever at volume is not the model: it is batching. Anything that is
-not interactive belongs on the provider's batch API, and backfills belong nowhere near the
-synchronous endpoint.</p>
-
-<p style="color:var(--faint);font-size:13px">Model numbers from <code>docs/MODEL-BAKEOFF.md</code>,
-cascade from <code>docs/CASCADE.md</code> and <code>docs/CASCADE-RULES.md</code>, adversarial results
-from <code>docs/STRESS-llm.md</code>. Rates are list price as of 2026-09 and live in
-<code>app/pricing.py</code>; check them before quoting a figure.</p>
+<div id="evidence" class="ev" hidden></div>
 
 </main>
+<script>
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function showRecall(){
+  const box=document.getElementById('evidence');
+  if(!box.hidden){box.hidden=true;return}
+  const r=await fetch('/evidence/escalation').then(x=>x.json()).catch(()=>null);
+  if(!r){box.innerHTML='<p>Could not load the tickets.</p>';box.hidden=false;return}
+  box.innerHTML=r.groups.map(g=>{
+    const caught=g.tickets.filter(t=>t.caught).length;
+    return `<h3>${esc(g.name)} <span class="cnt">${caught} of ${g.tickets.length} caught</span></h3>
+      <p class="about">${esc(g.about)}</p>
+      <table class="evt">${g.tickets.map(t=>`<tr>
+        <td class="ok">${t.caught?'\u2713':'\u2717'}</td>
+        <td class="id">${esc(t.id)}</td>
+        <td>${esc(t.text.length>150?t.text.slice(0,150)+'\u2026':t.text)}</td>
+        <td class="kw">${t.keywords?'keyword matched too':'<b>no keyword, model only</b>'}</td>
+      </tr>`).join('')}</table>`;
+  }).join('');
+  box.hidden=false;
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+}
+document.getElementById('recall').onclick=e=>{e.preventDefault();showRecall()};
+if(new URL(location).searchParams.get('show')==='recall') showRecall();
+</script>
 </body>
 </html>

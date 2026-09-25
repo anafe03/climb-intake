@@ -175,3 +175,13 @@ def test_pricing_serves_the_measured_comparison():
     assert {"gpt-5", "gpt-5-mini", "gpt-5-nano"} <= models
     nano = next(m for m in r["models"] if m["model"].startswith("gpt-5-nano"))
     assert nano["critical_under_called"], "the disqualifying fact must survive a re-run"
+
+
+def test_escalation_evidence_shows_the_tickets_behind_recall():
+    """The recall number is clickable; this is what the click shows."""
+    r = client.get("/evidence/escalation").json()
+    names = [g["name"] for g in r["groups"]]
+    assert names == ["Gold set", "Adversarial set", "No keywords at all"]
+    no_kw = r["groups"][2]["tickets"]
+    # The whole point of the third group: caught, and no keyword rule fired.
+    assert no_kw and all(t["caught"] and not t["keywords"] for t in no_kw)
