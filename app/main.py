@@ -215,9 +215,14 @@ RECORDED = Path(__file__).resolve().parent.parent / "data" / "recorded"
 
 
 @app.post("/tickets/load-recorded", response_model=BatchOut, tags=["intake"],
-          summary="Replay a recorded set \u2014 instant, no model calls")
+          summary="Replay decisions from an earlier real run (no new model calls)")
 def load_recorded(fixture: str = "samples"):
-    """Loads decisions from a run that already happened, with no model call and no network.
+    """Replays real decisions from a run that already happened. No new model call, no network.
+
+    These are not fixtures or mock answers: every row was produced by the pipeline reading that
+    ticket for real, and the model name, token counts, latency and reasoning are the ones from that
+    run. What is *not* happening is a fresh call \u2014 the answers were computed earlier and are being
+    loaded, the way a database restore loads real rows without re-running the transactions.
 
     A demo should read *one* ticket live, because that is the part worth watching. Replaying the
     rest removes several minutes of spinner and the risk that a flaky connection decides how the

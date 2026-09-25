@@ -642,6 +642,26 @@ const FAQ={
      +'escalation flag and category label were unanimous 4/4, with confidence standard deviation averaging '
      +'0.046. Nothing is pinned — no seed, no temperature control — so that is the natural spread. '
      +'The <b>Read it again</b> button lower down runs the same check live on this ticket.'],
+    ['100% recall sounds too good. Does it ever get one wrong?',
+     'Yes, and there is a set built to make it. <code>scripts/stress.py</code> runs twelve tickets written '
+     +'to defeat it, each naming its attack. On those: <b>still no missed escalations</b>, but one false '
+     +'escalation and three more over-escalations. It fails in exactly one direction \u2014 the vocabulary of an '
+     +'incident showing up without the incident: a <i>denied</i> breach, a <i>hypothetical</i> vulnerability, '
+     +'someone else\u2019s lawyer, and "a total breach of trust" meant figuratively.'],
+    ['Show me the worst one.',
+     '<code>adv-01</code>: "To be clear, we have <b>NOT</b> had a data breach. Procurement just needs your SOC 2 '
+     +'report." The model read it correctly \u2014 other, medium, no escalation, reasoning "they explicitly state '
+     +'no breach". Then the keyword layer matched the literal string <i>data breach</i> inside the denial, forced '
+     +'the flag on and lifted urgency to critical. <b>The shipped answer is worse than the model\u2019s answer.</b> '
+     +'A regex cannot read a negation, and the rules may only raise. That is the price of never missing one, '
+     +'paid out loud \u2014 the audit record names both answers and both overrides, so a reviewer clears it in '
+     +'seconds instead of wondering.'],
+    ['Why not just fix that?',
+     'Because the fix has a worse failure mode. Teaching the patterns to skip negations means a regex deciding '
+     +'that "no breach has occurred, but" is safe to ignore, and the first ticket it gets wrong is one that '
+     +'sits. The asymmetry is deliberate: I would rather explain a false escalation than a missed one. What is '
+     +'worth doing instead is what the stress set does \u2014 measure how often it happens, name the four shapes '
+     +'it takes, and let a reviewer see the override.'],
     ['Is escalation really just keywords?',
      'Both halves run, and either one alone can raise the flag \u2014 but you should push on this, because '
      +'on the 33-row gold set they agree <i>exactly</i>: 11 tickets escalated, all 11 caught by both, '

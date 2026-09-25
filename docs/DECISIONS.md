@@ -1371,6 +1371,49 @@ discriminate are missed escalations, false escalations and urgency under-calls.
 from the same head, so agreement between them is weaker evidence than it looks. The ten provided
 Climb tickets are the independent subset; the model is 10/10 strict there.
 
+### D91. 100% is not a result, it is a reason to go looking
+Austin: "no failure isn't that a problem, hard to demo 100%." Correct on both counts. A scorecard
+with nothing but full marks says more about the test than the system, and it is unconvincing in a
+room. `data/adversarial.jsonl` and `scripts/stress.py` are twelve tickets written to break it, each
+naming the attack it makes. **A failing row there is the output, not a defect.**
+
+| on 12 adversarial tickets | model path | keyword rules alone |
+|---|---|---|
+| Missed escalations | **none** | 3 (adv-05, adv-06, adv-11) |
+| False escalations | 1 (adv-01) | 1 (adv-01) |
+| Urgency under-called | 1 | 5 |
+| Category, strict | 75% | 42% |
+
+It still never misses. It fails in exactly one direction — the vocabulary of an incident without
+the incident — and in four recognisable shapes: **negation** ("we have NOT had a data breach"),
+**hypothetical** ("if we ever found a vulnerability"), **third party** (a competitor's lawyer), and
+**figurative** ("a total breach of trust").
+
+The keyword layer fails the other way, which is the case for having both: a leak described as
+"probably nothing", credentials written `cr3ds`, and the same incident in Spanish are all invisible
+to it, and the model caught all three.
+
+### D92. The best demo ticket is the one where the guardrail is wrong
+`adv-01` is the ticket to open in front of a panel. The model read it correctly — `other`, medium,
+no escalation, reasoning "they explicitly state no breach; this is a routine SOC 2 request". The
+keyword layer then matched the literal string `data breach` *inside the denial*, forced the flag on
+and lifted urgency to critical. **The shipped answer is worse than the model's answer**, and the
+audit record says so in two numbered overrides.
+
+I am not fixing it. Teaching the patterns to skip negations puts a regex in charge of deciding that
+"no breach has occurred, but" is safe to ignore, and the first ticket it gets wrong is one that
+sits. The asymmetry is the whole design; this is its price, and the right response is to measure how
+often it is paid, name the shapes it takes, and make the override legible — not to quietly file
+down the guardrail until the demo looks clean.
+
+### D93. "Replay" needed saying more carefully
+Austin, on `POST /tickets/load-recorded`: "why is this not a real call, I'm not sure." Fair — the
+summary said "no model calls" and left the wrong impression available. These are real decisions from
+a real run: the model name, token counts, latency and reasoning are all the ones the pipeline
+produced when it read that ticket. What is not happening is a *fresh* call. The endpoint now says
+so, with the analogy that lands: a database restore loads real rows without re-running the
+transactions.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

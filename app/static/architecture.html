@@ -284,6 +284,58 @@ with the exact text it matched, token counts, latency, and which mode produced i
   an archaeology project.
 </div>
 
+<h2>Where it breaks</h2>
+
+<p>The gold set reports 100% escalation recall with zero false escalations, in both modes. That is a
+suspicious number and quoting it is not an answer. So there is a second set built to defeat the
+thing &mdash; twelve tickets, each naming the attack it makes. A failing row there is the output,
+not a defect.</p>
+
+<table>
+  <tr><th>On 12 adversarial tickets</th><th>Model path</th><th>Keyword rules alone</th></tr>
+  <tr><td>Missed escalations</td><td><b>none</b></td><td class="bad">3 &mdash; adv-05, adv-06, adv-11</td></tr>
+  <tr><td>False escalations</td><td>1 &mdash; adv-01</td><td>1 &mdash; adv-01</td></tr>
+  <tr><td>Urgency under-called</td><td>1</td><td class="bad">5</td></tr>
+  <tr><td>Category, strict</td><td>75%</td><td>42%</td></tr>
+</table>
+
+<p><b>It still never misses an escalation, and that is the number that matters.</b> What it does
+instead is over-escalate, in four situations where the vocabulary of an incident appears without the
+incident:</p>
+
+<table>
+  <tr><th>Ticket</th><th>The trap</th><th>What happened</th></tr>
+  <tr><td><code>adv-01</code></td><td>Negation &mdash; "we have <b>NOT</b> had a data breach"</td>
+      <td>Escalated. See below; this one is the interesting failure.</td></tr>
+  <tr><td><code>adv-02</code></td><td>Hypothetical &mdash; "<em>if</em> we ever found a vulnerability, what is your process?"</td>
+      <td>Escalated. Arguably right: a disclosure-process question from a security team may be worth a look.</td></tr>
+  <tr><td><code>adv-03</code></td><td>Third party &mdash; a competitor's lawyer, nothing to do with us</td>
+      <td>Escalated on the word <code>lawyer</code>.</td></tr>
+  <tr><td><code>adv-12</code></td><td>Figurative &mdash; "a total <b>breach of</b> trust"</td>
+      <td>Escalated. The phrase is in the legal pattern; the meaning is not legal at all.</td></tr>
+</table>
+
+<div class="note">
+  <b>adv-01 is the one to look at, because the model got it right and the guardrail broke it</b>
+  The model read the ticket correctly &mdash; <code>other</code>, medium urgency, no escalation, with
+  the reasoning "they explicitly state no breach&hellip; this is a routine SOC 2 request". Then the
+  keyword layer matched the literal string <code>data breach</code> inside the denial, forced
+  <code>escalate=true</code> and lifted urgency to critical. <b>The shipped answer is worse than the
+  model's answer.</b>
+  <br><br>
+  That is not a bug to be fixed quietly. It is the asymmetry working exactly as designed &mdash; the
+  rules may only raise, never lower, and a regex cannot read a negation. The cost of never missing an
+  escalation is that a denial of one gets escalated. The audit record shows both answers and both
+  overrides by name, so the mistake is legible rather than mysterious, and a reviewer clears it in
+  seconds.
+</div>
+
+<p>The keyword layer on its own fails the other way, which is the argument for having both:
+<code>adv-05</code> (a cross-tenant leak described as "probably nothing"), <code>adv-06</code>
+(credentials written as <code>cr3ds</code>) and <code>adv-11</code> (the same incident in Spanish)
+are all invisible to it. The model caught every one. Full transcripts in
+<code>docs/STRESS-llm.md</code> and <code>docs/STRESS-rules.md</code>.</p>
+
 <h2>What it costs, and why not a cheaper model</h2>
 
 <p>Every decision carries its own price, computed from the tokens the provider actually reported and
