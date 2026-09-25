@@ -144,7 +144,7 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
 
   <div class="beat">
     <div class="top"><span class="n">2</span><h2>Open a ticket and walk the five boxes</h2><span class="time" data-sec="240" data-short="180">4 min</span></div>
-    <div class="do"><b>Do</b>Open the security-researcher ticket, then click each box in turn.
+    <div class="do"><b>Do</b>Open the "another company's customer records" ticket, then click each box in turn.
       <div id="links-walk"></div></div>
     <div class="say">
       <p>"Left is exactly what arrived. Right is what it worked out. Every box opens to show how it decided."</p>
@@ -160,21 +160,22 @@ h2.section{font:700 12px var(--sans);letter-spacing:.08em;text-transform:upperca
 
   <div class="beat">
     <div class="top"><span class="n">3</span><h2>The escalation argument</h2><span class="time" data-sec="150" data-short="110">2.5 min</span></div>
-    <div class="do"><b>Do</b>Click <b>Needs a human</b> in the toolbar to filter.</div>
+    <div class="do"><b>Do</b>Open the former-employee ticket, click <b>Escalate?</b>, and point at the grid.
+      <div id="links-esc"></div></div>
     <div class="say">
-      <p>"A missed escalation is the one failure their brief calls unacceptable. So escalation doesn't
-      rest on the model alone."</p>
-      <p>"The model reads the ticket. Then keyword rules run over the raw text, not the model's output,
-      and they may only ever <i>raise</i> the flag. There is no code path that lowers it."</p>
-      <p>"Both layers catch 100% of the must-escalate tickets on the gold set. Independently."</p>
+      <p>"Two separate readers check every ticket. The model reads it the way a person would. Keyword
+      rules look for specific words, like 'former employee' or 'lawyer'. If either one says yes, it
+      escalates. Neither one can turn a yes into a no."</p>
+      <p>"So there are four cases. This ticket is top left: both said yes. Top right is why the model is
+      there: 'Sam finished up with us in June and can still get in' has none of the words, and only the
+      model catches it. Bottom left is the price of the keywords: 'we have <i>not</i> had a data breach'
+      has the words, so it gets flagged even though the model said no. I'll show you that one live."</p>
+      <p>"Is it deterministic? The keyword half is: same words, same answer, every time. The model half
+      isn't guaranteed to be, so I checked. Four tickets, three reads each, same answer every time. And
+      you can check any ticket yourself with <b>Read it again</b>."</p>
     </div>
-    <div class="do"><b>Then</b>Open the spam email that mentions GDPR.<div id="links-spam"></div></div>
-    <div class="say">
-      <p>"Marketing copy with the word GDPR in it. A rule escalated it. A second rule recognised it as
-      spam and put it back. Net change: nothing. What shipped is exactly what the model said."</p>
-      <p>"The audit keeps all three steps, because an auditor asking whether anything touched this
-      ticket deserves the real sequence, not just the outcome."</p>
-    </div>
+    <p class="why"><b>If they only remember one thing:</b> the model decides, the keywords are a backup
+    that can add a flag but never remove one.</p>
   </div>
 
 <h2 class="section">4 · The queue board <span class="tag">always cover</span></h2>
@@ -580,13 +581,15 @@ retime();
     ? `Service up · ${health.provider} · ${health.model} · ${rows.length} tickets loaded`
     : 'Service is in keyword-rules mode: add an API key to .env before demoing';
 
-  const idor = findBy(rows, 'security researcher') || findBy(rows, 'idor');
-  const spam = findBy(rows, 'gdpr-compliant') || findBy(rows, 'lead lists');
+  // Both of these are in the ten tickets the demo starts with.
+  const walk = findBy(rows, "another company's customer records");
+  const leaver = findBy(rows, 'former employees');
   document.getElementById('links-walk').innerHTML =
-    link(idor, 'Open the ticket') + link(idor, '→ Who sent it', 'who') +
-    link(idor, '→ How urgent', 'urgency') + link(idor, '→ Needs a human', 'human') +
-    link(idor, '→ Where it goes', 'route');
-  document.getElementById('links-spam').innerHTML = link(spam, 'Open the GDPR spam ticket');
+    link(walk, 'Open the ticket') + link(walk, '→ Who sent it', 'who') +
+    link(walk, '→ How urgent', 'urgency') + link(walk, '→ Needs a human', 'human') +
+    link(walk, '→ Where it goes', 'route');
+  document.getElementById('links-esc').innerHTML =
+    link(leaver, 'Open the former-employee ticket') + link(leaver, '→ Escalate?', 'human');
 
   // Numbers come from the eval scorecards, not from memory.
   const esc_n = rows.filter(r => r.extraction.escalate).length;

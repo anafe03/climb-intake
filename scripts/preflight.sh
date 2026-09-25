@@ -27,10 +27,8 @@ diff <(curl -s $BASE/) app/static/index.html >/dev/null \
   && ok "served page matches the working tree" || no "SERVING STALE CODE — rebuild"
 diff <(curl -s $BASE/notes) app/static/presenter.html >/dev/null \
   && ok "presenter notes current at /notes" || no "/notes stale or missing"
-diff <(curl -s $BASE/architecture) app/static/architecture.html >/dev/null \
-  && ok "architecture page current at /architecture" || no "/architecture stale or missing"
-diff <(curl -s $BASE/architecture) app/static/architecture.html >/dev/null \
-  && ok "architecture page current at /architecture" || no "/architecture stale or missing"
+diff <(curl -s $BASE/optimization) app/static/optimization.html >/dev/null \
+  && ok "cost page current at /optimization" || no "/optimization stale or missing"
 
 UP=$(ps -o etime= -p "$(pgrep -f 'limactl.*colima' | head -1)" 2>/dev/null | tr -d ' ')
 case "$UP" in
@@ -73,9 +71,11 @@ for label, good in checks:
     print(("  \033[32mPASS\033[0m  " if good else "  \033[31mFAIL\033[0m  ")+label)
 PYEOF
 
-LOADED_FALLBACK=$(curl -s "$BASE/tickets?limit=300" | $PY -c 'import json,sys;print(sum(1 for r in json.load(sys.stdin) if r["mode"]!="llm"))')
-[ "$LOADED_FALLBACK" = "0" ] && ok "no keyword-fallback tickets sitting in the demo data" \
-  || no "$LOADED_FALLBACK loaded tickets were classified by the fallback — Clear all and reload"
+# The recorded "failed extractions" set is fallback on purpose (D103). Anything else read by the
+# fallback means the model was failing when it was loaded, which is worth knowing before a demo.
+LOADED_FALLBACK=$(curl -s "$BASE/tickets?limit=300" | $PY -c 'import json,sys;print(sum(1 for r in json.load(sys.stdin) if r["mode"]!="llm" and r["ticket"]["source"]!="recorded:failures"))')
+[ "$LOADED_FALLBACK" = "0" ] && ok "no unexpected keyword-fallback tickets in the demo data" \
+  || no "$LOADED_FALLBACK loaded tickets fell back to keyword rules unexpectedly: Clear all and reload"
 
 echo "── idempotency + audit"
 B=$(curl -s $BASE/queues | $PY -c 'import json,sys;print(json.load(sys.stdin)["total"])')

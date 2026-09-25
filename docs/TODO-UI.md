@@ -163,6 +163,40 @@ Earlier in this run-through, already done:
 - [x] **"don't miss any of this"**. Also removed the dashes from the API page's own text, which the
       earlier sweep had missed because they were written as escape codes.
 
+## Block 8: one cost number, and escalation made clear (2026-09-25)  (DONE)
+
+- [x] **"Cost / ticket, Per 1,000: this is redundant"** One column, dollars per 1,000 tickets, on the
+      cost page, the dashboard comparison card and the dashboard cost card.
+- [x] **"how it works can be dropped or made more clear"** Dropped: page, route and test gone, a test
+      asserts it now returns 404, preflight checks the cost page instead, PREP.md updated.
+- [x] **"is escalation completely deterministic, just keyword search?"** The Escalate pop-out now opens
+      with a four-box grid (model yes/no by keywords yes/no), a real example in each box, this ticket's
+      box marked, and one sentence saying what each reader said for this ticket. Beat 3 of the notes
+      says it the same way, including the deterministic question.
+- [x] Found on the way: beats 2 and 3 linked to tickets that are not in the ten the demo starts with,
+      so "Open the ticket" would have been empty on stage. Both now point at seeded tickets, verified
+      by loading the notes page and checking every link resolves.
+
+## Block 9: more comments from the run-through (2026-09-25)
+
+- [ ] **"where does this come from: the saving is a few dollars a month ... Revisit at about 50,000
+      tickets a month, where the 38% saving becomes real money ... explain it maybe a little more in
+      cost and models, now there's nothing"**
+      Say where each number came from: the 38% is measured, the 50,000 is my judgment and must be
+      labelled as one. Put a short plain explanation back on the cost page, under the table.
+- [ ] **"the queues isn't sorting by most urgent, it has them broken in categories"**
+      Queues should read most urgent first, top to bottom.
+- [ ] **"can we make an example where category certainty [is low] ... human-review 0 ... can we have
+      example for these ones in the demo set of 32, make it a few more"**
+      Empty queues in the demo: human-review, product-feedback, general-support, billing-oncall. Add
+      real tickets for them to the 32-ticket set, recorded from actual model reads, and only keep ones
+      that genuinely land in those queues.
+- [ ] **"wtf is the 3 failed extraction for data, I'm not sure what that means, I don't think that
+      makes sense"** Rename it in plain words and say what it is for.
+- [ ] **"escalation is big, is it only keywords??? I still don't understand that"**
+      Answer plainly again. Also check what on screen makes it look keyword-only: every topic in the
+      Escalate pop-out shows a bold "keywords:" line, which reads as if that is how it decides.
+
 ## Still open
 
 - [x] Git remote: github.com/anafe03/climb-intake, pushed by Austin.

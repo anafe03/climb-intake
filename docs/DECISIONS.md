@@ -1577,6 +1577,29 @@ box and Execute. The media-type dropdown is hidden because the server ignores th
 it changed nothing on any endpoint. The schema list at the bottom, which repeated each endpoint's own
 Schema tab, is collapsed.
 
+### D109. Escalation, shown as four cases on every ticket
+Austin, a third time: "is human escalation completely deterministic, just keyword search?" The earlier
+answers were correct and too abstract. The Escalate pop-out now opens with a grid: model says yes or
+no, by keywords say yes or no, with a real ticket in each box, and this ticket's box marked. Above it,
+one sentence: what the model said and what the keywords said for this ticket, and which words matched.
+All four examples are checked against saved results: climb-03 (both yes), kf-01 (model only),
+adv-01 (keywords only, the false alarm), climb-01 (neither).
+
+The deterministic question gets a straight answer in the notes: the keyword half is deterministic;
+the model half is not guaranteed to be, so it was measured, and anyone can check a ticket with Read it
+again.
+
+### D110. One cost number, and How it works removed
+Per ticket and per thousand are the same number twice. Everywhere now shows dollars per thousand
+tickets, which compares more easily than fractions of a cent. How it works is deleted rather than
+hidden: the page, the route and the test; a test asserts it is gone. The grid above replaces the one
+thing on that page that was worth keeping.
+
+### D111. Two presenter links pointed at tickets the demo does not start with
+Beat 2 opened the security-researcher ticket and beat 3 the GDPR spam ticket. Neither is in the ten
+seeded samples, so on a fresh demo both links would have read "not loaded". Both now use seeded
+tickets, and this was checked by loading `/notes` and confirming every link resolved.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

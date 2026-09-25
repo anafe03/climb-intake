@@ -124,9 +124,10 @@ table.mini{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
 table.mini td{padding:5px 8px 5px 0;border-bottom:1px solid var(--line);white-space:nowrap}
 table.mini tr:last-child td{border-bottom:0}
 table.mini td.n{font-variant-numeric:tabular-nums;font-weight:650;text-align:right;width:62px}
+table.mini caption{caption-side:top;text-align:left;font-size:11px;color:var(--faint);padding:0 0 4px}
 table.mini td.w{color:var(--dim);white-space:normal}
 table.mini tr.here td{background:var(--sunken);font-weight:600}
-table.mini tr.here td:first-child::after{content:" \2190 running";color:var(--primary);font-weight:600;font-size:11px}
+table.mini tr.here td:first-child::after{content:" \2190  running";color:var(--primary);font-weight:600;font-size:11px}
 table.mini tr.bad td.w{color:var(--danger);font-weight:600}
 @media (max-width:760px){.overview.solo .ov.wide2{grid-column:span 2}}
 .meta .cost{color:var(--climb-coral-deep);font-weight:600}
@@ -312,6 +313,17 @@ table.mini tr.bad td.w{color:var(--danger);font-weight:600}
 .sec{margin-bottom:22px}
 .sec h3{font:700 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:0 0 9px}
 .subh{font:700 11.5px var(--sans);color:var(--dim);margin:0 0 7px}
+.gridlead{font-size:13px;line-height:1.6;margin:0 0 10px}
+table.escgrid{width:100%;border-collapse:separate;border-spacing:6px;margin:0 -6px 6px;font-size:12.5px}
+table.escgrid th{font:700 10px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--faint);text-align:left;padding:2px 4px;vertical-align:middle}
+table.escgrid td{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;vertical-align:top;width:42%}
+table.escgrid td b{display:block;margin-bottom:4px}
+table.escgrid td .ex{display:block;color:var(--dim);line-height:1.5;margin-bottom:7px}
+table.escgrid td .res{font:700 10.5px var(--sans);letter-spacing:.05em;text-transform:uppercase}
+table.escgrid td .res.yes{color:var(--climb-coral-deep)}
+table.escgrid td .res.no{color:var(--faint)}
+table.escgrid td.here{border:2px solid var(--climb-coral);background:var(--wash)}
+table.escgrid td.here b::after{content:"  \2190  this ticket";color:var(--climb-coral-deep);font-size:11px}
 .faq details{border-bottom:1px solid var(--line);padding:0}
 .faq details:last-child{border-bottom:0}
 .faq summary{cursor:pointer;padding:9px 2px;font:600 12.5px var(--sans);color:var(--text);list-style:none}
@@ -686,6 +698,39 @@ function faq(key){
     `<details><summary>${esc(q)}</summary><div>${a}</div></details>`).join('')}</div>`;
 }
 
+// Two readers decide escalation, and either one saying yes is enough. The grid shows all four
+// combinations with a real ticket for each, and marks the cell this ticket landed in.
+function escGrid(d){
+  const L=d.llm_extraction;
+  const modelRan=!!L;
+  const model=modelRan?!!L.escalate:null;
+  const hits=(d.rule_hits||[]).filter(h=>h.reason);
+  const kw=hits.length>0;
+  const cell=(m,k,title,example,result)=>{
+    const here=modelRan&&m===model&&k===kw;
+    return `<td class="${here?'here':''}"><b>${title}</b><span class="ex">${example}</span>
+      <span class="res ${result?'yes':'no'}">${result?'Escalated':'Not escalated'}</span></td>`;
+  };
+  const said=modelRan
+    ? `For this ticket the model said <b>${model?'yes':'no'}</b> and the keyword rules said
+       <b>${kw?'yes':'no'}</b>${kw?` (they matched ${hits.map(h=>`\u201c${esc(h.matched)}\u201d`).join(', ')})`:''}.`
+    : `The model did not answer for this ticket, so only the keyword rules decided: they said
+       <b>${kw?'yes':'no'}</b>.`;
+  return `<h5>How the flag was decided</h5>
+    <p class="gridlead">Two separate readers check every ticket. The <b>model</b> reads it like a person
+      would. The <b>keyword rules</b> look for specific words. If either one says yes, the ticket is
+      escalated. ${said}</p>
+    <table class="escgrid">
+      <tr><th></th><th>Keywords say yes</th><th>Keywords say no</th></tr>
+      <tr><th>Model says yes</th>
+        ${cell(true,true,'Both agree','\u201cA former employee logged in with old credentials\u201d',true)}
+        ${cell(true,false,'Only the model saw it','\u201cSam finished up with us in June and can still get in\u201d',true)}</tr>
+      <tr><th>Model says no</th>
+        ${cell(false,true,'Only the keywords saw it','\u201cWe have <i>not</i> had a data breach\u201d: a false alarm, on purpose',true)}
+        ${cell(false,false,'Neither','\u201cCan you check our last invoice?\u201d',false)}</tr>
+    </table>`;
+}
+
 // Every pop-out reads in the same order, and the order is the one a reviewer asks in:
 //   1. the ticket, so the thing being explained is never off-screen
 //   2. THE DECISION — what this service concluded, stated first
@@ -771,15 +816,10 @@ function explainer(key,d){
     + call('Does it escalate', x.escalate
         ? `<b>Yes</b>: ${x.escalation_reasons.map(r=>`<b>${esc(cap(r))}</b>`).join(' and ')}. Copied to <code>${esc(d.escalation_queue||'the escalation desk')}</code> on top of <code>${esc(d.queue)}</code>.`
         : `<b>No</b>. None of the five topics applied, so it goes to <code>${esc(d.queue)}</code> and nowhere else.`)
+    + escGrid(d)
     + why(x.escalation_reason_text)
     + `<h5>The five escalation topics</h5><ul class="crit">${ESC_DEFS.map(([k,v,t])=>
-        liTrig(cap(k),v,t,x.escalation_reasons.includes(k))).join('')}</ul>
-       <p style="font-size:11.5px;color:var(--faint);margin:9px 0 0">Both halves read the same five
-       topics, and either half alone is enough to raise the flag. The keywords match words. The model
-       reads meaning, which is what catches “the woman who runs our company wants an explanation”
-       or a leaver who “finished up with us in June”: no pattern in <code>app/rules.py</code> sees
-       either. Measured: on six tickets written to be invisible to the keywords, the model caught all
-       five that should escalate and left the control alone.</p>`
+        liTrig(cap(k),v,t,x.escalation_reasons.includes(k))).join('')}</ul>`
     + `<h5>Who ends up involved: four things that get confused for each other</h5><ul class="crit">
         ${li('Its own team','always. Every ticket is routed to a queue a person works.',true)}
         ${li('On-call, paged now','when urgency is critical. This ticket: '+esc(x.urgency)+'.',x.urgency==='critical')}
@@ -992,13 +1032,13 @@ function renderOverview(){
     <div class="ov"><div class="k">By category <span class="hint">click to filter</span></div>
       ${bar(count('c',d=>d.extraction.category),CAT_COLOR,'category')}</div>
     ${spend!=null?`<div class="ov"><div class="k">What it cost</div>
-      <div class="big">${cents(spend/Math.max(priced,1))}<small>per ticket, average</small></div>
-      <div class="s" style="margin-top:9px"><b>$${(spend/Math.max(priced,1)*1000).toFixed(2)}</b> per 1,000 tickets</div></div>`:''}
+      <div class="big">$${(spend/Math.max(priced,1)*1000).toFixed(2)}<small>per 1,000 tickets</small></div>
+      <div class="s" style="margin-top:9px">Worked out from what these ${priced} tickets actually used.</div></div>`:''}
     <div class="ov"><div class="k">Failed extractions</div>
       <div class="big ${fellBack?'danger':''}">${fellBack}<small>${fellBack===1?'ticket':'tickets'} fell back to keyword rules</small></div>
       <div class="s" style="margin-top:9px">${errored?`${errored} returned an error. `:''}<a href="/optimization?show=recall" class="lnk">21 of 21 escalations caught, see them →</a></div></div>
     ${priceTable&&priceTable.models&&priceTable.models.length?`<div class="ov wide2"><div class="k">The same job on a cheaper model</div>
-      <table class="mini">${priceTable.models.map(m=>{
+      <table class="mini"><caption>Cost per 1,000 tickets</caption>${priceTable.models.map(m=>{
         const here=(priceTable.running||'').startsWith(m.model.split('-20')[0]) && m.effort==='low';
         const bad=m.critical_under_called;
         const note=m.missed_escalations?`${m.missed_escalations} missed escalations`
@@ -1007,7 +1047,7 @@ function renderOverview(){
           : 'no errors on the gold set';
         return `<tr class="${bad?'bad':''}${here?' here':''}">
           <td><code>${esc(m.model.split('-20')[0])}</code>${m.effort!=='low'?` <i>${esc(m.effort)}</i>`:''}</td>
-          <td class="n">${(m.cost_per_ticket*100).toFixed(3)}\u00a2</td>
+          <td class="n">$${(m.cost_per_ticket*1000).toFixed(2)}</td>
           <td class="w">${esc(note)}</td></tr>`}).join('')}</table>
       <div class="s" style="margin-top:8px">Measured on ${esc(priceTable.measured_on)}, not estimated.
         <a href="/optimization" class="lnk">Why not the cheap one →</a></div></div>`:''}

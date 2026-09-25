@@ -27,9 +27,9 @@ Read these **in order**. Each one assumes the last.
       an answer to it.
 - [ ] **`README.md`** (8 min) — what a reviewer sees first. *Check: does the first paragraph tell you
       what this is in one breath?*
-- [ ] **<http://localhost:8080/architecture>** (8 min) — the pipeline diagram, why guardrails only
-      push one way, the four ways a person gets involved, the bug/security boundary.
-      *Check: could you redraw the pipeline on a whiteboard from memory?*
+- [ ] **Open any escalated ticket, click Escalate** (3 min): the four-box grid under "How the flag was
+      decided". *Check: can you say, without looking, what happens when the model says no and a
+      keyword says yes?*
 - [ ] **`docs/HOW-IT-WORKS.md`** (8 min) — deterministic vs model, who assigns confidence, execution
       order. *Check: can you answer "is it a model or is it rules" in two sentences?*
 - [ ] **`docs/EVAL-llm.md`** — read the **summary table and the per-ticket table**, skim the
@@ -76,7 +76,7 @@ Do this before rehearsing. You are checking that it makes sense to *you*.
 
 - [ ] `./scripts/preflight.sh` again. Networks change overnight.
 - [ ] Clear and reload the samples so timestamps read "just now".
-- [ ] Three tabs: the app, `/notes`, `/architecture`. Notes on your screen, not the shared one.
+- [ ] Three tabs: the app, `/optimization`, `/notes`. Notes on your screen, not the shared one.
 - [ ] A terminal ready in the repo directory for the API beat.
 - [ ] Know these five numbers cold:
 

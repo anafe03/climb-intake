@@ -139,12 +139,6 @@ def presenter_notes():
     return FileResponse(STATIC / "presenter.html")
 
 
-@app.get("/architecture", include_in_schema=False)
-def architecture():
-    """Diagrams and decision rules: the page to open when someone asks how it works."""
-    return FileResponse(STATIC / "architecture.html")
-
-
 @app.get("/optimization", include_in_schema=False)
 def optimization():
     """Cost, the model comparison, and the one optimisation that pays. Its own page because

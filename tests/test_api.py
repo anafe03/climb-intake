@@ -84,9 +84,9 @@ def test_presenter_notes_are_served():
     assert r.status_code == 200 and "Presenter notes" in r.text
 
 
-def test_architecture_page_is_served():
-    r = client.get("/architecture")
-    assert r.status_code == 200 and "Urgency is speed" in r.text
+def test_how_it_works_page_is_gone():
+    """Dropped on Austin's call. The escalation grid in the pop-out replaces what it tried to explain."""
+    assert client.get("/architecture").status_code == 404
 
 
 def test_recheck_compares_fields_and_persists_nothing():
