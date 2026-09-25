@@ -218,6 +218,17 @@ Earlier in this run-through, already done:
       shown. Verified by clicking each: 10, 38 and 48 cards, no duplicates.
 - [x] Model table re-run on all 61 labelled tickets (about $0.79): gpt-5 21 of 21, nano 19 of 21.
 
+- [x] **"can i click on the chart, like the 1 false escalation, and it pops out, same for urgency"**
+      Every number in the cost table opens its tickets.
+- [x] **"explain why is it cheaper, like default to mini and if it's questionable go to better model"**
+      Cost page explains it: mini by default, gpt-5 when the free keyword list spots risk, and why
+      mini-first-then-gpt-5 costs more.
+- [x] **"a filter to show the questions we asked, so 10, the 38 and the ones we ask"** Show menu,
+      "Where it came from": Climb samples, Other examples, Typed in. Switching sets keeps what you
+      typed.
+- [x] **"and reset it fresh"** Data menu, "Start fresh: 10 samples, nothing typed", and the demo is
+      reset to that now.
+
 ## Still open
 
 - [x] Git remote: github.com/anafe03/climb-intake, pushed by Austin.

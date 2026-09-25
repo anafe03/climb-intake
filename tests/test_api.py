@@ -188,3 +188,13 @@ def test_escalation_evidence_shows_the_tickets_behind_recall():
     no_kw = r["groups"][-1]["tickets"]
     # The whole point of the third group: caught, and no keyword rule fired.
     assert no_kw and all(t["caught"] and not t["keywords"] for t in no_kw)
+
+
+def test_switching_data_sets_keeps_typed_tickets():
+    """Loading the 10, the 38 or all of them replaces the examples but keeps what was typed in."""
+    client.delete("/tickets")
+    typed = client.post("/tickets", json={"text": "The export button does nothing.", "source": "ui"}).json()
+    client.post("/tickets/load-recorded?fixture=samples")
+    client.delete("/tickets?keep_source=ui")
+    left = client.get("/tickets?limit=100").json()
+    assert [d["id"] for d in left] == [typed["id"]]

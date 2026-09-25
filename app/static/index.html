@@ -417,6 +417,7 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
       <button id="set-demo">The 38 other examples</button>
       <button id="set-all">All 48</button>
       <button id="up">Upload a file…</button>
+      <button id="fresh" class="danger">Start fresh: 10 samples, nothing typed</button>
     </div>
   </div>
   <input type="file" id="file" accept=".json,.jsonl,.csv,.txt">
@@ -917,12 +918,22 @@ const SORTS={
   fastest:(a,b)=>a.latency_ms-b.latency_ms,
   category:(a,b)=>a.extraction.category.localeCompare(b.extraction.category)||SORTS.urgency(a,b),
 };
+const ORIGIN={samples:'Climb samples',demo:'Other examples',typed:'Typed in',uploaded:'Uploaded'};
+function originOf(d){
+  const src=(d.ticket&&d.ticket.source)||'';
+  if(src==='recorded:samples'||src==='climb-samples') return 'samples';
+  if(src==='recorded:demo'||src==='demo-set') return 'demo';
+  if(src.startsWith('upload:')) return 'uploaded';
+  if(src==='ui') return 'typed';
+  return 'other';
+}
 function matchesPick(d){
   if(!pick) return true;
   if(pick.kind==='urgency')  return d.extraction.urgency===pick.value;
   if(pick.kind==='category') return d.extraction.category===pick.value;
   if(pick.kind==='critical') return d.extraction.urgency==='critical';
   if(pick.kind==='queue')    return d.queue===pick.value || d.escalation_queue===pick.value;
+  if(pick.kind==='origin')   return originOf(d)===pick.value;
   return true;
 }
 const visible=()=>(escOnly?rows.filter(d=>d.extraction.escalate):rows)
@@ -1101,6 +1112,10 @@ function renderShowMenu(){
     + frow('escalated:1','Needing a human',esc_n)
     + frow('critical:1','Critical',crit)
     + (review?frow('queue:human-review','Sent to human review',review):'')
+    + (()=>{const c={};rows.forEach(d=>{const o=originOf(d);c[o]=(c[o]||0)+1});
+        const keys=['samples','demo','typed','uploaded'].filter(k=>c[k]);
+        return keys.length>1||c.typed ? `<div class="grp">Where it came from</div>`
+          + keys.map(k=>frow('origin:'+k,ORIGIN[k],c[k])).join('') : '';})()
     + `<div class="grp">Sort</div>` + SORT_LABELS.map(srow).join('');
   document.querySelectorAll('#showpop [data-show]').forEach(b=>b.onclick=e=>{
     e.stopPropagation();
@@ -1124,7 +1139,7 @@ function renderList(){
       + 'grouped by the team they were routed to.'
     : '';
   const v=visible(), n=rows.filter(d=>d.extraction.escalate).length;
-  const label = pick ? (pick.kind==='critical'?'critical':cap(pick.value)) : null;
+  const label = pick ? (pick.kind==='critical'?'critical':pick.kind==='origin'?ORIGIN[pick.value]:cap(pick.value)) : null;
   $('#count').innerHTML = (!rows.length || (dash && !pick && !escOnly)) ? ''
     : (label||escOnly)
       ? `<b>${v.length}</b> of ${rows.length} \u00b7 <i>${esc(label||'escalated')}</i> <button class="clearpick" id="clearpick">clear</button>`
@@ -1431,9 +1446,9 @@ $('#submit').onclick=()=>run(async()=>{
   await reload(); await openModal(d.id);
   if(d.error) status('The model call failed: keyword rules handled it.',{err:true,hold:7000}); else status('');
 });
-async function showSet(sets,label){
+async function showSet(sets,label,keepTyped=true){
   await run(async()=>{
-    await api('/tickets',{method:'DELETE'}); closeModal();
+    await api(keepTyped?'/tickets?keep_source=ui':'/tickets',{method:'DELETE'}); closeModal();
     let n=0;
     for(const f of sets){ const r=await api('/tickets/load-recorded?fixture='+f,{method:'POST'}); n+=r.count; }
     pick=null; escOnly=false; await reload();
@@ -1443,6 +1458,7 @@ async function showSet(sets,label){
 $('#set-samples').onclick=()=>showSet(['samples'],'the 10 Climb samples');
 $('#set-demo').onclick=()=>showSet(['demo'],'the 38 other examples');
 $('#set-all').onclick=()=>showSet(['samples','demo'],'all examples');
+$('#fresh').onclick=()=>showSet(['samples'],'a fresh start',false);
 $('#up').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;
   const fd=new FormData();fd.append('file',f);

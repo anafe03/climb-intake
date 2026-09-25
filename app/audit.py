@@ -207,7 +207,11 @@ def queue_counts() -> dict[str, int]:
     return counts
 
 
-def clear() -> None:
+def clear(keep_source: str | None = None) -> None:
+    """Delete decisions. With keep_source, rows from that source survive (e.g. typed-in tickets)."""
     with connect() as conn:
-        conn.execute("DELETE FROM decisions")
+        if keep_source:
+            conn.execute("DELETE FROM decisions WHERE source IS NOT ? ", (keep_source,))
+        else:
+            conn.execute("DELETE FROM decisions")
     _initialised.discard(str(db_path()))

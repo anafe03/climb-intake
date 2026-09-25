@@ -501,7 +501,7 @@ def queues():
 
 
 @app.delete("/tickets", tags=["operate"], summary="Wipe the audit store")
-def clear_all():
+def clear_all(keep_source: str | None = None):
     """Clears every decision. Intended for resetting a demo, not for production use."""
-    audit.clear()
+    audit.clear(keep_source)
     return {"ok": True}
