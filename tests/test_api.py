@@ -144,3 +144,25 @@ def test_recorded_replay_is_instant_and_idempotent(monkeypatch):
 def test_recorded_unknown_set_says_what_exists():
     r = client.post("/tickets/load-recorded?fixture=nope")
     assert r.status_code == 404 and "samples" in r.json()["detail"]
+
+
+def test_every_priced_decision_carries_its_cost():
+    """Cost is part of the audit record, not a number the UI re-derives from a rate card."""
+    from app import pricing
+    d = client.post("/tickets", json={"text": "The dark mode toggle resets on refresh."}).json()
+    # Rules mode spends nothing, so there is no cost to record.
+    assert d["mode"] == "rules" and "cost_usd" not in d["usage"]
+
+    usage = {"input_tokens": 2786, "cache_read_input_tokens": 2607, "output_tokens": 859}
+    assert round(pricing.cost_usd(usage, "gpt-5-2025-08-07") * 100, 3) == 0.914
+    # A dated id must price as its family, not fall through to the default.
+    assert pricing.cost_usd(usage, "gpt-5-mini-2025-08-07") < pricing.cost_usd(usage, "gpt-5")
+    assert pricing.cost_usd(usage, "gpt-5-nano-2025-08-07") < pricing.cost_usd(usage, "gpt-5-mini")
+    assert pricing.cost_usd({}, "gpt-5") is None
+
+
+def test_replayed_decisions_are_priced_on_the_way_in():
+    client.delete("/tickets")
+    r = client.post("/tickets/load-recorded?fixture=samples").json()
+    costs = [d["usage"].get("cost_usd") for d in r["decisions"]]
+    assert all(c and c > 0 for c in costs), "a replayed decision arrived without its cost"

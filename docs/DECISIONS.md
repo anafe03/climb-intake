@@ -1232,6 +1232,51 @@ The volume now mounts at `/srv/state` and holds only the database. `/srv/data` i
 stays readable. Fixed in the Dockerfile, the compose file and the Terraform together, because
 Cloud Run would have hit the same thing with its `empty_dir` mount.
 
+### D80. Cost is part of the audit record
+Three places were quoting prices independently — the spend gate, the bake-off, and nowhere at all
+in the product. `app/pricing.py` is now the only rate card, and `pipeline.process` writes
+`usage.cost_usd` onto every decision that spent tokens. It shows on the ticket footer and as a
+dashboard card: **0.921¢ per ticket, about $9.21 per thousand.**
+
+Decisions written before this change are priced on read in `audit._hydrate`, so the whole history is
+comparable without a migration and the rate card still lives in one place. The page never owns a
+price.
+
+### D81. The bake-off, done properly, disqualifies a model accuracy would have approved
+D52 flagged the old bake-off as misleading: ten samples, no false-positive traps. Re-run over all 33
+gold rows with the directional urgency metrics from D75, and reusing the saved gpt-5 run rather than
+paying for it again (≈$0.11 for the three new legs):
+
+| model | effort | missed esc. | false esc. | urgency under-called | category | cost/ticket |
+|---|---|---|---|---|---|---|
+| gpt-5 | low | none | none | none | 100% | 0.914¢ |
+| gpt-5-mini | low | none | 1 (SOC 2 request) | 1 | 100% | 0.184¢ |
+| gpt-5-mini | minimal | none | 3 | 1 | 100% | 0.127¢ |
+| **gpt-5-nano** | low | none | 1 | **3 critical read as high** | 100% | 0.035¢ |
+
+**Nano is 26x cheaper, scores 100% on category, and is disqualified.** It under-called three
+critical tickets, one of them `climb-10`, a provided sample — the checkout flow double-charging
+customers. Those tickets sit. An accuracy score would have called nano a bargain; the directional
+metric is the only reason we can see it.
+
+Mini is the real candidate: 5x cheaper, no missed escalations, and it buys the discount with one
+false escalation on the SOC 2 document request — exactly the trap D52 predicted it would hit. That
+is a tolerable error and it should be quoted next to the saving, not instead of it.
+
+### D82. Less thinking makes a classifier reach for the alarming answer
+Dropping mini from `low` to `minimal` reasoning effort saved 31% and took its false escalations from
+one to three. Worth stating because it is not the intuition: a cheaper setting did not degrade the
+model evenly, it made it twitchier. Cost and caution turn out to be the same dial, which is also why
+the deterministic layer — the cheapest reader in the system — over-calls the most (D75).
+
+### D83. The model is the third-best cost lever
+Ordered by return: prompt caching (~90% of input at a tenth of the price, free, already on),
+reasoning effort (dominant output-token lever, D54), a smaller model (changes the error profile's
+shape, not just its magnitude), and a cascade. The cascade is the one worth building if volume
+justified it, and the code is already shaped for it — the confidence threshold that sends unsure
+tickets to `human-review` is the same signal that would send them to a better reader. Under 0.50 to
+the expensive model, above it ships on the cheap one: a routing change and one branch.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

@@ -102,7 +102,10 @@ input[type=file]{display:none}
 .overview.on{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
 .ov{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 15px}
 /* The dashboard is the only thing on its page, so the cards get room to be read across a room. */
+.overview.solo{grid-template-columns:repeat(3,1fr)}
 .overview.solo .ov{padding:20px 20px 22px;min-height:132px}
+@media (max-width:760px){.overview.solo{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:480px){.overview.solo{grid-template-columns:1fr}}
 .overview.solo .ov .big{font-size:34px}
 /* At this size the unit no longer fits beside the number on a narrow card, and half-wrapping it
    reads as a layout bug. Put it on its own line and it is deliberate. */
@@ -113,6 +116,7 @@ input[type=file]{display:none}
 .ov .big{font-size:26px;font-weight:650;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .ov .big small{font-size:12.5px;font-weight:500;color:var(--dim);margin-left:6px;letter-spacing:0}
 .ov .big.danger{color:var(--danger)}
+.meta .cost{color:var(--climb-coral-deep);font-weight:600}
 .dist{display:flex;height:9px;border-radius:5px;overflow:hidden;margin:9px 0 7px;background:var(--sunken)}
 .dist i{display:block;cursor:pointer}.dist i+i{border-left:1px solid var(--card)}
 .dist i:hover{filter:brightness(1.15)}
@@ -408,6 +412,9 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const cap=s=>{s=String(s).replace(/_/g,' ');return s[0].toUpperCase()+s.slice(1)};
+// Cost is recorded per decision by app/pricing.py, so the page never owns a rate card.
+const costOf=d=>(d.usage&&typeof d.usage.cost_usd==='number')?d.usage.cost_usd:null;
+const cents=v=>v==null?null:(v*100<1?`${(v*100).toFixed(3)}\u00a2`:`$${v.toFixed(3)}`);
 let rows=[], escOnly=false, sortBy='newest', openId=null, view='list';
 let pick=null;   // {kind:'urgency'|'category'|'critical', value} — set by clicking a stat
 
@@ -920,6 +927,8 @@ function renderOverview(){
   const crit=rows.filter(d=>d.extraction.urgency==='critical').length;
   const lat=rows.map(d=>d.latency_ms).sort((a,b)=>a-b);
   const p50=lat[Math.floor(lat.length/2)];
+  const costs=rows.map(costOf).filter(v=>v!=null);
+  const priced=costs.length, spend=priced?costs.reduce((a,b)=>a+b,0):null;
   const count=(key,get)=>{const m={};rows.forEach(d=>{const v=get(d);m[v]=(m[v]||0)+1});return m};
   const URG_ORDER=['critical','high','medium','low'];
   const bar=(m,colors,kind)=>{
@@ -941,6 +950,9 @@ function renderOverview(){
       ${bar(count('u',d=>d.extraction.urgency),URG_COLOR,'urgency')}</div>
     <div class="ov"><div class="k">By category <span class="hint">click to filter</span></div>
       ${bar(count('c',d=>d.extraction.category),CAT_COLOR,'category')}</div>
+    ${spend!=null?`<div class="ov"><div class="k">What it cost</div>
+      <div class="big">${cents(spend/Math.max(priced,1))}<small>per ticket, average</small></div>
+      <div class="legend" style="margin-top:8px"><span>${cents(spend)} for all ${priced} · ${cents(spend/Math.max(priced,1)*1000)} per 1,000</span></div></div>`:''}
     <div class="ov"><div class="k">Time to read one</div>
       <div class="big">${(p50/1000).toFixed(1)}<small>seconds, median</small></div>
       <div class="legend" style="margin-top:8px"><span>${(lat[lat.length-1]/1000).toFixed(1)}s slowest</span></div></div>`;
@@ -1168,7 +1180,8 @@ async function openModal(id){
         <span>took ${esc(took(d.latency_ms))}</span>
         <span>${esc(ago(d.created_at))}</span>
         ${d.usage&&d.usage.input_tokens?`<span>${d.usage.input_tokens} in / ${d.usage.output_tokens} out tokens</span>`:''}
-        ${d.usage&&d.usage.cache_read_input_tokens?`<span>${d.usage.cache_read_input_tokens} cached</span>`:''}
+        ${d.usage&&d.usage.cache_read_input_tokens?`<span>${d.usage.cache_read_input_tokens} cached \u00b7 1/10th price</span>`:''}
+        ${costOf(d)!=null?`<span class="cost" title="Priced from the measured tokens in app/pricing.py">cost ${cents(costOf(d))}</span>`:''}
       </div>
       <details><summary>Full audit record</summary>${auditTable(d)}
         <details style="margin-top:10px"><summary>Raw JSON</summary><pre>${esc(JSON.stringify(d,null,2))}</pre></details>

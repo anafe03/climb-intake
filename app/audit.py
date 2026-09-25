@@ -9,6 +9,7 @@ import threading
 from contextlib import contextmanager
 from pathlib import Path
 
+from . import pricing
 from .models import Decision
 
 log = logging.getLogger("climb.audit")
@@ -152,10 +153,25 @@ def record(d: Decision) -> Decision:
     return d
 
 
+def _hydrate(raw: str) -> Decision:
+    """Rebuild a stored decision, pricing it if it was written before costs were recorded.
+
+    Older rows have the token counts but no `cost_usd`. Deriving it on read means the whole history
+    is comparable without a migration, and the rate card still lives in exactly one place.
+    """
+    d = Decision.model_validate_json(raw)
+    if d.usage and "cost_usd" not in d.usage:
+        c = pricing.cost_usd(d.usage, d.model)
+        if c is not None:
+            d.usage["cost_usd"] = round(c, 6)
+    return d
+
+
 def get(decision_id: str) -> Decision | None:
     with connect() as conn:
         row = conn.execute("SELECT decision_json FROM decisions WHERE id=?", (decision_id,)).fetchone()
-    return Decision.model_validate_json(row["decision_json"]) if row else None
+    return _hydrate(row["decision_json"]) if row else None
+
 
 
 def list_recent(limit: int = 100, queue: str | None = None) -> list[Decision]:
@@ -167,7 +183,7 @@ def list_recent(limit: int = 100, queue: str | None = None) -> list[Decision]:
     q += " ORDER BY created_at DESC LIMIT ?"
     with connect() as conn:
         rows = conn.execute(q, args + (limit,)).fetchall()
-    return [Decision.model_validate_json(r["decision_json"]) for r in rows]
+    return [_hydrate(r["decision_json"]) for r in rows]
 
 
 def total() -> int:

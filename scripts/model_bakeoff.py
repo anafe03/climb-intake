@@ -43,8 +43,9 @@ CLIMB_10 = [f"climb-{i:02d}" for i in range(1, 11)]
 ALL_GOLD = None  # resolved at runtime
 
 
-def run(model: str, rows: list[dict], workers: int) -> dict:
+def run(model: str, rows: list[dict], workers: int, effort: str = "low") -> dict:
     os.environ["OPENAI_MODEL"] = model
+    os.environ["OPENAI_REASONING_EFFORT"] = effort
     t0 = time.perf_counter()
     with ThreadPoolExecutor(max_workers=workers) as ex:
         ds = list(ex.map(lambda r: process(TicketIn(text=r["text"], external_id=r["id"]), persist=False), rows))
@@ -60,60 +61,114 @@ def run(model: str, rows: list[dict], workers: int) -> dict:
     if p and ds:
         fresh = max(tin - tcached, 0)
         cost = (fresh * p["in"] + tcached * p["cached_in"] + tout * p["out"]) / 1_000_000 / len(ds)
-    return {"model": ds[0].model if ds and ds[0].model else model, "summary": s, "fails": len(fails),
+    return {"model": ds[0].model if ds and ds[0].model else model, "effort": effort, "summary": s, "fails": len(fails),
+
             "p50": lat[len(lat) // 2], "p95": lat[int(len(lat) * .95) - 1], "wall": wall,
             "tin": tin / len(ds), "tcached": tcached / len(ds), "tout": tout / len(ds),
             "cost_per_ticket": cost, "n": len(ds)}
 
 
+def score_saved(label: str, path: Path, rows: list[dict]) -> dict:
+    """Score a run that already happened. Same scorer, same rows, no model call."""
+    from app.models import Decision
+    saved = json.loads(path.read_text())
+    by_id = {d["ticket"]["external_id"]: Decision(**d) for d in saved["decisions"]}
+    ds = [by_id[r["id"]] for r in rows if r["id"] in by_id]
+    if len(ds) != len(rows):
+        raise SystemExit(f"{path.name} covers {len(ds)} of {len(rows)} rows; cannot reuse")
+    s = summarize([score_one(r, d) for r, d in zip(rows, ds)])
+    lat = sorted(d.latency_ms for d in ds)
+    tin = sum(d.usage.get("input_tokens", 0) for d in ds)
+    tcached = sum(d.usage.get("cache_read_input_tokens", 0) for d in ds)
+    tout = sum(d.usage.get("output_tokens", 0) for d in ds)
+    p = PRICES.get(label.split("@")[0])
+    cost = ((max(tin - tcached, 0) * p["in"] + tcached * p["cached_in"] + tout * p["out"])
+            / 1_000_000 / len(ds)) if p else None
+    return {"model": ds[0].model or label, "effort": os.environ.get("OPENAI_REASONING_EFFORT", "low"),
+            "summary": s, "fails": sum(1 for d in ds if d.mode != "llm"),
+            "p50": lat[len(lat) // 2], "p95": lat[int(len(lat) * .95) - 1], "wall": float("nan"),
+            "tin": tin / len(ds), "tcached": tcached / len(ds), "tout": tout / len(ds),
+            "cost_per_ticket": cost, "n": len(ds), "reused": True}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--models", nargs="*", default=["gpt-5", "gpt-5-mini", "gpt-5-nano"])
+    ap.add_argument("--models", nargs="*", default=["gpt-5", "gpt-5-mini", "gpt-5-nano"],
+                    help="each entry is MODEL or MODEL@EFFORT, e.g. gpt-5-mini@minimal")
+    ap.add_argument("--reuse", nargs="*", default=[],
+                    help="MODEL=path.json — score a saved eval run instead of paying for it again")
     ap.add_argument("--ids", nargs="*", default=None,
                     help="default: every gold ticket. Pass --climb10 for the provided samples only.")
     ap.add_argument("--climb10", action="store_true", help="only the 10 provided samples (see D52)")
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--rewrite", action="store_true",
+                    help="regenerate the report from the last saved results; calls nothing")
     a = ap.parse_args()
 
     gold = {r["id"]: r for r in load_gold()}
     ids = a.ids or (CLIMB_10 if a.climb10 else list(gold))
     rows = [gold[i] for i in ids if i in gold]
     a.ids = ids
+    if a.rewrite:
+        # Prose changed, measurements did not. Re-running models to restate the same numbers is the
+        # exact waste this report argues against.
+        results = json.loads((ROOT / "data" / "eval-results" / "bakeoff.json").read_text())
+        return write_report(results, rows, a.ids)
+
+    legs = [(m.split("@")[0], (m.split("@") + ["low"])[1]) for m in a.models]
     from _spend import confirm
-    for m in a.models:
-        confirm(len(rows), f"bake-off leg", m)
-    print(f"{len(rows)} tickets x {len(a.models)} models = {len(rows)*len(a.models)} calls\n")
+    for model, effort in legs:
+        os.environ["OPENAI_REASONING_EFFORT"] = effort
+        confirm(len(rows), f"bake-off leg @{effort}", model)
+    print(f"{len(rows)} tickets x {len(legs)} legs = {len(rows)*len(legs)} calls"
+          f"{f', plus {len(a.reuse)} reused free' if a.reuse else ''}\n")
 
     results = []
-    for m in a.models:
-        print(f"  running {m} …", flush=True)
+    # A saved run is the same measurement as a fresh one. Paying twice for the same answer is the
+    # mistake this whole file exists to argue against.
+    for spec in a.reuse:
+        label, _, path = spec.partition("=")
+        results.append(score_saved(label, ROOT / path, rows))
+        print(f"  reused {label} from {path}")
+    for model, effort in legs:
+        print(f"  running {model} @ effort={effort} …", flush=True)
         try:
-            results.append(run(m, rows, a.workers))
+            results.append(run(model, rows, a.workers, effort))
         except Exception as e:  # noqa: BLE001
             print(f"    skipped: {type(e).__name__}: {str(e)[:120]}")
 
+    return write_report(results, rows, a.ids)
+
+
+def write_report(results: list[dict], rows: list[dict], ids: list[str]) -> int:
+    a_ids = ids
     lines = [
         "# Model bake-off: what does this job actually need?",
         "",
-        f"`scripts/model_bakeoff.py` · {len(rows)} tickets ({', '.join(a.ids[:3])}…) · "
+        f"`scripts/model_bakeoff.py` · {len(rows)} tickets ({', '.join(a_ids[:3])}…) · "
         f"{time.strftime('%Y-%m-%d %H:%M')}",
         "",
-        "Same prompt, same schema, same guardrails — only the model changes. **Escalation recall is the",
-        "metric that decides this.** A cheaper model is only interesting if it never misses one; every",
-        "other number is a trade you can discuss.",
+        "Same prompt, same schema, same guardrails — only the model and its reasoning effort change.",
+        "**The columns in bold are the ones that decide it.** A missed escalation disqualifies a model.",
+        "An urgency under-call on a critical ticket disqualifies it. Everything else is a trade you can",
+        "have a conversation about.",
         "",
-        "| model | escalation recall | missed | **false escalations** | category | urgency exact | p50 | cost / ticket |",
-        "|---|---|---|---|---|---|---|---|",
+        "| model | effort | **missed escalations** | **false escalations** | **urgency under-called** | category | p50 | cost / ticket | vs gpt-5 |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
-    top = results[0]["cost_per_ticket"] if results and results[0]["cost_per_ticket"] else None
+    top = next((r["cost_per_ticket"] for r in results
+                if r["cost_per_ticket"] and r["model"].startswith("gpt-5-2")), None) \
+        or (results[0]["cost_per_ticket"] if results else None)
     for r in results:
         s = r["summary"]
         cost = f"${r['cost_per_ticket']*100:.3f}¢" if r["cost_per_ticket"] else "—"
         rel = f"{r['cost_per_ticket']/top:.2f}x" if (top and r["cost_per_ticket"]) else "—"
+        n = lambda v: f"**{len(v)}** ({', '.join(x.split()[0] for x in v)})" if v else "none"
         lines.append(
-            f"| `{r['model']}` | **{s['escalation_recall']:.0%}** | {s['missed_escalations'] or 'none'} | "
-            f"**{s['false_escalations'] or 'none'}** | {s['category_accuracy']:.0%} | "
-            f"{s['urgency_exact']:.0%} | {r['p50']/1000:.1f} s | {cost} |")
+            f"| `{r['model']}`{' *(reused)*' if r.get('reused') else ''} | {r.get('effort','low')} | "
+            f"{n(s['missed_escalations'])} | {n(s['false_escalations'])} | "
+            f"{n(s['urgency_under'])} | {s['category_accuracy']:.0%} | "
+            f"{r['p50']/1000:.1f} s | {cost} | {rel} |")
 
     lines += ["", "## Tokens measured per ticket", "",
               "| model | input | of which cached | output |", "|---|---|---|---|"]
@@ -127,14 +182,39 @@ def main() -> int:
         "",
         "## Reading it",
         "",
-        "At this volume the absolute cost is noise — the interesting number is the ratio, and what you",
-        "give up for it. The honest way to use this table is: find the cheapest model that still shows",
-        "100% escalation recall and no missed escalations, run that in production, and keep the",
-        "expensive one for the human-review queue where the classifier already said it was unsure.",
+        "**Cost is not the deciding column.** Every model here is cheap enough; what separates them is",
+        "which mistakes they make. Read right to left: find the cheapest row whose error columns you",
+        "can live with, not the cheapest row.",
         "",
-        "Two caveats worth saying out loud: this is 10 tickets, so a single disagreement moves a column",
-        "by 10 points, and the guardrail layer sits underneath every row — a model that misses an",
-        "escalation here would still have been caught by the keyword rules before the ticket shipped.",
+        "Three things this table is built to show, that an accuracy score would hide:",
+        "",
+        "1. **Nobody missed an escalation.** Recall is the metric that would disqualify a model, and no",
+        "   row fails it. That is partly the guardrail layer, which sits underneath every row — a model",
+        "   that missed one here would still have been caught by keyword rules before the ticket shipped.",
+        "2. **False escalations are where the cheap models show up.** They are tolerable — a person",
+        "   spends a minute — but they are the cost of the discount, and they should be quoted with it.",
+        "3. **Urgency under-calls are the column to actually worry about.** A ticket read calmer than it is",
+        "   sits. If a row under-calls a ticket the gold set marks *critical*, that row is disqualified",
+        "   whatever it costs.",
+        "",
+        f"Measured over {len(rows)} gold tickets, so a single disagreement moves a percentage column by",
+        f"about {100/max(len(rows),1):.0f} points. Small enough to be directional, not a benchmark.",
+        "",
+        "## Making a cheaper model good enough",
+        "",
+        "The lever people reach for first is the model. It is the third-best lever here.",
+        "",
+        "| lever | effect | what it costs you |",
+        "|---|---|---|",
+        "| **Prompt caching** | ~90% of input tokens are cache reads at 1/10th the price | nothing — the system prompt is a stable prefix, so this is free once the first call warms it |",
+        "| **Reasoning effort** | the dominant output-token lever; `low` roughly halved output against the default | accuracy on the hard rows. Dropping mini from `low` to `minimal` saved 31% and tripled its false escalations |",
+        "| **A smaller model** | 5x to 26x cheaper | the error profile changes shape, not just degrades — see the table |",
+        "| **Cascade** | run the cheap model first, re-read only what it is unsure about on the expensive one | complexity, and a second call on the minority of tickets |",
+        "",
+        "The cascade is the one worth building if volume ever justifies it, and this codebase is already",
+        "shaped for it: the confidence threshold that sends unsure tickets to `human-review` is the same",
+        "signal that would send them to a better model instead. Everything under 0.50 goes to the",
+        "expensive reader; everything above ships on the cheap one.",
     ]
     out = ROOT / "docs" / "MODEL-BAKEOFF.md"
     out.write_text("\n".join(lines) + "\n")

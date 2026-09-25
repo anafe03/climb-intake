@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import audit, llm, pipeline, routing
+from . import audit, llm, pipeline, pricing, routing
 from .models import Decision, TicketIn
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -238,9 +238,16 @@ def load_recorded(fixture: str = "samples"):
         d = Decision(**raw)
         # Keep the reading; restate when it entered *this* store, so the list orders sensibly and
         # nobody reads a months-old timestamp as a stale decision.
+        # Recordings predate the cost field; price them from the usage they already carry.
+        usage = dict(d.usage or {})
+        if "cost_usd" not in usage:
+            c = pricing.cost_usd(usage, d.model)
+            if c is not None:
+                usage["cost_usd"] = round(c, 6)
         d = d.model_copy(update={
             "id": uuid.uuid4().hex[:12],
             "created_at": now,
+            "usage": usage,
             "ticket": d.ticket.model_copy(update={"source": f"recorded:{fixture}"}),
         })
         out.append(audit.record(d))

@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 import anthropic
 import openai
 
-from . import audit, llm, routing, rules
+from . import audit, llm, pricing, routing, rules
 from .models import Decision, Extraction, TicketIn
 
 log = logging.getLogger("climb.pipeline")
@@ -51,6 +51,11 @@ def process(ticket: TicketIn, persist: bool = True) -> Decision:
             llm_extraction, meta = llm.classify(ticket.text)
             model = meta.pop("model")
             usage = meta
+            # Price the decision where the tokens are known, so the audit record answers "what did
+            # this cost" without anyone having to re-derive it from a rate card six months later.
+            cost = pricing.cost_usd(usage, model)
+            if cost is not None:
+                usage["cost_usd"] = round(cost, 6)
             base = llm_extraction
             LAST_MODEL_CALL.update(status="ok", at=datetime.now(timezone.utc).isoformat(timespec="seconds"), error=None)
         except (anthropic.APIError, openai.APIError, llm.RefusedError, ValueError) as e:

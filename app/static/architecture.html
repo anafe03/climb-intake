@@ -52,6 +52,8 @@ code{font:13px var(--mono);background:var(--sunken);padding:2px 6px;border-radiu
 .q h3{margin:0 0 7px;font-size:16px}
 .q p:last-child{margin-bottom:0}
 @media print{nav{display:none}body{font-size:11pt}figure{break-inside:avoid}}
+tr.bad td{background:#fdeee9}
+tr.bad td b{color:var(--climb-coral-deep,#92351e)}
 </style>
 </head>
 <body>
@@ -280,6 +282,83 @@ with the exact text it matched, token counts, latency, and which mode produced i
   If a customer asks in March why their February ticket went where it went, the answer is a row, not
   an archaeology project.
 </div>
+
+<h2>What it costs, and why not a cheaper model</h2>
+
+<p>Every decision carries its own price, computed from the tokens the provider actually reported and
+the rate card in <code>app/pricing.py</code>. Open any ticket and the cost is on the footer line next
+to the token counts. At <b>0.9&cent; a ticket</b>, a thousand tickets is about <b>$9</b>.</p>
+
+<p>So the honest question is not whether this is affordable. It is whether something cheaper would
+do. Same prompt, same schema, same guardrails, 33 gold tickets &mdash; only the model and its
+reasoning effort change:</p>
+
+<table>
+  <tr><th>Model</th><th>Effort</th><th>Missed escalations</th><th>False escalations</th>
+      <th>Urgency under-called</th><th>Cost / ticket</th><th>vs gpt&#8209;5</th></tr>
+  <tr><td><code>gpt-5</code></td><td>low</td><td>none</td><td>none</td><td>none</td>
+      <td>0.914&cent;</td><td>1.00&times;</td></tr>
+  <tr><td><code>gpt-5-mini</code></td><td>low</td><td>none</td><td>1 &mdash; the SOC&nbsp;2 request</td>
+      <td>1 &mdash; low vs medium</td><td>0.184&cent;</td><td>0.20&times;</td></tr>
+  <tr><td><code>gpt-5-mini</code></td><td>minimal</td><td>none</td><td>3</td>
+      <td>1 &mdash; low vs medium</td><td>0.127&cent;</td><td>0.14&times;</td></tr>
+  <tr class="bad"><td><code>gpt-5-nano</code></td><td>low</td><td>none</td><td>1</td>
+      <td><b>3 critical tickets read as high</b></td><td>0.035&cent;</td><td>0.04&times;</td></tr>
+</table>
+
+<p>Read the error columns, not the cost column. Three things fall out of this table that an accuracy
+score would have hidden completely:</p>
+
+<p><b>Nobody missed an escalation.</b> That is the column that would disqualify a model outright, and
+every row passes &mdash; partly because the keyword layer sits underneath all of them and would have
+caught it anyway.</p>
+
+<p><b>Cheaper models buy their discount in false escalations.</b> Mini over-escalates the SOC&nbsp;2
+document request &mdash; a procurement question that reads like a compliance demand. That is a
+tolerable error: a person spends a minute on it. But it is the price of the 5&times; saving and it
+should be quoted alongside it.</p>
+
+<p><b>Nano is disqualified, and it scores 100% on category.</b> It read three <em>critical</em>
+tickets as high, one of them a provided sample &mdash; the checkout flow double-charging customers.
+Those tickets sit. That is the failure this system exists to prevent, and a model can be 26&times;
+cheaper, perfectly accurate on category, and still unusable because of it.</p>
+
+<div class="note">
+  <b>Why the cheap model gets worse when you give it less thinking</b>
+  Dropping mini from <code>low</code> to <code>minimal</code> reasoning effort saved 31% and tripled
+  its false escalations, from one to three. Less thinking does not degrade a classifier evenly; it
+  makes it reach for the alarming answer. Cost and caution are the same dial.
+</div>
+
+<h2>Making a cheaper model good enough</h2>
+
+<p>The model is the lever people reach for first. It is the third-best one here.</p>
+
+<table>
+  <tr><th>Lever</th><th>Effect</th><th>What it costs</th></tr>
+  <tr><td><b>Prompt caching</b></td>
+      <td>~90% of input tokens are cache reads, at a tenth of the price</td>
+      <td>Nothing. The system prompt is a stable prefix, so it is free after the first call warms it.</td></tr>
+  <tr><td><b>Reasoning effort</b></td>
+      <td>The dominant output-token lever. Moving to <code>low</code> roughly halved output tokens.</td>
+      <td>Judgment on the hard rows &mdash; see the note above.</td></tr>
+  <tr><td><b>A smaller model</b></td>
+      <td>5&times; to 26&times; cheaper</td>
+      <td>The error profile changes <em>shape</em>, not just magnitude.</td></tr>
+  <tr><td><b>Cascade</b></td>
+      <td>Cheap model first; re-read only the unsure tickets on the expensive one</td>
+      <td>Complexity, and a second call on a minority of tickets.</td></tr>
+</table>
+
+<p>The cascade is the one worth building if volume ever justified it, and the code is already shaped
+for it. The confidence threshold that sends unsure tickets to <code>human-review</code> is the same
+signal that would send them to a better reader instead: everything under 0.50 goes to the expensive
+model, everything above ships on the cheap one. That is a routing change in
+<code>app/routing.yaml</code> and one branch in the pipeline, not a redesign.</p>
+
+<p style="color:var(--faint);font-size:13px">Numbers from <code>docs/MODEL-BAKEOFF.md</code>,
+regenerated by <code>scripts/model_bakeoff.py</code>. Rates are list price as of 2026-09 and should
+be checked before being quoted to anyone.</p>
 
 </main>
 </body>
