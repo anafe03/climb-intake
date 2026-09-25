@@ -17,6 +17,7 @@ COPY pyproject.toml ./
 COPY app ./app
 COPY data/sample_tickets.json data/demo_tickets.json data/gold.jsonl ./data/
 COPY data/recorded ./data/recorded
+COPY data/measured ./data/measured
 # The writable volume mounts at /srv/state, NOT /srv/data. A named volume shadows whatever the
 # image ships at its mount point, so anything read-only that lives under the mount is invisible
 # once the volume exists — which is how data/recorded silently went missing on an existing volume.

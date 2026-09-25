@@ -402,6 +402,38 @@ def recheck(decision_id: str, runs: int = 2):
     )
 
 
+# data/measured is committed and shipped in the image; data/eval-results is scratch output and is
+# ignored by both git and docker. The product only reads from the former.
+BAKEOFF = Path(__file__).resolve().parent.parent / "data" / "measured" / "bakeoff.json"
+
+
+@app.get("/pricing", tags=["read"], summary="What each model measured, per ticket")
+def pricing_table():
+    """The bake-off results, as measured. No estimation and no extrapolation.
+
+    Every figure here came from running the same 33 gold tickets through that model: the cost is
+    computed from the tokens the provider reported, and the error counts are from the same run.
+    Shown in the app so "what would a cheaper model cost" is answered next to "what is it costing".
+    """
+    if not BAKEOFF.exists():
+        return {"models": [], "note": "no bake-off on disk; run scripts/model_bakeoff.py"}
+    out = []
+    for r in json.loads(BAKEOFF.read_text()):
+        s = r["summary"]
+        out.append({
+            "model": r["model"],
+            "effort": r.get("effort", "low"),
+            "cost_per_ticket": r["cost_per_ticket"],
+            "missed_escalations": len(s["missed_escalations"]),
+            "false_escalations": len(s["false_escalations"]),
+            "urgency_under": len(s.get("urgency_under", [])),
+            "critical_under_called": not s.get("urgency_never_under_critical", True),
+            "n": r["n"],
+        })
+    out.sort(key=lambda r: r["cost_per_ticket"] or 0, reverse=True)
+    return {"models": out, "measured_on": "the 33-ticket gold set", "running": llm.active_model()}
+
+
 @app.get("/queues", tags=["read"], summary="Every queue and how deep it is")
 def queues():
     """All configured queues, including the ones nothing routed to — an empty queue is a fact

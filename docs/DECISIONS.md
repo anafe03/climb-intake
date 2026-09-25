@@ -1488,6 +1488,36 @@ scoring urgency by direction, pushing on whether escalation is just keywords, re
 100%, and telling me to build the cascade rather than describe it. Several of those changed the
 result, not just the wording.
 
+### D99. The model comparison on the dashboard, measured not estimated
+Austin wanted the cost card to show what the same job costs on other models. The first draft of
+that re-priced this session's tokens at other models' rates; he stopped it — "I don't need that
+math" — and he was right, because it would have been an estimate standing next to measurements.
+`GET /pricing` now returns the bake-off exactly as measured on the gold set, and the dashboard shows
+four rows: cost per ticket and the one error that matters for each model. Nano's row reads
+"read 3 critical tickets as high" in red, so the cheapest number never appears without its reason.
+
+It rendered empty at first. The bake-off lived in `data/eval-results/`, which is ignored by both
+git and docker — so the image had no file, and a reviewer cloning the repo would not either. The
+product now reads `data/measured/bakeoff.json`, which is committed and shipped, and the bake-off
+script writes both.
+
+### D100. Say each thing once
+"Don't say the same thing three times." The cost card showed 0.913¢ per ticket, $9.13 per
+thousand, and 9.13¢ for these ten — one number, three ways. It now says per ticket and per
+thousand. The same pass removed two quieter repeats: "10 by the model" under Tickets read restated
+"0 failed extractions", and the toolbar's "10 tickets · 4 need a human" restated the first two
+cards word for word. The toolbar count now appears only on Queues, where it carries the filter state.
+
+**How it works** is out of the nav on Austin's call. The route still serves, so nothing linking to
+it breaks; it is just no longer something to click during a demo.
+
+### D101. Preflight now loads every page in a browser
+A leaked template placeholder (`${AR}`) blanked the dashboard. It passed `node --check`, the
+served-page diff, and all 63 tests — the same shape as D56, where a call site landed without its
+function. Both parse fine and fail at runtime. Preflight now loads `/`, `/optimization` and `/notes`
+in headless Chrome and fails on any uncaught console error. Verified by putting the bug back in the
+running container and watching the check catch it.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

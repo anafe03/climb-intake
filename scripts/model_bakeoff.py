@@ -220,6 +220,9 @@ def write_report(results: list[dict], rows: list[dict], ids: list[str]) -> int:
     out.write_text("\n".join(lines) + "\n")
     (ROOT / "data" / "eval-results").mkdir(parents=True, exist_ok=True)
     (ROOT / "data" / "eval-results" / "bakeoff.json").write_text(json.dumps(results, indent=2, default=str))
+    # The app's /pricing endpoint reads the committed copy, so a fresh clone shows real numbers.
+    (ROOT / "data" / "measured").mkdir(parents=True, exist_ok=True)
+    (ROOT / "data" / "measured" / "bakeoff.json").write_text(json.dumps(results, indent=2, default=str))
     print("\n".join(lines))
     print(f"\nwrote {out.relative_to(ROOT)}")
     return 0

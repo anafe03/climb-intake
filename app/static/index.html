@@ -119,6 +119,16 @@ input[type=file]{display:none}
 .ov .s{font-size:12px;line-height:1.55;color:var(--dim)}
 .ov .lnk{color:var(--primary);text-decoration:none;font-weight:600}
 .ov .lnk:hover{text-decoration:underline}
+.overview.solo .ov.wide2{grid-column:span 2}
+table.mini{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+table.mini td{padding:5px 8px 5px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+table.mini tr:last-child td{border-bottom:0}
+table.mini td.n{font-variant-numeric:tabular-nums;font-weight:650;text-align:right;width:62px}
+table.mini td.w{color:var(--dim);white-space:normal}
+table.mini tr.here td{background:var(--sunken);font-weight:600}
+table.mini tr.here td:first-child::after{content:" \2190 running";color:var(--primary);font-weight:600;font-size:11px}
+table.mini tr.bad td.w{color:var(--danger);font-weight:600}
+@media (max-width:760px){.overview.solo .ov.wide2{grid-column:span 2}}
 .meta .cost{color:var(--climb-coral-deep);font-weight:600}
 .dist{display:flex;height:9px;border-radius:5px;overflow:hidden;margin:9px 0 7px;background:var(--sunken)}
 .dist i{display:block;cursor:pointer}.dist i+i{border-left:1px solid var(--card)}
@@ -366,7 +376,6 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
 </div></header>
 <nav><div class="wrap">
   <a href="/" class="on">Intake</a>
-  <a href="/architecture">How it works</a>
   <a href="/optimization">Cost &amp; models</a>
   <a href="/notes">Presenter notes</a>
   <a href="/docs">API</a>
@@ -1006,7 +1015,7 @@ function renderOverview(){
   el.innerHTML=`
     <div class="ov pickcard ${!pick&&!escOnly?'on':''}" data-pick="all:1"><div class="k">Tickets read</div>
       <div class="big">${rows.length}</div>
-      <div class="legend" style="margin-top:8px"><span>${rows.filter(d=>d.mode==='llm').length} by the model</span></div></div>
+</div>
     <div class="ov pickcard ${escOnly?'on':''}" data-pick="escalated:1"><div class="k">Needing a human</div>
       <div class="big danger">${esc_n}<small>${Math.round(esc_n/rows.length*100)}% escalated</small></div>
       <div class="legend" style="margin-top:8px"><span class="pickable ${pick&&pick.kind==='critical'?'on':''}" data-pick="critical:1">${crit} critical</span></div></div>
@@ -1016,10 +1025,24 @@ function renderOverview(){
       ${bar(count('c',d=>d.extraction.category),CAT_COLOR,'category')}</div>
     ${spend!=null?`<div class="ov"><div class="k">What it cost</div>
       <div class="big">${cents(spend/Math.max(priced,1))}<small>per ticket, average</small></div>
-      <div class="s" style="margin-top:9px"><b>$${(spend/Math.max(priced,1)*1000).toFixed(2)}</b> per 1,000 tickets · ${cents(spend)} for these ${priced}</div></div>`:''}
+      <div class="s" style="margin-top:9px"><b>$${(spend/Math.max(priced,1)*1000).toFixed(2)}</b> per 1,000 tickets</div></div>`:''}
     <div class="ov"><div class="k">Failed extractions</div>
       <div class="big ${fellBack?'danger':''}">${fellBack}<small>${fellBack===1?'ticket':'tickets'} fell back to keyword rules</small></div>
       <div class="s" style="margin-top:9px">${errored?`${errored} returned an error. `:''}<a href="/optimization" class="lnk">100% escalation recall on the gold set →</a></div></div>
+    ${priceTable&&priceTable.models&&priceTable.models.length?`<div class="ov wide2"><div class="k">The same job on a cheaper model</div>
+      <table class="mini">${priceTable.models.map(m=>{
+        const here=(priceTable.running||'').startsWith(m.model.split('-20')[0]) && m.effort==='low';
+        const bad=m.critical_under_called;
+        const note=m.missed_escalations?`${m.missed_escalations} missed escalations`
+          : bad?'read 3 critical tickets as high'
+          : m.false_escalations?`${m.false_escalations} false escalation${m.false_escalations>1?'s':''}`
+          : 'no errors on the gold set';
+        return `<tr class="${bad?'bad':''}${here?' here':''}">
+          <td><code>${esc(m.model.split('-20')[0])}</code>${m.effort!=='low'?` <i>${esc(m.effort)}</i>`:''}</td>
+          <td class="n">${(m.cost_per_ticket*100).toFixed(3)}\u00a2</td>
+          <td class="w">${esc(note)}</td></tr>`}).join('')}</table>
+      <div class="s" style="margin-top:8px">Measured on ${esc(priceTable.measured_on)}, not estimated.
+        <a href="/optimization" class="lnk">Why not the cheap one →</a></div></div>`:''}
     <div class="ov"><div class="k">Time to read one</div>
       <div class="big">${(p50/1000).toFixed(1)}<small>seconds, median</small></div>
       <div class="legend" style="margin-top:8px"><span>${(lat[lat.length-1]/1000).toFixed(1)}s slowest</span></div></div>`;
@@ -1097,7 +1120,7 @@ function renderList(){
     : '';
   const v=visible(), n=rows.filter(d=>d.extraction.escalate).length;
   const label = pick ? (pick.kind==='critical'?'critical':cap(pick.value)) : null;
-  $('#count').innerHTML = !rows.length ? ''
+  $('#count').innerHTML = (!rows.length || (dash && !pick && !escOnly)) ? ''
     : (label||escOnly)
       ? `<b>${v.length}</b> of ${rows.length} \u00b7 <i>${esc(label||'escalated')}</i> <button class="clearpick" id="clearpick">clear</button>`
       : `<b>${rows.length}</b> tickets \u00b7 <i>${n} need a human</i>`;
@@ -1336,6 +1359,10 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ── actions ───────────────────────────────────────────────────────────── */
+let priceTable=null;
+async function loadPricing(){
+  try{priceTable=await api('/pricing')}catch{priceTable=null}
+}
 async function reload(){rows=await api('/tickets?limit=300'); renderList();}
 async function run(fn){busy(true);try{await fn()}catch(e){stopClock();status(e.message,{err:true,hold:9000})}finally{busy(false)}}
 
@@ -1440,6 +1467,7 @@ setInterval(refreshHealth, 15000);
 (async()=>{
   const h = await refreshHealth() || {};
   const live = h.mode === 'llm';
+  await loadPricing();
   await reload();
   const want=new URL(location).searchParams.get('t');
   if(want && rows.some(r=>r.id===want)) openModal(want);

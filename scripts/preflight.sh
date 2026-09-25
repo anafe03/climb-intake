@@ -93,6 +93,21 @@ for X in who what urgency human route; do
   curl -s "$BASE/?t=$ID&x=$X" | grep -q "openField" && ok "?x=$X reachable" || no "?x=$X broken"
 done
 
+echo "── pages run without a script error"
+# node --check only proves the script parses. A reference to something undefined parses fine and
+# blanks the page at runtime — twice now (D56, and a leaked placeholder on the cost card). Load each
+# page in headless Chrome and fail on any uncaught error in the console.
+CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+if [ -x "$CHROME" ]; then
+  for P in / /optimization /notes; do
+    ERR=$("$CHROME" --headless --disable-gpu --enable-logging=stderr --v=0 --virtual-time-budget=6000 \
+          --dump-dom "$BASE$P" 2>&1 >/dev/null | grep -o 'Uncaught[^"]*' | head -1)
+    [ -z "$ERR" ] && ok "$P renders cleanly" || no "$P: $ERR"
+  done
+else
+  no "Chrome not found; cannot check pages for runtime errors"
+fi
+
 echo "── offline path"
 docker run --rm -d --name pf-rules -p 8099:8080 -e CLASSIFIER_MODE=rules climb-intake-intake:latest >/dev/null 2>&1
 for _ in $(seq 1 40); do curl -fs localhost:8099/health >/dev/null 2>&1 && break; sleep 1; done

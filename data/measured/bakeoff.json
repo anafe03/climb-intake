@@ -1,0 +1,202 @@
+[
+  {
+    "model": "gpt-5-2025-08-07",
+    "effort": "low",
+    "summary": {
+      "n": 33,
+      "escalation_recall": 1.0,
+      "missed_escalations": [],
+      "false_escalations": [],
+      "reasons_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "urgency_exact": 0.8181818181818182,
+      "urgency_accuracy": 1.0,
+      "customer_accuracy": 1.0,
+      "identifier_accuracy": 1.0,
+      "overconfidence": [],
+      "confidence_calibration": 1.0,
+      "confidence_misses": [],
+      "basis_always_given": true,
+      "urgency_under": [],
+      "urgency_over": [
+        "climb-07 said critical, gold high",
+        "edge-16 said high, gold medium",
+        "edge-21 said high, gold medium",
+        "edge-25 said medium, gold low",
+        "edge-30 said high, gold medium",
+        "edge-33 said critical, gold high"
+      ],
+      "urgency_under_rate": 0.0,
+      "urgency_over_rate": 0.18181818181818182,
+      "urgency_hard_under": [],
+      "urgency_never_under_critical": true
+    },
+    "fails": 0,
+    "p50": 16059,
+    "p95": 20394,
+    "wall": NaN,
+    "tin": 2786.212121212121,
+    "tcached": 2606.5454545454545,
+    "tout": 858.7272727272727,
+    "cost_per_ticket": 0.009137674242424242,
+    "n": 33,
+    "reused": true
+  },
+  {
+    "model": "gpt-5-mini-2025-08-07",
+    "effort": "low",
+    "summary": {
+      "n": 33,
+      "escalation_recall": 1.0,
+      "missed_escalations": [],
+      "false_escalations": [
+        "edge-28"
+      ],
+      "reasons_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "urgency_exact": 0.7878787878787878,
+      "urgency_accuracy": 0.9696969696969697,
+      "customer_accuracy": 1.0,
+      "identifier_accuracy": 1.0,
+      "overconfidence": [],
+      "confidence_calibration": 0.75,
+      "confidence_misses": [
+        "edge-24 got 0.40, expected [0.5, 1.0]",
+        "edge-29 got 0.00, expected [0.3, 1.0]"
+      ],
+      "basis_always_given": true,
+      "urgency_under": [
+        "edge-13 said low, gold medium"
+      ],
+      "urgency_over": [
+        "climb-06 said high, gold medium",
+        "edge-16 said high, gold medium",
+        "edge-21 said high, gold medium",
+        "edge-25 said medium, gold low",
+        "edge-30 said high, gold medium",
+        "edge-33 said critical, gold high"
+      ],
+      "urgency_under_rate": 0.030303030303030304,
+      "urgency_over_rate": 0.18181818181818182,
+      "urgency_hard_under": [],
+      "urgency_never_under_critical": true
+    },
+    "fails": 0,
+    "p50": 9864,
+    "p95": 12124,
+    "wall": 84.3137558750168,
+    "tin": 2786.212121212121,
+    "tcached": 2525.090909090909,
+    "tout": 855.1515151515151,
+    "cost_per_ticket": 0.001838710606060606,
+    "n": 33
+  },
+  {
+    "model": "gpt-5-mini-2025-08-07",
+    "effort": "minimal",
+    "summary": {
+      "n": 33,
+      "escalation_recall": 1.0,
+      "missed_escalations": [],
+      "false_escalations": [
+        "edge-21",
+        "edge-23",
+        "edge-32"
+      ],
+      "reasons_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "urgency_exact": 0.6363636363636364,
+      "urgency_accuracy": 0.9393939393939394,
+      "customer_accuracy": 0.9696969696969697,
+      "identifier_accuracy": 1.0,
+      "overconfidence": [],
+      "confidence_calibration": 0.875,
+      "confidence_misses": [
+        "edge-29 got 0.10, expected [0.3, 1.0]"
+      ],
+      "basis_always_given": true,
+      "urgency_under": [
+        "edge-13 said low, gold medium"
+      ],
+      "urgency_over": [
+        "climb-01 said high, gold medium",
+        "climb-06 said high, gold medium",
+        "edge-16 said high, gold medium",
+        "edge-17 said medium, gold low",
+        "edge-21 said high, gold medium",
+        "edge-23 said critical, gold low",
+        "edge-25 said medium, gold low",
+        "edge-30 said high, gold medium",
+        "edge-31 said high, gold medium",
+        "edge-32 said high, gold medium",
+        "edge-33 said critical, gold high"
+      ],
+      "urgency_under_rate": 0.030303030303030304,
+      "urgency_over_rate": 0.3333333333333333,
+      "urgency_hard_under": [],
+      "urgency_never_under_critical": true
+    },
+    "fails": 0,
+    "p50": 5525,
+    "p95": 6185,
+    "wall": 46.68042237497866,
+    "tin": 2786.212121212121,
+    "tcached": 2606.5454545454545,
+    "tout": 580.8484848484849,
+    "cost_per_ticket": 0.0012717772727272728,
+    "n": 33
+  },
+  {
+    "model": "gpt-5-nano-2025-08-07",
+    "effort": "low",
+    "summary": {
+      "n": 33,
+      "escalation_recall": 1.0,
+      "missed_escalations": [],
+      "false_escalations": [
+        "edge-23"
+      ],
+      "reasons_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "urgency_exact": 0.7575757575757576,
+      "urgency_accuracy": 0.9090909090909091,
+      "customer_accuracy": 1.0,
+      "identifier_accuracy": 1.0,
+      "overconfidence": [],
+      "confidence_calibration": 0.75,
+      "confidence_misses": [
+        "climb-06 got 0.00, expected [0.2, 0.9]",
+        "edge-29 got 0.00, expected [0.3, 1.0]"
+      ],
+      "basis_always_given": true,
+      "urgency_under": [
+        "climb-10 said high, gold critical",
+        "edge-20 said high, gold critical",
+        "edge-27 said high, gold critical"
+      ],
+      "urgency_over": [
+        "edge-16 said high, gold medium",
+        "edge-21 said high, gold medium",
+        "edge-23 said critical, gold low",
+        "edge-30 said high, gold medium",
+        "edge-33 said critical, gold high"
+      ],
+      "urgency_under_rate": 0.09090909090909091,
+      "urgency_over_rate": 0.15151515151515152,
+      "urgency_hard_under": [
+        "climb-10 said high, gold critical",
+        "edge-20 said high, gold critical"
+      ],
+      "urgency_never_under_critical": false
+    },
+    "fails": 0,
+    "p50": 7026,
+    "p95": 8931,
+    "wall": 60.494902207981795,
+    "tin": 2786.212121212121,
+    "tcached": 2525.090909090909,
+    "tout": 818.3939393939394,
+    "cost_per_ticket": 0.00035303909090909094,
+    "n": 33
+  }
+]

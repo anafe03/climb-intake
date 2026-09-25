@@ -166,3 +166,12 @@ def test_replayed_decisions_are_priced_on_the_way_in():
     r = client.post("/tickets/load-recorded?fixture=samples").json()
     costs = [d["usage"].get("cost_usd") for d in r["decisions"]]
     assert all(c and c > 0 for c in costs), "a replayed decision arrived without its cost"
+
+
+def test_pricing_serves_the_measured_comparison():
+    """The cost card reads this. It went empty once because the file was git- and docker-ignored."""
+    r = client.get("/pricing").json()
+    models = {m["model"].split("-20")[0] for m in r["models"]}
+    assert {"gpt-5", "gpt-5-mini", "gpt-5-nano"} <= models
+    nano = next(m for m in r["models"] if m["model"].startswith("gpt-5-nano"))
+    assert nano["critical_under_called"], "the disqualifying fact must survive a re-run"
