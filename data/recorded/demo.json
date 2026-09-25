@@ -3387,6 +3387,622 @@
         "llm_ms": 18465
       },
       "error": null
+    },
+    {
+      "id": "585212e856dd",
+      "created_at": "2026-09-25T16:29:18.020+00:00",
+      "ticket": {
+        "text": "We were just charged $48,000 for this month instead of $4,800 and it has already come out of our account. We need it reversed today or payroll bounces.",
+        "source": "demo-set",
+        "external_id": "D-33"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing paying customer reporting an extreme monthly overcharge and requesting an immediate refund",
+          "confidence": 0.3,
+          "basis": [
+            "Mentions being charged for 'this month'",
+            "Specific amounts: $48,000 vs $4,800",
+            "Says charge has 'already come out of our account'",
+            "Requests reversal 'today' to cover payroll"
+          ]
+        },
+        "customer_reason": "The ticket does not name a company or person and provides no identifiers. It clearly comes from an existing paying customer due to references to monthly charge amounts and funds already debited.",
+        "category": "billing",
+        "category_confidence": 0.7,
+        "category_reason": "This is about an incorrect charge and a refund request, which is billing. A bug is plausible if a system error caused the overcharge, but the customer\u2019s ask is to reverse a charge rather than report product malfunction.",
+        "category_alternatives": [
+          {
+            "category": "bug",
+            "confidence": 0.3,
+            "why_not": "Magnitude suggests a potential billing-system defect, but the harm and requested action are financial/refund-focused, with no product malfunction details."
+          }
+        ],
+        "urgency": "critical",
+        "urgency_signals": [
+          "\u2018We need it reversed today\u2019",
+          "\u2018already come out of our account\u2019",
+          "\u2018or payroll bounces\u2019",
+          "Large financial impact: charged $48,000 instead of $4,800"
+        ],
+        "urgency_reason": "Time-critical financial risk (payroll may bounce today) and a very large overcharge already withdrawn from their account set this to critical.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indicators of security incident or data exposure, no legal or compliance demand, and no executive named. This is a severe billing issue but does not meet escalation criteria.",
+        "summary": "Customer requests immediate reversal/refund of a $48,000 overcharge (should have been $4,800) to avoid payroll bouncing today.",
+        "rationale": "The ticket centers on an overcharge and urgent refund need, which fits billing over bug because the harm is strictly financial. The urgency is critical due to a same-day deadline and payroll risk. There are no signs of security, legal, or compliance issues to trigger escalation. Routing to billing with high urgency enables swift refund handling."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing paying customer reporting an extreme monthly overcharge and requesting an immediate refund",
+          "confidence": 0.3,
+          "basis": [
+            "Mentions being charged for 'this month'",
+            "Specific amounts: $48,000 vs $4,800",
+            "Says charge has 'already come out of our account'",
+            "Requests reversal 'today' to cover payroll"
+          ]
+        },
+        "customer_reason": "The ticket does not name a company or person and provides no identifiers. It clearly comes from an existing paying customer due to references to monthly charge amounts and funds already debited.",
+        "category": "billing",
+        "category_confidence": 0.7,
+        "category_reason": "This is about an incorrect charge and a refund request, which is billing. A bug is plausible if a system error caused the overcharge, but the customer\u2019s ask is to reverse a charge rather than report product malfunction.",
+        "category_alternatives": [
+          {
+            "category": "bug",
+            "confidence": 0.3,
+            "why_not": "Magnitude suggests a potential billing-system defect, but the harm and requested action are financial/refund-focused, with no product malfunction details."
+          }
+        ],
+        "urgency": "critical",
+        "urgency_signals": [
+          "\u2018We need it reversed today\u2019",
+          "\u2018already come out of our account\u2019",
+          "\u2018or payroll bounces\u2019",
+          "Large financial impact: charged $48,000 instead of $4,800"
+        ],
+        "urgency_reason": "Time-critical financial risk (payroll may bounce today) and a very large overcharge already withdrawn from their account set this to critical.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indicators of security incident or data exposure, no legal or compliance demand, and no executive named. This is a severe billing issue but does not meet escalation criteria.",
+        "summary": "Customer requests immediate reversal/refund of a $48,000 overcharge (should have been $4,800) to avoid payroll bouncing today.",
+        "rationale": "The ticket centers on an overcharge and urgent refund need, which fits billing over bug because the harm is strictly financial. The urgency is critical due to a same-day deadline and payroll risk. There are no signs of security, legal, or compliance issues to trigger escalation. Routing to billing with high urgency enables swift refund handling."
+      },
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "billing-oncall",
+      "escalation_queue": null,
+      "latency_ms": 8850,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2786,
+        "output_tokens": 833,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 256,
+        "effort": "low",
+        "llm_ms": 8849,
+        "cost_usd": 0.008788
+      },
+      "error": null
+    },
+    {
+      "id": "3fc8d8adf874",
+      "created_at": "2026-09-25T16:29:25.203+00:00",
+      "ticket": {
+        "text": "Your system has charged our company card $12,000 six times since midnight and it is still going. Please stop it now.",
+        "source": "demo-set",
+        "external_id": "D-34"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing paying customer being repeatedly charged on a company credit card by our billing system",
+          "confidence": 0.35,
+          "basis": [
+            "Phrases: 'our company card', 'charged ... six times', 'still going'",
+            "Large dollar amount indicates an active paid account",
+            "Describes charges by 'your system' implying existing billing relationship"
+          ]
+        },
+        "customer_reason": "The ticket does not name a person or company. It clearly describes being charged by our system on a company card, so I infer an existing paying customer.",
+        "category": "billing",
+        "category_confidence": 0.65,
+        "category_reason": "The substance is repeated card charges and a request to stop them, which is a billing/charges issue. Bug is a plausible alternative if this is a system malfunction, but the immediate action is to halt and reverse charges handled by billing.",
+        "category_alternatives": [
+          {
+            "category": "bug",
+            "confidence": 0.35,
+            "why_not": "Repeated unintended charges suggest a billing system defect, but the customer frames it as charges to their card and asks to stop billing rather than reporting app functionality."
+          }
+        ],
+        "urgency": "critical",
+        "urgency_signals": [
+          "'$12,000 six times since midnight'",
+          "'it is still going'",
+          "'Please stop it now'"
+        ],
+        "urgency_reason": "High financial impact and active ongoing harm affecting real charges right now, with an explicit urgent request to stop it.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indicators of unauthorized access or data exposure, no legal or compliance language, and no executive mentions. This is a severe billing/charge incident but not a security, legal, or compliance escalation per policy.",
+        "summary": "Customer requests immediate stop to ongoing repeated $12,000 charges to their company card.",
+        "rationale": "The ticket describes runaway charging on a company card by our system, pointing to a billing incident. While it could stem from a defect, the immediate need is to halt charges and address billing, so billing is primary with bug as an alternative. The situation is critical due to repeated high-dollar transactions and the fact it is still occurring. No security, data exposure, or legal cues are present, so no special escalation category applies."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing paying customer being repeatedly charged on a company credit card by our billing system",
+          "confidence": 0.35,
+          "basis": [
+            "Phrases: 'our company card', 'charged ... six times', 'still going'",
+            "Large dollar amount indicates an active paid account",
+            "Describes charges by 'your system' implying existing billing relationship"
+          ]
+        },
+        "customer_reason": "The ticket does not name a person or company. It clearly describes being charged by our system on a company card, so I infer an existing paying customer.",
+        "category": "billing",
+        "category_confidence": 0.65,
+        "category_reason": "The substance is repeated card charges and a request to stop them, which is a billing/charges issue. Bug is a plausible alternative if this is a system malfunction, but the immediate action is to halt and reverse charges handled by billing.",
+        "category_alternatives": [
+          {
+            "category": "bug",
+            "confidence": 0.35,
+            "why_not": "Repeated unintended charges suggest a billing system defect, but the customer frames it as charges to their card and asks to stop billing rather than reporting app functionality."
+          }
+        ],
+        "urgency": "critical",
+        "urgency_signals": [
+          "'$12,000 six times since midnight'",
+          "'it is still going'",
+          "'Please stop it now'"
+        ],
+        "urgency_reason": "High financial impact and active ongoing harm affecting real charges right now, with an explicit urgent request to stop it.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indicators of unauthorized access or data exposure, no legal or compliance language, and no executive mentions. This is a severe billing/charge incident but not a security, legal, or compliance escalation per policy.",
+        "summary": "Customer requests immediate stop to ongoing repeated $12,000 charges to their company card.",
+        "rationale": "The ticket describes runaway charging on a company card by our system, pointing to a billing incident. While it could stem from a defect, the immediate need is to halt charges and address billing, so billing is primary with bug as an alternative. The situation is critical due to repeated high-dollar transactions and the fact it is still occurring. No security, data exposure, or legal cues are present, so no special escalation category applies."
+      },
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "billing-oncall",
+      "escalation_queue": null,
+      "latency_ms": 13779,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2775,
+        "output_tokens": 946,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 384,
+        "effort": "low",
+        "llm_ms": 13779,
+        "cost_usd": 0.009905
+      },
+      "error": null
+    },
+    {
+      "id": "1a9458ba62d1",
+      "created_at": "2026-09-25T16:29:18.863+00:00",
+      "ticket": {
+        "text": "It would be great if we could schedule reports to go out automatically every Monday morning.",
+        "source": "demo-set",
+        "external_id": "D-35"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing user requesting a scheduling capability for report delivery",
+          "confidence": 0.3,
+          "basis": [
+            "Uses 'we' and 'reports' implying active usage",
+            "Requests ability to 'schedule reports' and specify 'every Monday morning'"
+          ]
+        },
+        "customer_reason": "No company or person is named. The phrasing suggests an existing user asking for added capability around reports.",
+        "category": "feature_request",
+        "category_confidence": 0.8,
+        "category_reason": "They ask for a new capability: 'schedule reports to go out automatically.' The nearest alternative is a how-to request if scheduling already exists, but the phrasing 'it would be great if we could' implies it does not.",
+        "category_alternatives": [
+          {
+            "category": "other",
+            "confidence": 0.2,
+            "why_not": "Could be a how-to question if scheduling exists, but wording suggests a feature gap rather than guidance."
+          }
+        ],
+        "urgency": "low",
+        "urgency_signals": [
+          "'It would be great' indicates nice-to-have",
+          "No deadline or impact stated"
+        ],
+        "urgency_reason": "No deadline, financial impact, or ongoing harm; tone indicates a non-urgent enhancement request.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No security, data exposure, legal, compliance, or executive mentions present.",
+        "summary": "Requests the ability to schedule automatic report delivery every Monday morning.",
+        "rationale": "This reads as a straightforward request for a new scheduling feature for reports. No identifiers or names are provided, so the customer is inferred as an existing user. There is no urgency signaled and no escalation triggers. It should route to product/feature intake rather than support for a bug or onboarding."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing user requesting a scheduling capability for report delivery",
+          "confidence": 0.3,
+          "basis": [
+            "Uses 'we' and 'reports' implying active usage",
+            "Requests ability to 'schedule reports' and specify 'every Monday morning'"
+          ]
+        },
+        "customer_reason": "No company or person is named. The phrasing suggests an existing user asking for added capability around reports.",
+        "category": "feature_request",
+        "category_confidence": 0.8,
+        "category_reason": "They ask for a new capability: 'schedule reports to go out automatically.' The nearest alternative is a how-to request if scheduling already exists, but the phrasing 'it would be great if we could' implies it does not.",
+        "category_alternatives": [
+          {
+            "category": "other",
+            "confidence": 0.2,
+            "why_not": "Could be a how-to question if scheduling exists, but wording suggests a feature gap rather than guidance."
+          }
+        ],
+        "urgency": "low",
+        "urgency_signals": [
+          "'It would be great' indicates nice-to-have",
+          "No deadline or impact stated"
+        ],
+        "urgency_reason": "No deadline, financial impact, or ongoing harm; tone indicates a non-urgent enhancement request.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No security, data exposure, legal, compliance, or executive mentions present.",
+        "summary": "Requests the ability to schedule automatic report delivery every Monday morning.",
+        "rationale": "This reads as a straightforward request for a new scheduling feature for reports. No identifiers or names are provided, so the customer is inferred as an existing user. There is no urgency signaled and no escalation triggers. It should route to product/feature intake rather than support for a bug or onboarding."
+      },
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "product-feedback",
+      "escalation_queue": null,
+      "latency_ms": 7352,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2766,
+        "output_tokens": 709,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 256,
+        "effort": "low",
+        "llm_ms": 7352,
+        "cost_usd": 0.007523
+      },
+      "error": null
+    },
+    {
+      "id": "f086dc435498",
+      "created_at": "2026-09-25T16:29:20.315+00:00",
+      "ticket": {
+        "text": "Any plans to support exporting straight to Google Sheets? We copy and paste everything by hand right now.",
+        "source": "demo-set",
+        "external_id": "D-36"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing Climb user requesting a Google Sheets export integration",
+          "confidence": 0.4,
+          "basis": [
+            "Asks for \"support exporting straight to Google Sheets\" (speaks as a user of exports)",
+            "\"We copy and paste everything by hand right now\" implies ongoing product use and a workflow gap"
+          ]
+        },
+        "customer_reason": "No company or person is named. The writer speaks as an existing user who exports data and currently copies and pastes, so I infer an existing customer requesting an integration.",
+        "category": "feature_request",
+        "category_confidence": 0.9,
+        "category_reason": "They are asking for a new capability (direct export to Google Sheets). Not a bug because nothing is malfunctioning; it's an absent feature.",
+        "category_alternatives": [
+          {
+            "category": "other",
+            "confidence": 0.1,
+            "why_not": "Could be a general question about current capabilities, but the phrasing \"Any plans to support\" frames it as a feature request."
+          }
+        ],
+        "urgency": "low",
+        "urgency_signals": [
+          "\"We copy and paste everything by hand right now\" (ongoing inconvenience)",
+          "No deadline or outage mentioned",
+          "No financial impact or broad user impact stated"
+        ],
+        "urgency_reason": "This is a request for a new integration without deadlines or active breakage; it's an ongoing workflow pain but not urgent.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No security, data exposure, legal, compliance, or executive involvement cues. It's a straightforward feature request.",
+        "summary": "Customer asks for direct export support to Google Sheets to avoid manual copy-paste.",
+        "rationale": "The ticket clearly asks about plans to support exporting to Google Sheets, indicating a missing capability rather than a defect. The user appears to be an existing customer relying on manual copy-paste today. There is no urgency signal beyond inconvenience, and no escalation triggers. Route to the feature/PM team as a feature request."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing Climb user requesting a Google Sheets export integration",
+          "confidence": 0.4,
+          "basis": [
+            "Asks for \"support exporting straight to Google Sheets\" (speaks as a user of exports)",
+            "\"We copy and paste everything by hand right now\" implies ongoing product use and a workflow gap"
+          ]
+        },
+        "customer_reason": "No company or person is named. The writer speaks as an existing user who exports data and currently copies and pastes, so I infer an existing customer requesting an integration.",
+        "category": "feature_request",
+        "category_confidence": 0.9,
+        "category_reason": "They are asking for a new capability (direct export to Google Sheets). Not a bug because nothing is malfunctioning; it's an absent feature.",
+        "category_alternatives": [
+          {
+            "category": "other",
+            "confidence": 0.1,
+            "why_not": "Could be a general question about current capabilities, but the phrasing \"Any plans to support\" frames it as a feature request."
+          }
+        ],
+        "urgency": "low",
+        "urgency_signals": [
+          "\"We copy and paste everything by hand right now\" (ongoing inconvenience)",
+          "No deadline or outage mentioned",
+          "No financial impact or broad user impact stated"
+        ],
+        "urgency_reason": "This is a request for a new integration without deadlines or active breakage; it's an ongoing workflow pain but not urgent.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No security, data exposure, legal, compliance, or executive involvement cues. It's a straightforward feature request.",
+        "summary": "Customer asks for direct export support to Google Sheets to avoid manual copy-paste.",
+        "rationale": "The ticket clearly asks about plans to support exporting to Google Sheets, indicating a missing capability rather than a defect. The user appears to be an existing customer relying on manual copy-paste today. There is no urgency signal beyond inconvenience, and no escalation triggers. Route to the feature/PM team as a feature request."
+      },
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "product-feedback",
+      "escalation_queue": null,
+      "latency_ms": 8190,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2769,
+        "output_tokens": 781,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 256,
+        "effort": "low",
+        "llm_ms": 8189,
+        "cost_usd": 0.008247
+      },
+      "error": null
+    },
+    {
+      "id": "b7c6c877f278",
+      "created_at": "2026-09-25T16:29:50.785+00:00",
+      "ticket": {
+        "text": "see attached",
+        "source": "demo-set",
+        "external_id": "D-37"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": null,
+          "confidence": 0.0,
+          "basis": []
+        },
+        "customer_reason": "The ticket contains only 'see attached' with no company or contact name and no visible identifiers. The attachment is not available in the text, so nothing can be inferred about the sender.",
+        "category": "other",
+        "category_confidence": 0.45,
+        "category_reason": "With no description, this is a generic inquiry pending attachment review, which fits 'other' better than a specific queue. 'Spam' is plausible but there is not enough to conclude it is unrelated or malicious.",
+        "category_alternatives": [
+          {
+            "category": "spam",
+            "confidence": 0.25,
+            "why_not": "Content-free message could be junk, but a reference to an attachment often indicates a legitimate ticket."
+          },
+          {
+            "category": "billing",
+            "confidence": 0.15,
+            "why_not": "Attachments often include invoices, but there is no mention of charges or plans to support billing specifically."
+          },
+          {
+            "category": "bug",
+            "confidence": 0.15,
+            "why_not": "Attachments can be logs or screenshots, but there is no description of broken behavior or errors."
+          }
+        ],
+        "urgency": "low",
+        "urgency_signals": [],
+        "urgency_reason": "No deadlines, impact, or scope are described; there is no indication of ongoing harm. Without the attachment, this reads as a non-urgent, unspecified inquiry.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indications of security incidents, data exposure, legal or compliance demands, or executive mentions. The content is insufficient to trigger escalation without reviewing the attachment.",
+        "summary": "Sender refers to an attachment with no details in the message body.",
+        "rationale": "The ticket provides no substantive information beyond referencing an attachment, so it cannot be routed confidently to a specialized queue. It is placed in 'other' for general triage until the attachment is reviewed. Urgency is low due to no stated impact or deadlines. No escalation triggers are present in the text."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": null,
+          "confidence": 0.0,
+          "basis": []
+        },
+        "customer_reason": "The ticket contains only 'see attached' with no company or contact name and no visible identifiers. The attachment is not available in the text, so nothing can be inferred about the sender.",
+        "category": "other",
+        "category_confidence": 0.45,
+        "category_reason": "With no description, this is a generic inquiry pending attachment review, which fits 'other' better than a specific queue. 'Spam' is plausible but there is not enough to conclude it is unrelated or malicious.",
+        "category_alternatives": [
+          {
+            "category": "spam",
+            "confidence": 0.25,
+            "why_not": "Content-free message could be junk, but a reference to an attachment often indicates a legitimate ticket."
+          },
+          {
+            "category": "billing",
+            "confidence": 0.15,
+            "why_not": "Attachments often include invoices, but there is no mention of charges or plans to support billing specifically."
+          },
+          {
+            "category": "bug",
+            "confidence": 0.15,
+            "why_not": "Attachments can be logs or screenshots, but there is no description of broken behavior or errors."
+          }
+        ],
+        "urgency": "low",
+        "urgency_signals": [],
+        "urgency_reason": "No deadlines, impact, or scope are described; there is no indication of ongoing harm. Without the attachment, this reads as a non-urgent, unspecified inquiry.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indications of security incidents, data exposure, legal or compliance demands, or executive mentions. The content is insufficient to trigger escalation without reviewing the attachment.",
+        "summary": "Sender refers to an attachment with no details in the message body.",
+        "rationale": "The ticket provides no substantive information beyond referencing an attachment, so it cannot be routed confidently to a specialized queue. It is placed in 'other' for general triage until the attachment is reviewed. Urgency is low due to no stated impact or deadlines. No escalation triggers are present in the text."
+      },
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "human-review",
+      "escalation_queue": null,
+      "latency_ms": 9824,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2752,
+        "output_tokens": 802,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 384,
+        "effort": "low",
+        "llm_ms": 9822,
+        "cost_usd": 0.008436
+      },
+      "error": null
+    },
+    {
+      "id": "e9664faa411d",
+      "created_at": "2026-09-25T16:29:49.644+00:00",
+      "ticket": {
+        "text": "Can you help with the issue we discussed on the call?",
+        "source": "demo-set",
+        "external_id": "D-38"
+      },
+      "mode": "llm",
+      "model": "gpt-5-2025-08-07",
+      "extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing customer following up after a recent support call",
+          "confidence": 0.2,
+          "basis": [
+            "References 'the call' implying a prior support conversation",
+            "Requests help but provides no product or account details"
+          ]
+        },
+        "customer_reason": "The ticket names no person or company and includes no identifiers. The reference to 'the call' suggests an existing customer who recently spoke with support.",
+        "category": "other",
+        "category_confidence": 0.45,
+        "category_reason": "The message contains no details to place it in billing, bug, security, or onboarding. It is a generic follow-up request after a call, so 'other' fits best. Considered 'onboarding' and 'bug' but there is no mention of setup steps or product malfunction.",
+        "category_alternatives": [
+          {
+            "category": "onboarding",
+            "confidence": 0.3,
+            "why_not": "Could be a setup follow-up after a call, but no mention of implementation or go-live steps."
+          },
+          {
+            "category": "bug",
+            "confidence": 0.25,
+            "why_not": "They mention an 'issue', but give no symptoms, errors, or product behavior to indicate a defect."
+          }
+        ],
+        "urgency": "low",
+        "urgency_signals": [
+          "No deadline stated",
+          "No impact or scope described",
+          "No indication the problem is ongoing or blocking"
+        ],
+        "urgency_reason": "There is no deadline, scope, or impact described; it is a generic request for help after a call.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indications of security, data exposure, legal/compliance, or executive involvement. It is a generic follow-up request.",
+        "summary": "Customer asks for assistance following up on an issue discussed during a recent call.",
+        "rationale": "The ticket is content-light and references a prior conversation without details, so it cannot be confidently placed in a specific queue. Classifying as 'other' routes it to general triage to request details or locate the referenced call notes. No urgency signals or escalation triggers are present."
+      },
+      "llm_extraction": {
+        "customer": {
+          "name": null,
+          "contact_name": null,
+          "identifiers": [],
+          "best_guess": "Existing customer following up after a recent support call",
+          "confidence": 0.2,
+          "basis": [
+            "References 'the call' implying a prior support conversation",
+            "Requests help but provides no product or account details"
+          ]
+        },
+        "customer_reason": "The ticket names no person or company and includes no identifiers. The reference to 'the call' suggests an existing customer who recently spoke with support.",
+        "category": "other",
+        "category_confidence": 0.45,
+        "category_reason": "The message contains no details to place it in billing, bug, security, or onboarding. It is a generic follow-up request after a call, so 'other' fits best. Considered 'onboarding' and 'bug' but there is no mention of setup steps or product malfunction.",
+        "category_alternatives": [
+          {
+            "category": "onboarding",
+            "confidence": 0.3,
+            "why_not": "Could be a setup follow-up after a call, but no mention of implementation or go-live steps."
+          },
+          {
+            "category": "bug",
+            "confidence": 0.25,
+            "why_not": "They mention an 'issue', but give no symptoms, errors, or product behavior to indicate a defect."
+          }
+        ],
+        "urgency": "low",
+        "urgency_signals": [
+          "No deadline stated",
+          "No impact or scope described",
+          "No indication the problem is ongoing or blocking"
+        ],
+        "urgency_reason": "There is no deadline, scope, or impact described; it is a generic request for help after a call.",
+        "escalate": false,
+        "escalation_reasons": [],
+        "escalation_reason_text": "No indications of security, data exposure, legal/compliance, or executive involvement. It is a generic follow-up request.",
+        "summary": "Customer asks for assistance following up on an issue discussed during a recent call.",
+        "rationale": "The ticket is content-light and references a prior conversation without details, so it cannot be confidently placed in a specific queue. Classifying as 'other' routes it to general triage to request details or locate the referenced call notes. No urgency signals or escalation triggers are present."
+      },
+      "rule_hits": [],
+      "overrides": [],
+      "queue": "human-review",
+      "escalation_queue": null,
+      "latency_ms": 8682,
+      "usage": {
+        "stop_reason": "completed",
+        "input_tokens": 2761,
+        "output_tokens": 718,
+        "cache_read_input_tokens": 2688,
+        "reasoning_tokens": 192,
+        "effort": "low",
+        "llm_ms": 8679,
+        "cost_usd": 0.007607
+      },
+      "error": null
     }
   ]
 }

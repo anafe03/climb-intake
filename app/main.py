@@ -453,11 +453,19 @@ def pricing_table():
             "missed_escalations": len(s["missed_escalations"]),
             "false_escalations": len(s["false_escalations"]),
             "urgency_under": len(s.get("urgency_under", [])),
-            "critical_under_called": not s.get("urgency_never_under_critical", True),
+            # Tickets where the right urgency is clear-cut, not labelled as fairly either of two.
+            # The same rule the category score uses: an arguable ticket is not counted as a miss.
+            "urgency_under_clear": len(s.get("urgency_hard_under", [])),
+            "critical_under_clear": sum(1 for h in s.get("urgency_hard_under", []) if h.endswith("gold critical")),
+            "critical_under_called": any(h.endswith("gold critical") for h in s.get("urgency_hard_under", [])),
+            "no_answer": r.get("fails", 0),
             "n": r["n"],
+            # How many tickets in the run should have escalated. Older runs were gold-only (11).
+            "must_escalate": r.get("must_n", 11),
         })
     out.sort(key=lambda r: r["cost_per_ticket"] or 0, reverse=True)
-    return {"models": out, "measured_on": "the 33-ticket gold set", "running": llm.active_model()}
+    n = out[0]["n"] if out else 0
+    return {"models": out, "n": n, "measured_on": f"all {n} test tickets", "running": llm.active_model()}
 
 
 EVIDENCE = Path(__file__).resolve().parent.parent / "data" / "measured" / "escalation_evidence.json"

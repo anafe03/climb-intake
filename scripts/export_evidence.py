@@ -31,7 +31,43 @@ def jsonl(path: Path) -> list[dict]:
     return [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
 
 
+GROUPS = [("climb", "Provided tickets", "The 10 tickets Climb supplied."),
+          ("edge", "Edge cases", "Tickets written to test the hard parts."),
+          ("adversarial", "Trick tickets", "Tickets written to break it."),
+          ("keyword-free", "No keywords at all",
+           "Tickets with none of the words the keyword list looks for. Only the model can catch these.")]
+
+
+def from_bakeoff(path: Path) -> list[dict]:
+    """Use the gpt-5 leg of the all-examples comparison, so this list and the table are one run."""
+    saved = json.loads(path.read_text())
+    groups = []
+    for key, name, about in GROUPS:
+        rows = []
+        for r, d in zip(saved["rows"], saved["decisions"]):
+            grp = r.get("group", "")
+            if grp != key or not r["expected"]["escalate"]:
+                continue
+            rows.append({"id": r["id"], "text": r["text"], "caught": d["extraction"]["escalate"],
+                         "model_alone": (d.get("llm_extraction") or {}).get("escalate", False),
+                         "keywords": bool([h for h in d.get("rule_hits") or [] if h.get("reason")])})
+        if rows:
+            groups.append({"name": name, "about": about, "tickets": rows})
+    return groups
+
+
 def main() -> int:
+    run = RES / "bakeoff-gpt-5-low.json"
+    if run.exists():
+        groups = from_bakeoff(run)
+        out = ROOT / "data" / "measured" / "escalation_evidence.json"
+        out.write_text(json.dumps({"groups": groups}, indent=2))
+        for g in groups:
+            c = sum(t["caught"] for t in g["tickets"])
+            k = sum(not t["keywords"] and t["caught"] for t in g["tickets"])
+            print(f"{g['name']:20} {c}/{len(g['tickets'])} caught, {k} with no keyword")
+        print(f"wrote {out.relative_to(ROOT)} from the all-examples run")
+        return 0
     groups = []
 
     gold = {r["id"]: r for r in jsonl(ROOT / "data" / "gold.jsonl")}

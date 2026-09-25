@@ -81,12 +81,15 @@ table.evt td.ok{color:var(--sage);font-weight:700;width:18px}
 table.evt td.id{font-family:ui-monospace,monospace;font-size:12px;color:var(--dim);white-space:nowrap;width:70px}
 table.evt td.kw{white-space:nowrap;font-size:12px;color:var(--dim)}
 table.evt td.kw b{color:var(--coral-deep)}
+
+.explain{margin-top:22px;max-width:760px}
+.explain p{margin:0 0 10px;font-size:14px;line-height:1.6}
 </style>
 </head>
 <body>
 <header><div class="wrap">
   <h1>Cost &amp; models</h1>
-  <p>The same 33 tickets, read by each model</p>
+  <p id="sub">The same tickets, read by each model</p>
 </div></header>
 <nav><div class="wrap">
   <a href="/">Intake</a>
@@ -97,26 +100,59 @@ table.evt td.kw b{color:var(--coral-deep)}
 
 <main class="wrap">
 
-<table>
-  <tr><th>Model</th><th>Effort</th><th>Escalations caught</th><th>False escalations</th>
-      <th>Urgency read too low</th><th class="num">Cost per 1,000 tickets</th></tr>
-  <tr class="pick"><td><code>gpt-5</code></td><td>low</td>
-      <td><a href="#" id="recall" class="rlink">11 of 11</a></td><td>0</td><td>0</td>
-      <td class="num">$9.14</td></tr>
-  <tr><td><code>gpt-5-mini</code></td><td>low</td><td>11 of 11</td><td>1</td><td>1</td>
-      <td class="num">$1.84</td></tr>
-  <tr><td><code>gpt-5-mini</code></td><td>minimal</td><td>11 of 11</td><td>3</td><td>1</td>
-      <td class="num">$1.27</td></tr>
-  <tr class="bad"><td><code>gpt-5-nano</code></td><td>low</td><td>11 of 11</td><td>1</td>
-      <td><b>3, all critical tickets</b></td>
-      <td class="num">$0.35</td></tr>
-</table>
+<table id="models"><tr><td>Loading…</td></tr></table>
+
+<div class="explain">
+  <p><b>Which one we use:</b> gpt-5. It caught all 21 tickets that needed escalating and made the
+  fewest mistakes. Its one false alarm is the "we have not had a data breach" ticket, where the keyword
+  backup flags it on purpose. Its one urgency miss was on a borderline ticket, where high and critical
+  are both fair answers.</p>
+  <p><b>Why not the cheapest:</b> nano missed 2 of the 21 escalations, and read 4 clearly critical
+  tickets as less urgent, including the checkout charging customers twice. A critical ticket read as
+  less urgent waits in a normal queue instead of paging someone.</p>
+  <p><b>A cheaper setup we tested:</b> send plain tickets to the cheap model (mini), and only send a
+  ticket to gpt-5 when the backup word list spots something risky in it. On the 33 main test tickets
+  that cost 38% less, and it added one false escalation and one urgency call that was too low.</p>
+  <p><b>Why we did not switch:</b> 38% of about $9 is about $3.50 a month at 1,000 tickets. At 50,000
+  tickets a month it is about $170 a month. That is roughly where I would start to consider it. The
+  38% was measured; the 50,000 is my judgement call, not a measurement.</p>
+</div>
 
 <div id="evidence" class="ev" hidden></div>
 
 </main>
 <script>
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function lowCell(m){
+  const u=m.urgency_under, c=m.critical_under_clear;
+  if(!u) return '0';
+  if(c) return `<b>${u}, including ${c} clearly critical</b>`;
+  return u===1?'1 (borderline)':`${u} (all borderline)`;
+}
+async function renderModels(){
+  const r=await fetch('/pricing').then(x=>x.json()).catch(()=>null);
+  const t=document.getElementById('models');
+  if(!r||!r.models.length){t.innerHTML='<tr><td>No measurements on disk.</td></tr>';return}
+  const running=(r.running||'');
+  t.innerHTML=`<tr><th>Model</th><th>Effort</th><th>Escalations caught</th><th>False escalations</th>
+    <th>Urgency read too low</th><th class="num">Cost per 1,000 tickets</th></tr>`+
+  r.models.map(m=>{
+    const name=m.model.split('-20')[0];
+    const here=running.startsWith(name)&&!running.startsWith(name+'-')&&m.effort==='low';
+    const caught=`${m.must_escalate-m.missed_escalations} of ${m.must_escalate}`;
+    return `<tr class="${here?'pick':''}${m.critical_under_called?' bad':''}">
+      <td><code>${esc(name)}</code></td><td>${esc(m.effort)}</td>
+      <td>${here?`<a href="#" id="recall" class="rlink">${caught}</a>`
+        :m.missed_escalations?`<b>${caught}</b>`:caught}</td>
+      <td>${m.false_escalations}</td>
+      <td>${lowCell(m)}</td>
+      <td class="num">$${(m.cost_per_ticket*1000).toFixed(2)}</td></tr>`;
+  }).join('');
+  const rl=document.getElementById('recall'); if(rl) rl.onclick=e=>{e.preventDefault();showRecall()};
+  document.getElementById('sub').textContent=`The same ${r.n} tickets, read by each model`;
+}
+
 async function showRecall(){
   const box=document.getElementById('evidence');
   if(!box.hidden){box.hidden=true;return}
@@ -136,8 +172,7 @@ async function showRecall(){
   box.hidden=false;
   box.scrollIntoView({behavior:'smooth',block:'start'});
 }
-document.getElementById('recall').onclick=e=>{e.preventDefault();showRecall()};
-if(new URL(location).searchParams.get('show')==='recall') showRecall();
+renderModels().then(()=>{ if(new URL(location).searchParams.get('show')==='recall') showRecall(); });
 </script>
 </body>
 </html>

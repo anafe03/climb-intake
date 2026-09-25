@@ -43,6 +43,29 @@ CLIMB_10 = [f"climb-{i:02d}" for i in range(1, 11)]
 ALL_GOLD = None  # resolved at runtime
 
 
+def _jsonl(path: Path) -> list[dict]:
+    return [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+
+
+def all_examples() -> list[dict]:
+    """Every labelled ticket: gold, the trick tickets, the extraction cases, the no-keyword probe.
+
+    The no-keyword tickets only test escalation, so their category and urgency are marked as free
+    answers and their expected urgency is set to low, which means they can never count as urgency
+    read too low. Everything else is scored exactly as labelled.
+    """
+    data = ROOT / "data"
+    rows = list(load_gold())
+    rows += _jsonl(data / "adversarial.jsonl")
+    rows += _jsonl(data / "extraction_cases.jsonl")
+    for k in _jsonl(data / "keyword_free_escalations.jsonl"):
+        rows.append({"id": k["id"], "group": "keyword-free", "text": k["text"],
+                     "expected": {"category": "other", "urgency": "low",
+                                  "escalate": k["expect_escalate"], "customer_name": None},
+                     "ambiguous": ["category"]})
+    return rows
+
+
 def run(model: str, rows: list[dict], workers: int, effort: str = "low") -> dict:
     os.environ["OPENAI_MODEL"] = model
     os.environ["OPENAI_REASONING_EFFORT"] = effort
@@ -61,8 +84,13 @@ def run(model: str, rows: list[dict], workers: int, effort: str = "low") -> dict
     if p and ds:
         fresh = max(tin - tcached, 0)
         cost = (fresh * p["in"] + tcached * p["cached_in"] + tout * p["out"]) / 1_000_000 / len(ds)
+    # Keep the answers themselves, so the clickable escalation list matches this table exactly.
+    out_dir = ROOT / "data" / "eval-results"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / f"bakeoff-{model}-{effort}.json").write_text(json.dumps(
+        {"rows": rows, "decisions": [d.model_dump(mode="json") for d in ds]}, indent=2, default=str))
     return {"model": ds[0].model if ds and ds[0].model else model, "effort": effort, "summary": s, "fails": len(fails),
-
+            "must_n": sum(1 for r in rows if r["expected"]["escalate"]),
             "p50": lat[len(lat) // 2], "p95": lat[int(len(lat) * .95) - 1], "wall": wall,
             "tin": tin / len(ds), "tcached": tcached / len(ds), "tout": tout / len(ds),
             "cost_per_ticket": cost, "n": len(ds)}
@@ -100,12 +128,14 @@ def main() -> int:
     ap.add_argument("--ids", nargs="*", default=None,
                     help="default: every gold ticket. Pass --climb10 for the provided samples only.")
     ap.add_argument("--climb10", action="store_true", help="only the 10 provided samples (see D52)")
+    ap.add_argument("--all", action="store_true",
+                    help="every labelled example: gold, trick tickets, extraction cases, no-keyword probe")
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--rewrite", action="store_true",
                     help="regenerate the report from the last saved results; calls nothing")
     a = ap.parse_args()
 
-    gold = {r["id"]: r for r in load_gold()}
+    gold = {r["id"]: r for r in (all_examples() if a.all else load_gold())}
     ids = a.ids or (CLIMB_10 if a.climb10 else list(gold))
     rows = [gold[i] for i in ids if i in gold]
     a.ids = ids
@@ -197,7 +227,7 @@ def write_report(results: list[dict], rows: list[dict], ids: list[str]) -> int:
         "   sits. If a row under-calls a ticket the gold set marks *critical*, that row is disqualified",
         "   whatever it costs.",
         "",
-        f"Measured over {len(rows)} gold tickets, so a single disagreement moves a percentage column by",
+        f"Measured over {len(rows)} labelled tickets, so a single disagreement moves a percentage column by",
         f"about {100/max(len(rows),1):.0f} points. Small enough to be directional, not a benchmark.",
         "",
         "## Making a cheaper model good enough",

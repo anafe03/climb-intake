@@ -413,15 +413,10 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
   <div class="menu">
     <button class="tool" id="menubtn" aria-haspopup="true">Data ▾</button>
     <div class="menu-pop" id="menupop">
-      <div class="grp">Instant · replayed from a recorded run</div>
-      <button id="rec-samples">The 10 Climb samples</button>
-      <button id="rec-demo">The 32-ticket demo set</button>
-      <button id="rec-fail">3 failed extractions (the model timed out)</button>
-      <div class="grp">Reads live · costs an API call each</div>
-      <button id="samples">Re-read the 10 samples</button>
-      <button id="demo">Re-read the 32 demo tickets</button>
+      <button id="set-samples">The 10 Climb samples</button>
+      <button id="set-demo">The 38 other examples</button>
+      <button id="set-all">All 48</button>
       <button id="up">Upload a file…</button>
-      <button id="clear" class="danger">Clear everything</button>
     </div>
   </div>
   <input type="file" id="file" accept=".json,.jsonl,.csv,.txt">
@@ -441,7 +436,7 @@ const cap=s=>{s=String(s).replace(/_/g,' ');return s[0].toUpperCase()+s.slice(1)
 // Cost is recorded per decision by app/pricing.py, so the page never owns a rate card.
 const costOf=d=>(d.usage&&typeof d.usage.cost_usd==='number')?d.usage.cost_usd:null;
 const cents=v=>v==null?null:v>=1?`$${v.toFixed(2)}`:v>=0.01?`${(v*100).toFixed(2)}\u00a2`:`${(v*100).toFixed(3)}\u00a2`;
-let rows=[], escOnly=false, sortBy='newest', openId=null, view='list';
+let rows=[], escOnly=false, sortBy='urgency', openId=null, view='list';
 let pick=null;   // {kind:'urgency'|'category'|'critical', value}: set by clicking a stat
 
 // What each simulated downstream queue is for. Shown on the board so a reviewer can see the
@@ -545,7 +540,7 @@ function shareBar(x){
 }
 function li(label,desc,hit){return `<li class="${hit?'hit':''}"><b>${esc(label)}:</b> <span>${esc(desc)}</span></li>`}
 function liTrig(label,desc,trig,hit){return `<li class="${hit?'hit':''}"><b>${esc(label)}:</b> <span>${esc(desc)}</span>
-  <div class="trig">keywords: ${esc(trig)}</div></li>`}
+  <div class="trig">backup word list: ${esc(trig)}</div></li>`}
 // The description is our own static copy, not ticket text, so it may carry markup. Labels are still
 // escaped out of habit — the day one of these comes from data, the escaping is already there.
 function ref(items){return `<ul class="ref">${items.map(([k,v])=>
@@ -622,14 +617,16 @@ const FAQ={
      +'happening, not because of the shouting. A calm note that checkout is charging customers twice is '
      +'scored critical.'],
     ['How often is urgency right?',
-     'It matches our answer exactly 82% of the time, and 76% with keyword rules alone. That is the weakest '
-     +'number in the system. But what matters more is which way it is wrong.'],
+     'On our 33 main test tickets it matches our answer exactly 82% of the time, and 76% with keyword '
+     +'rules alone. That is the weakest number in the system. But what matters more is which way it is wrong.'],
     ['Which way is it wrong?',
-     'Always the safe way. When it gets urgency wrong, it says a ticket is more urgent than it is, never '
-     +'less. That happened on 18% of tickets (24% with keyword rules alone). A ticket that shows up too '
-     +'early just gets moved down by a person. A ticket that shows up too late sits and waits, and that '
-     +'never happened. Not one critical ticket was read as less than critical. It is like a doctor: telling '
-     +'a healthy person to come back for a check-up costs a little. Sending a sick person home costs a lot.'],
+     'Almost always the safe way. On the 33 main test tickets, when it got urgency wrong it said a ticket '
+     +'was more urgent than it was, never less (18% of tickets, 24% with keyword rules alone). Across all '
+     +'61 test tickets there was one exception: a ticket about stolen passwords, already locked, that it '
+     +'called high where we had said critical, and where high is also a fair answer. A ticket that shows up '
+     +'too early just gets moved down by a person. One that shows up too late sits and waits. It is like a '
+     +'doctor: telling a healthy person to come back for a check-up costs a little. Sending a sick person '
+     +'home costs a lot.'],
     ['Why do keyword rules alone overreact more?',
      'Keyword rules only look for words. They cannot tell "we had a breach" from "we have not had a '
      +'breach". So they are set up to overreact rather than miss something. The model reads the whole '
@@ -642,7 +639,7 @@ const FAQ={
   human:[
     ['Is escalation just keyword matching?',
      'No. The model reads every ticket first. Then the keyword rules run as a second check. Either one can '
-     +'flag a ticket, and neither can un-flag it. On the cost page, click <b>11 of 11</b> to see every ticket '
+     +'flag a ticket, and neither can un-flag it. On the cost page, click <b>21 of 21</b> to see every ticket '
      +'that should have been flagged: 21 of 21 were caught, and 8 of them had no keyword at all, so only the '
      +'model could have caught them.'],
     ['What does the model catch that keywords miss?',
@@ -650,6 +647,10 @@ const FAQ={
      +'<i>solicitors</i> to look at the agreement" (the list knows lawyer, not solicitor). "The woman who '
      +'runs our company" instead of CEO. Someone who "finished up with us in June" instead of former '
      +'employee. The same problem written in Spanish. The model caught all of these. The keywords caught none.'],
+    ['What if the model times out or is down?',
+     'The ticket is not dropped. The keyword rules read it instead, and the ticket is marked as read by '
+     +'keyword rules. If it contains escalation words it is still flagged to a person. If the keyword rules '
+     +'are not sure which team it belongs to, it goes to human review, so a person decides.'],
     ['Then why keep the keywords at all?',
      'Because they never change. If the model is updated, or its instructions are edited, or it goes down, '
      +'the keyword rules still work exactly the same. When the model is unreachable, they still catch every '
@@ -818,7 +819,9 @@ function explainer(key,d){
         : `<b>No</b>. None of the five topics applied, so it goes to <code>${esc(d.queue)}</code> and nowhere else.`)
     + escGrid(d)
     + why(x.escalation_reason_text)
-    + `<h5>The five escalation topics</h5><ul class="crit">${ESC_DEFS.map(([k,v,t])=>
+    + `<h5>The five escalation topics</h5>
+       <p class="gridlead" style="margin-top:-2px">The model judges these five from meaning. Under each one
+       is the backup word list, which only adds a flag the model missed.</p><ul class="crit">${ESC_DEFS.map(([k,v,t])=>
         liTrig(cap(k),v,t,x.escalation_reasons.includes(k))).join('')}</ul>`
     + `<h5>Who ends up involved: four things that get confused for each other</h5><ul class="crit">
         ${li('Its own team','always. Every ticket is routed to a queue a person works.',true)}
@@ -970,25 +973,18 @@ function ticketCard(d){
 }
 
 function renderQueueBoard(){
+  // Each ticket appears once. Headings only when sorting by category; otherwise one list in the
+  // chosen order, and each card says which queue it went to.
   const v=visible();
-  const byQueue={};
-  Object.keys(QUEUE_PURPOSE).forEach(q=>byQueue[q]=[]);
-  v.forEach(d=>{
-    (byQueue[d.queue] = byQueue[d.queue] || []).push(d);
-    if(d.escalation_queue) (byQueue[d.escalation_queue] = byQueue[d.escalation_queue] || []).push(d);
-  });
-  const filtered=!!pick||escOnly;
-  const names=Object.keys(byQueue)
-    .filter(q=>!filtered||byQueue[q].length)
-    .sort((a,b)=>byQueue[b].length-byQueue[a].length||a.localeCompare(b));
-  $('#list').innerHTML=names.map(q=>`
-    <div class="qgroup ${q.includes('escalation')?'esc':''}">
-      <div class="qhead"><span class="name">${esc(q)}</span>
-        <span class="n">${byQueue[q].length}</span>
-        <span class="desc">${esc(QUEUE_PURPOSE[q]||'')}</span></div>
-      ${byQueue[q].length ? byQueue[q].map(ticketCard).join('')
-        : '<div class="qempty">empty: nothing routed here</div>'}
-    </div>`).join('');
+  if(sortBy!=='category'){
+    $('#list').innerHTML=v.map(ticketCard).join('');
+  } else {
+    const groups={};
+    v.forEach(d=>(groups[d.extraction.category]=groups[d.extraction.category]||[]).push(d));
+    $('#list').innerHTML=Object.keys(groups).sort().map(c=>`
+      <div class="qgroup"><div class="qhead"><span class="name">${esc(cap(c))}</span>
+        <span class="n">${groups[c].length}</span></div>${groups[c].map(ticketCard).join('')}</div>`).join('');
+  }
   document.querySelectorAll('.tk').forEach(t=>t.onclick=()=>openModal(t.dataset.id));
 }
 
@@ -1034,18 +1030,19 @@ function renderOverview(){
     ${spend!=null?`<div class="ov"><div class="k">What it cost</div>
       <div class="big">$${(spend/Math.max(priced,1)*1000).toFixed(2)}<small>per 1,000 tickets</small></div>
       <div class="s" style="margin-top:9px">Worked out from what these ${priced} tickets actually used.</div></div>`:''}
-    <div class="ov"><div class="k">Failed extractions</div>
-      <div class="big ${fellBack?'danger':''}">${fellBack}<small>${fellBack===1?'ticket':'tickets'} fell back to keyword rules</small></div>
+    <div class="ov"><div class="k">AI did not answer</div>
+      <div class="big ${fellBack?'danger':''}">${fellBack}<small>${fellBack===1?'ticket':'tickets'}, so keyword rules handled ${fellBack===1?'it':'them'}</small></div>
       <div class="s" style="margin-top:9px">${errored?`${errored} returned an error. `:''}<a href="/optimization?show=recall" class="lnk">21 of 21 escalations caught, see them →</a></div></div>
     ${priceTable&&priceTable.models&&priceTable.models.length?`<div class="ov wide2"><div class="k">The same job on a cheaper model</div>
       <table class="mini"><caption>Cost per 1,000 tickets</caption>${priceTable.models.map(m=>{
         const here=(priceTable.running||'').startsWith(m.model.split('-20')[0]) && m.effort==='low';
         const bad=m.critical_under_called;
-        const note=m.missed_escalations?`${m.missed_escalations} missed escalations`
-          : bad?'read 3 critical tickets as high'
+        const note=m.missed_escalations?`missed ${m.missed_escalations} escalation${m.missed_escalations>1?'s':''}`
+          : bad?`read ${m.critical_under_clear} clearly critical ticket${m.critical_under_clear>1?'s':''} as less urgent`
           : m.false_escalations?`${m.false_escalations} false escalation${m.false_escalations>1?'s':''}`
-          : 'no errors on the gold set';
-        return `<tr class="${bad?'bad':''}${here?' here':''}">
+          : 'no mistakes';
+        const worst=m.missed_escalations||bad;
+        return `<tr class="${worst?'bad':''}${here?' here':''}">
           <td><code>${esc(m.model.split('-20')[0])}</code>${m.effort!=='low'?` <i>${esc(m.effort)}</i>`:''}</td>
           <td class="n">$${(m.cost_per_ticket*1000).toFixed(2)}</td>
           <td class="w">${esc(note)}</td></tr>`}).join('')}</table>
@@ -1145,7 +1142,7 @@ function renderList(){
            <li>Or paste any customer message at the top and press <span class="kbd">Read it</span> to
                have the model read one live.</li></ol>
        <p style="margin-top:14px">Then click any ticket to open the full breakdown.</p></div>`;
-    const sn=$('#seed-now'); if(sn) sn.onclick=()=>loadRecorded('samples','Climb samples');
+    const sn=$('#seed-now'); if(sn) sn.onclick=()=>showSet(['samples'],'the 10 Climb samples');
     return;
   }
   if(dash){$('#list').innerHTML='';return}
@@ -1429,16 +1426,23 @@ $('#submit').onclick=()=>run(async()=>{
   const d=await api('/tickets',{method:'POST',headers:{'content-type':'application/json'},
     body:JSON.stringify({text:t,source:'ui'})});
   $('#text').value=''; $('#text').style.height='';
-  escOnly=false; sortBy='newest'; pick=null;
+  escOnly=false; sortBy='urgency'; pick=null;
   stopClock();
   await reload(); await openModal(d.id);
   if(d.error) status('The model call failed: keyword rules handled it.',{err:true,hold:7000}); else status('');
 });
-$('#samples').onclick=()=>loadFixture('samples','10 samples');
-$('#demo').onclick=()=>loadFixture('demo','32 demo tickets');
-$('#rec-samples').onclick=()=>loadRecorded('samples','Climb samples');
-$('#rec-demo').onclick=()=>loadRecorded('demo','demo tickets');
-$('#rec-fail').onclick=()=>loadRecorded('failures','failed extractions');
+async function showSet(sets,label){
+  await run(async()=>{
+    await api('/tickets',{method:'DELETE'}); closeModal();
+    let n=0;
+    for(const f of sets){ const r=await api('/tickets/load-recorded?fixture='+f,{method:'POST'}); n+=r.count; }
+    pick=null; escOnly=false; await reload();
+    status(`Showing ${label}: ${n} tickets.`,{hold:3000});
+  });
+}
+$('#set-samples').onclick=()=>showSet(['samples'],'the 10 Climb samples');
+$('#set-demo').onclick=()=>showSet(['demo'],'the 38 other examples');
+$('#set-all').onclick=()=>showSet(['samples','demo'],'all examples');
 $('#up').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;
   const fd=new FormData();fd.append('file',f);
@@ -1446,9 +1450,6 @@ $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;
     const r=await api('/tickets/upload',{method:'POST',body:fd});
     await reload();status(`Read ${r.count} tickets from ${f.name}.`,{hold:4000})})
   .finally(()=>{e.target.value=''})};
-$('#clear').onclick=()=>{if(!confirm('Delete every decision from the audit log?'))return;
-  run(async()=>{await api('/tickets',{method:'DELETE'});closeModal();await reload();
-    status('Cleared.',{hold:2500})})};
 $('#menubtn').onclick=e=>{e.stopPropagation();closeMenu();$('#menupop').classList.toggle('on')};
 $('#showbtn').onclick=e=>{e.stopPropagation();closeMenu();$('#showpop').classList.toggle('on')};
 document.addEventListener('click',()=>closeMenu());

@@ -30,5 +30,11 @@
   {"id": "D-29", "text": "Scale your consulting pipeline with our verified B2B lead lists! 40,000 enterprise data contacts, GDPR-compliant, first 500 free. Reply LEADS to get started."},
   {"id": "D-30", "text": "We offboarded a senior engineer on Friday. Can you confirm her workspace access, personal access tokens, and service principal bindings have all been revoked on your side?"},
   {"id": "D-31", "text": "Quick question — is there documentation on how the Climb AI Runtime accelerators handle schema drift? Our source systems change column names fairly often."},
-  {"id": "D-32", "text": "Following up on the incident last Tuesday. We'd like a written RCA before our internal risk committee meets on the 12th. Nothing adversarial, we just need something to show them."}
+  {"id": "D-32", "text": "Following up on the incident last Tuesday. We'd like a written RCA before our internal risk committee meets on the 12th. Nothing adversarial, we just need something to show them."},
+  {"id": "D-33", "text": "We were just charged $48,000 for this month instead of $4,800 and it has already come out of our account. We need it reversed today or payroll bounces."},
+  {"id": "D-34", "text": "Your system has charged our company card $12,000 six times since midnight and it is still going. Please stop it now."},
+  {"id": "D-35", "text": "It would be great if we could schedule reports to go out automatically every Monday morning."},
+  {"id": "D-36", "text": "Any plans to support exporting straight to Google Sheets? We copy and paste everything by hand right now."},
+  {"id": "D-37", "text": "see attached"},
+  {"id": "D-38", "text": "Can you help with the issue we discussed on the call?"}
 ]

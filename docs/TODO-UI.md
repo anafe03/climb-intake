@@ -177,25 +177,46 @@ Earlier in this run-through, already done:
       so "Open the ticket" would have been empty on stage. Both now point at seeded tickets, verified
       by loading the notes page and checking every link resolves.
 
-## Block 9: more comments from the run-through (2026-09-25)
+## Block 9: more comments from the run-through (2026-09-25)  (DONE)
 
-- [ ] **"where does this come from: the saving is a few dollars a month ... Revisit at about 50,000
+- [x] **"where does this come from: the saving is a few dollars a month ... Revisit at about 50,000
       tickets a month, where the 38% saving becomes real money ... explain it maybe a little more in
       cost and models, now there's nothing"**
       Say where each number came from: the 38% is measured, the 50,000 is my judgment and must be
       labelled as one. Put a short plain explanation back on the cost page, under the table.
-- [ ] **"the queues isn't sorting by most urgent, it has them broken in categories"**
+- [x] **"the queues isn't sorting by most urgent, it has them broken in categories"**
       Queues should read most urgent first, top to bottom.
-- [ ] **"can we make an example where category certainty [is low] ... human-review 0 ... can we have
+- [x] **"can we make an example where category certainty [is low] ... human-review 0 ... can we have
       example for these ones in the demo set of 32, make it a few more"**
       Empty queues in the demo: human-review, product-feedback, general-support, billing-oncall. Add
       real tickets for them to the 32-ticket set, recorded from actual model reads, and only keep ones
       that genuinely land in those queues.
-- [ ] **"wtf is the 3 failed extraction for data, I'm not sure what that means, I don't think that
+- [x] **"wtf is the 3 failed extraction for data, I'm not sure what that means, I don't think that
       makes sense"** Rename it in plain words and say what it is for.
-- [ ] **"escalation is big, is it only keywords??? I still don't understand that"**
+- [x] **"escalation is big, is it only keywords??? I still don't understand that"**
       Answer plainly again. Also check what on screen makes it look keyword-only: every topic in the
       Escalate pop-out shows a bold "keywords:" line, which reads as if that is how it decides.
+
+- [x] **"this should be more than 11, why not all examples, we can run it at the end"**
+      The model table is scored on the 33 gold tickets only. Re-run every model on every labelled
+      example (gold 33, trick tickets 12, no-keyword 6, extraction 10), last, after everything else.
+- [x] **"it needs to sort by most urgent ... sort by urgency and escalation"** Queues: escalated first,
+      then most urgent, across the whole page.
+- [x] **"stop doing superfluous work, do what I tell you"** Only the listed items.
+- [x] **"is escalation only keywords??? it should have a model too right"** Yes, it has a model, and
+      the model reads every ticket first. Answered at the top of the reply.
+
+## Block 10: last pass before the demo (2026-09-25)  (DONE)
+
+- [x] **"some are repeated ... it should only group when sorting by category, or else it's the queue"**
+      Queues is one list, each ticket once, most urgent first. Headings appear only when sorting by
+      Category.
+- [x] **"we don't need the three tickets AI didn't answer ... maybe just in a FAQ"** Removed from the
+      menu; the Escalate FAQ says what happens when the model times out.
+- [x] **"clear doesn't work ... load 10 samples, the other examples, and all. Only show 10, 38, or all"**
+      The Data menu is: 10 Climb samples, 38 other examples, All 48, Upload. Each one replaces what is
+      shown. Verified by clicking each: 10, 38 and 48 cards, no duplicates.
+- [x] Model table re-run on all 61 labelled tickets (about $0.79): gpt-5 21 of 21, nano 19 of 21.
 
 ## Still open
 

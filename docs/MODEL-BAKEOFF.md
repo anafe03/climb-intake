@@ -1,6 +1,6 @@
 # Model bake-off: what does this job actually need?
 
-`scripts/model_bakeoff.py` · 33 tickets (climb-01, climb-02, climb-03…) · 2026-09-24 19:31
+`scripts/model_bakeoff.py` · 61 tickets (climb-01, climb-02, climb-03…) · 2026-09-25 10:40
 
 Same prompt, same schema, same guardrails — only the model and its reasoning effort change.
 **The columns in bold are the ones that decide it.** A missed escalation disqualifies a model.
@@ -9,19 +9,19 @@ have a conversation about.
 
 | model | effort | **missed escalations** | **false escalations** | **urgency under-called** | category | p50 | cost / ticket | vs gpt-5 |
 |---|---|---|---|---|---|---|---|---|
-| `gpt-5-2025-08-07` *(reused)* | low | none | none | none | 100% | 16.1 s | $0.914¢ | 1.00x |
-| `gpt-5-mini-2025-08-07` | low | none | **1** (edge-28) | **1** (edge-13) | 100% | 9.9 s | $0.184¢ | 0.20x |
-| `gpt-5-mini-2025-08-07` | minimal | none | **3** (edge-21, edge-23, edge-32) | **1** (edge-13) | 100% | 5.5 s | $0.127¢ | 0.14x |
-| `gpt-5-nano-2025-08-07` | low | none | **1** (edge-23) | **3** (climb-10, edge-20, edge-27) | 100% | 7.0 s | $0.035¢ | 0.04x |
+| `gpt-5-2025-08-07` | low | none | **1** (adv-01) | **1** (adv-06) | 100% | 11.7 s | $0.968¢ | 1.00x |
+| `gpt-5-mini-2025-08-07` | low | none | **3** (edge-23, edge-28, adv-01) | **3** (edge-13, adv-06, adv-09) | 100% | 8.6 s | $0.182¢ | 0.19x |
+| `gpt-5-mini-2025-08-07` | minimal | none | **8** (edge-21, edge-28, edge-32, adv-01, ext-05, ext-08, ext-09, kf-06) | **2** (edge-13, adv-09) | 100% | 6.7 s | $0.130¢ | 0.13x |
+| `gpt-5-nano-2025-08-07` | low | **2** (kf-03, kf-05) | **1** (adv-01) | **9** (climb-10, edge-27, edge-28, adv-05, adv-06, adv-07, adv-08, adv-09, adv-11) | 100% | 5.4 s | $0.037¢ | 0.04x |
 
 ## Tokens measured per ticket
 
 | model | input | of which cached | output |
 |---|---|---|---|
-| `gpt-5-2025-08-07` | 2786 | 2607 | 859 |
-| `gpt-5-mini-2025-08-07` | 2786 | 2525 | 855 |
-| `gpt-5-mini-2025-08-07` | 2786 | 2607 | 581 |
-| `gpt-5-nano-2025-08-07` | 2786 | 2525 | 818 |
+| `gpt-5-2025-08-07` | 2778 | 2600 | 913 |
+| `gpt-5-mini-2025-08-07` | 2732 | 2556 | 858 |
+| `gpt-5-mini-2025-08-07` | 2778 | 2600 | 596 |
+| `gpt-5-nano-2025-08-07` | 2778 | 2424 | 839 |
 
 Prices are the per-million rates in `scripts/model_bakeoff.py`; **verify them against current
 list price before quoting a figure.** The token counts are measured from `response.usage`.
@@ -43,8 +43,8 @@ Three things this table is built to show, that an accuracy score would hide:
    sits. If a row under-calls a ticket the gold set marks *critical*, that row is disqualified
    whatever it costs.
 
-Measured over 33 gold tickets, so a single disagreement moves a percentage column by
-about 3 points. Small enough to be directional, not a benchmark.
+Measured over 61 labelled tickets, so a single disagreement moves a percentage column by
+about 2 points. Small enough to be directional, not a benchmark.
 
 ## Making a cheaper model good enough
 
