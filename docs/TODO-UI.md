@@ -336,6 +336,20 @@ consistency, strategies, the thought process I've been giving you."
       repeatability section and Read it again, drop tokens and the model name from the footer. The full
       explanation lives in the Escalation card on Explanations.
 
+## Block 13: Explanations tab, second pass (2026-09-25)
+
+- [x] **Drop the filler intro** ("This is the one place for the thinking...", "The app shows the answers;
+      this explains them"). Cut filler everywhere in the doc.
+- [x] **Name what we do: one-shot learning and schema checking.** Say plainly that we use both.
+- [x] **Every decision gets a keyword section like Escalation's:** what the keyword check looks at, when
+      it runs, and how it errs on the side of caution. "They should all be keyword as well."
+- [x] **One-shot, specifically:** one worked example; more would cost more on every call; good enough
+      is better than perfect.
+- [x] **Rewrite "I checked this by eye..."** so it says what it means.
+- [x] **FAQs expandable**, each question opens to its answer.
+- [x] **Consistency: say it plainly.** The keyword part gives the same answer every time by definition;
+      the model's output might not, so that is what was tested, and here is the variance.
+
 ## Still open
 
 - [x] Git remote: github.com/anafe03/climb-intake, pushed by Austin.

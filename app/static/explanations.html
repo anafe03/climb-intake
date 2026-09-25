@@ -124,12 +124,19 @@ a.inl{color:var(--coral-deep);font-weight:600;cursor:pointer}
 .pop-b ul,.pop-b ol{padding-left:22px}
 .pop-b li{font-size:14px;line-height:1.6;margin:5px 0}
 .pop-b table{margin:8px 0 12px}
+
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{cursor:pointer;list-style:none;padding:11px 2px;font-weight:600;font-size:14px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"+";color:var(--coral-deep);font-weight:700;display:inline-block;width:18px}
+.faq details[open] summary::before{content:"\2212"}
+.faq details>div{padding:0 2px 12px 18px;font-size:14px;line-height:1.6;color:var(--dim)}
 </style>
 </head>
 <body>
 <header><div class="wrap">
   <h1>Strategy, design and FAQs</h1>
-  <p>How each decision is made, how it stays consistent, what it costs, and the questions people ask</p>
+  <p>Each decision, then the system as a whole</p>
 </div></header>
 <nav><div class="wrap">
   <a href="/intro">Intro</a>
@@ -170,7 +177,21 @@ fetch('/explanations.md').then(r=>r.text()).then(md=>{
     document.getElementById('poptitle').textContent=s.title;
     const body=document.getElementById('popbody');
     body.innerHTML=marked.parse(s.body);
-    body.querySelectorAll('h3').forEach(h=>{ if(h.textContent.trim()==='Questions') h.classList.add('q'); });
+    // Each question opens to its answer.
+    body.querySelectorAll('h3').forEach(h=>{
+      if(h.textContent.trim()!=='Questions') return;
+      h.classList.add('q');
+      const ul=h.nextElementSibling; if(!ul||ul.tagName!=='UL') return;
+      const wrap=document.createElement('div'); wrap.className='faq';
+      [...ul.children].forEach(li=>{
+        const q=li.querySelector('strong'); if(!q) return;
+        const qt=q.textContent; q.remove();
+        const d=document.createElement('details');
+        d.innerHTML=`<summary>${esc(qt)}</summary><div>${li.innerHTML.trim()}</div>`;
+        wrap.appendChild(d);
+      });
+      ul.replaceWith(wrap);
+    });
     bg.classList.add('on'); bg.scrollTop=0;
   });
 }).catch(()=>{document.getElementById('fields').textContent='Could not load the explanations.'});

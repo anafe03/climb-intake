@@ -1,20 +1,25 @@
-# How it works, and why
-
-The strategy, design and reasoning behind the service, and the questions people ask. The app shows the
-answers; this explains them. Each section below is one card on the Explanations tab.
+# Strategy, design and FAQs
 
 ## Who sent it
 
 *Named if the ticket says so, otherwise a clearly marked guess.*
 
-### How it decides
+### How the model decides
 
-- A company name is filled in **only** if the ticket states it. That is a fact.
-- Otherwise it makes a best guess, marks it as a guess, gives it a score, and lists the words the guess
-  is based on. A guess can never end up in the name field.
-- If the model is down, the keyword fallback reads sign-offs, email addresses and account and invoice
-  numbers. There is deliberately no pattern for company names: there is no fixed list of them, so a
-  pattern would just guess. Named entity recognition is the right tool for that and the next step.
+- A company name is filled in **only** if the ticket states it.
+- Otherwise it makes a best guess, marks it as a guess, scores it, and lists the words it is based on.
+  A guess can never end up in the name field.
+
+### The keyword check
+
+- **When it runs:** only if the model does not answer.
+- **What it looks at:** a company named after "from", "at" or "on behalf of"; a sign-off with a name and
+  company; a work email address (gmail, outlook and similar do not count as a company); invoice, account
+  and ticket numbers; and, for the guess, enterprise words, team size and plan names.
+- **How it stays cautious:** it never invents a company. Without a stated name it only guesses, with a
+  low score: a work email scores 0.8, a plan or team size about 0.5, nothing at all 0.0.
+- There is no pattern for company names in general, because there is no fixed list of them. Named
+  entity recognition is the right tool for that, and the next step.
 
 ### The full scale
 
@@ -33,17 +38,36 @@ answers; this explains them. Each section below is one card on the Explanations 
 - **Then why guess at all?** "Unknown" tells the person picking up the ticket nothing. "A paying customer
   using the export feature" helps, and it is marked as a guess.
 - **How often does it get it right?** Every time on the 33 main test tickets, including the ones where the
-  right answer is "not stated". On 10 tickets written just for names and account numbers, including two
-  traps (a company mentioned that is not the customer, and two companies in one ticket): 10 of 10 names
-  and 5 of 5 numbers. Keyword rules alone: 6 of 10 and 2 of 5.
-- **Is the score a probability?** No. It is the model's own rating against the scale above. Nobody has
-  checked it against real outcomes.
+  right answer is "not stated". On 10 tickets written just for names and account numbers, with two traps
+  (a company mentioned that is not the customer, and two companies in one ticket): 10 of 10 names and 5
+  of 5 numbers. The keyword check alone: 6 of 10 and 2 of 5.
+- **Is the score a probability?** No. It is the model's own rating against the scale. Nobody has checked
+  it against real outcomes.
 - **Would it know two tickets came from the same company?** Not yet. The sample tickets do not say who
   sent them. It is the first thing to add once tickets come with a login.
 
 ## What kind of request
 
 *One of eight categories, and how sure it is.*
+
+### How the model decides
+
+It picks exactly one of the eight categories, names the runner-up and why it lost, and scores how sure it
+is. Under 0.50 sure, the ticket goes to a person instead of a team.
+
+### The keyword check
+
+- **When it runs:** only if the model does not answer.
+- **What it looks at, in order:**
+  - security or data-exposure words: security
+  - legal or compliance words: legal / contract
+  - two or more spam signals (crypto, discord, free credits, SEO, "click here"): spam
+  - bug words (error, broken, crash, down, checkout) against billing words (invoice, charged, refund, plan,
+    seats): whichever there are more of
+  - onboarding words (set up, go-live, migration), then feature words (would be great, can you add, roadmap)
+  - otherwise: other
+- **How it stays cautious:** its scores are deliberately low, so anything it is unsure of goes to human
+  review rather than a team. Security wins over spam: a ticket with both is treated as security.
 
 ### The eight categories
 
@@ -67,16 +91,13 @@ answers; this explains them. Each section below is one card on the Explanations 
 | 0.50 to 0.69 | Defensible, and a reasonable person could pick the other one. |
 | Below 0.50 | Not sure enough to send to a team. A person decides instead. |
 
-It also names the runner-up and why it lost. The split between them is the model's own estimate, not a
-measured probability.
-
 ### Questions
 
 - **What if a ticket fits two teams?** It names the second-best, how close it was, and why it lost. Under
   50% sure, a person decides.
-- **Why is spam its own category?** Because otherwise real problems get lost in the same pile as junk.
-- **How often is it right?** 32 of the 33 main test tickets. The other, a request for a SOC 2 report,
-  could fairly go to either of two teams. Keyword rules alone: 27 of 33.
+- **Why is spam its own category?** Otherwise real problems get lost in the same pile as junk.
+- **How often is it right?** 32 of the 33 main test tickets. The other, a request for a SOC 2 report, could
+  fairly go to either of two teams. The keyword check alone: 27 of 33.
 - **If it nearly always picks the right team, how does it still make mistakes?** Each ticket gets three
   separate answers, graded separately. The cheapest model sent "checkout is charging customers twice" to
   the bug team, which is right, and called it high instead of critical, which is wrong.
@@ -87,6 +108,22 @@ measured probability.
 
 *Four levels, worked out from facts, not tone.*
 
+### How the model decides
+
+Nobody writes "this is medium", so urgency is worked out from five things: a deadline, money at stake (and
+whose), how far it spreads, whether it keeps happening, and whether harm is still happening as they write.
+How angry someone sounds is deliberately not one of them.
+
+### The keyword check
+
+- **On every ticket:** if an escalation word is found, urgency is raised to at least a floor. Security
+  incident: high. Data exposure: critical. Legal threat: high. Compliance request: high. Someone senior: no
+  change, because that is about who needs to know, not speed.
+- **If the model does not answer:** many customers plus duplicate charges: critical. Outage words on a bug
+  ("is down", "can't log in", "all our users"): critical. "No rush" or "whenever you get a chance": low. A
+  deadline (today, by Friday, end of day, ASAP, urgent): high. Otherwise medium.
+- **How it stays cautious:** the floors can only raise urgency, never lower it.
+
 ### The four levels
 
 | Level | What it means |
@@ -96,63 +133,52 @@ measured probability.
 | Medium | A real request with no deadline and contained impact. |
 | Low | Cosmetic, or explicitly "whenever you get a chance". |
 
-### What it is read from
-
-Nobody writes "this is medium", so urgency is worked out from five things:
-
-- **A deadline**, stated or implied.
-- **Money at stake**, and whose. Their customers' money is worse than their own.
-- **How far it spreads**: one person, the whole account, or their customers.
-- **Whether it keeps happening.**
-- **Whether harm is still happening** as they write.
-
-How angry someone sounds is deliberately not on the list.
-
 ### Which way it is wrong
 
-The safe way. On the 33 main test tickets, when urgency was wrong it was always called *more* urgent
-than it was (12%), never less. Across all 61 test tickets there was one exception, and it was
-borderline. A ticket that arrives too early costs a person a moment to move it down. One that arrives
-too late sits and waits. Like a doctor: a needless check-up costs a little, sending a sick person home
-costs a lot.
+The safe way. On the 33 main test tickets, when urgency was wrong it was called more urgent than it was
+(12% of tickets), never less. Across all 61 test tickets there was one exception, and it was borderline. A
+ticket that arrives too early costs someone a moment to move it down; one that arrives too late sits and
+waits. Like a doctor: a needless check-up costs a little, sending a sick person home costs a lot.
 
 ### Questions
 
 - **Does high urgency mean it escalates?** No. Urgency is how fast; escalation is whether someone senior
-  needs to know. "Checkout is charging customers twice" pages an engineer but nobody senior. "Our CEO
-  loves the new report" is low urgency but goes to someone senior.
-- **Could an angry customer make a ticket look more urgent?** No. "This is ridiculous. Third month in a
-  row the invoice doesn't match!!!" is medium, because it keeps happening, not because of the shouting.
-- **How often is it exactly right?** 88% on the 33 main tickets, 76% with keyword rules alone. The weakest
-  number, and why the direction matters more.
-- **Did you go easy on the grading?** Some tickets could fairly be low or medium, and count either way.
-  The "never too calm" result holds even counting only the tickets with one clear answer.
+  needs to know. "Checkout is charging customers twice" pages an engineer but nobody senior. "Our CEO loves
+  the new report" is low urgency but goes to someone senior.
+- **Could an angry customer make a ticket look more urgent?** No. "This is ridiculous. Third month in a row
+  the invoice doesn't match!!!" is medium, because it keeps happening, not because of the shouting.
+- **How often is it exactly right?** 88% on the 33 main tickets, 76% with the keyword check alone. The
+  weakest number, which is why the direction matters more.
+- **Did you go easy on the grading?** Some tickets could fairly be low or medium, and count either way. The
+  "never too calm" result holds even counting only the tickets with one clear answer.
 
 ## Escalation
 
 *The model reads every ticket; a keyword check backs it up; either one is enough.*
 
-### How it decides
+### How the model decides
 
-Every ticket is read by the model first, which decides whether any of the five topics apply. Then a
-keyword check runs as a safety net: about twenty plain word patterns, no model, run over the **original
-ticket text** rather than over what the model said about it, so a word the model glossed over still gets
-seen. It is allowed to do exactly two things: raise the escalation flag, and lift urgency to a minimum.
-It can never lower either, and it never touches the category.
+It reads the ticket for meaning and decides whether any of the five topics apply. That is what catches a
+British customer instructing *solicitors*, "the woman who runs our company", or the same breach written in
+Spanish, none of which a word list would find.
+
+### The keyword check
+
+- **When it runs:** on every ticket, after the model, over the original ticket text rather than over what
+  the model said, so a word the model glossed over still gets seen.
+- **What it looks at:** about twenty word patterns across the five topics (table below).
+- **How it stays cautious:** it can raise the flag and never lower it. If either the model or the keyword
+  check says escalate, the ticket escalates. A missed escalation is the expensive mistake, so this leans
+  towards flagging too much.
 
 | | Keywords say yes | Keywords say no |
 |---|---|---|
-| **Model says yes** | Both agree: "a former employee logged in with old credentials". Escalated. | Only the model saw it: "Sam finished up with us in June and can still get in". Escalated. |
-| **Model says no** | Only the keywords saw it: "we have *not* had a data breach". Escalated, a false alarm on purpose. | Neither: "can you check our last invoice?" Not escalated. |
+| **Model says yes** | "a former employee logged in with old credentials". Escalated. | "Sam finished up with us in June and can still get in". Escalated. |
+| **Model says no** | "we have *not* had a data breach". Escalated, a false alarm on purpose. | "can you check our last invoice?" Not escalated. |
 
-The model reads meaning, so it catches what a word list cannot: a British customer instructing
-*solicitors*, "the woman who runs our company", the same breach written in Spanish. The keywords never
-change, so they still work if the model is updated, its instructions change, or it goes down. A missed
-escalation is the expensive mistake, so the design leans towards flagging too much.
+### The five topics
 
-### The five topics, and what the keyword check watches for
-
-| Topic | What it covers | Keyword check watches for |
+| Topic | What it covers | Keyword check looks for |
 |---|---|---|
 | Security incident | someone got in who should not have, credentials not revoked, phishing, a reported hole | unauthorised, credentials, former employee, compromised, phishing, MFA, audit log, vulnerability, CVE, IDOR, exploit |
 | Data exposure | they saw someone else's data, or theirs was exposed | another customer's records, exposed data, data leak, leaked, permissions issue, visible to everyone |
@@ -160,42 +186,47 @@ escalation is the expensive mistake, so the design leans towards flagging too mu
 | Compliance request | GDPR, CCPA and similar requests with a legal deadline | GDPR, CCPA, HIPAA, DSAR, data subject, right to erasure, regulator |
 | Someone senior | a CEO, VP, founder or board named on either side | CEO, CFO, CTO, CISO, founder, VP, chief officer, the board, general counsel |
 
-About twenty patterns in all. An escalated ticket is **copied** to the escalation desk, never moved, so
-the team that owns it still sees it.
+An escalated ticket is **copied** to the escalation desk, never moved, so the team that owns it still sees it.
 
 ### Where it breaks
 
-It never missed an escalation in testing. It over-escalates when the words of an incident appear
-without the incident: a *denied* breach, a *hypothetical* security hole, someone else's lawyer, "a total
-breach of trust" said as an expression.
+It never missed an escalation in testing. It over-escalates when the words of an incident appear without
+the incident: a *denied* breach, a *hypothetical* security hole, someone else's lawyer, "a total breach of
+trust" said as an expression.
 
-The worst one: *"To be clear, we have NOT had a data breach. Procurement just needs your SOC 2 report."*
-The model got it right, no flag. The keywords saw "data breach", ignored the "not", and flagged it. I am
-not fixing it: teaching the keywords when "breach" does not count means a rule that can wrongly ignore
-a real breach. A wrong flag costs someone a minute.
+The worst one: *"To be clear, we have NOT had a data breach. Procurement just needs your SOC 2 report."* The
+model got it right, no flag. The keyword check saw "data breach", ignored the "not", and flagged it. I am not
+fixing it: teaching the check when "breach" does not count means a rule that can wrongly ignore a real
+breach. A wrong flag costs someone a minute.
 
 ### Questions
 
-- **Is escalation just keyword matching?** No. 8 of the 21 escalations in testing had no keyword at all;
-  only the model could have caught them.
-- **Why keep the keywords, then?** They never change, and they still work when the model is down: on
-  their own they catch every escalation in the 33 main test tickets.
-- **How often does it flag something it should not?** Never on the 33 main tickets, including traps like
-  a SOC 2 request and an invoice sent to a legal department. 4 times on the 12 trick tickets.
+- **Is escalation just keyword matching?** No. 8 of the 21 escalations in testing had no keyword at all; only
+  the model could have caught them.
+- **Why keep the keywords, then?** They never change, and they still work when the model is down: on their
+  own they catch every escalation in the 33 main test tickets.
+- **How often does it flag something it should not?** Never on the 33 main tickets, including traps like a
+  SOC 2 request and an invoice sent to a legal department. 4 times on the 12 trick tickets.
 - **Why flag a security ticket that already goes to the security team?** So it can be counted. In the
   security queue, a breach and a compliance question look the same. The flag answers "did we miss any?"
-- **Does high urgency mean it escalates?** No; see How urgent.
 
 ## Where it goes
 
 *A lookup, not a judgement.*
 
-### How a ticket is routed
+### How it decides
 
-1. **The category decides the team** (table below).
+There is no model in this step. It is a fixed table, so the same answers always go to the same queue.
+
+1. **The category decides the team.**
 2. **Critical billing and bug tickets** go to that team's on-call queue instead, so someone is paged.
-3. **If it is under 50% sure of the category** and it is not escalated, it goes to human review.
-4. **If it escalates**, a copy goes to the escalation desk, on top of its own team.
+3. **Under 50% sure of the category**, and not escalated: human review.
+4. **Escalated:** a copy goes to the escalation desk, on top of its own team.
+
+### How it stays cautious
+
+- A flagged ticket is copied, never moved, so the owning team never loses it.
+- An unsure ticket goes to a person, not to a team's queue as a guess.
 
 | Queue | Who works it |
 |---|---|
@@ -212,38 +243,47 @@ a real breach. A wrong flag costs someone a minute.
 
 ### Questions
 
-- **Is this a real queue?** A stand-in, as the brief asks. Connecting it to Zendesk, Jira or PagerDuty is
-  one connector; the sorting would not change.
+- **Is this a real queue?** A stand-in, as the brief asks. Connecting it to Zendesk, Jira or PagerDuty is one
+  connector; the sorting would not change.
 - **Why copy a flagged ticket instead of moving it?** If it moved, the owning team would never see it.
   Hand-offs are where things get dropped.
 - **Who changes where tickets go?** A support lead, in a settings file, without an engineer.
 
 ## Keeping it consistent
 
-*What I did to make the answers repeatable, and the proof.*
+*The keyword checks always repeat themselves. The model might not, so that is what was tested.*
 
-A model is not deterministic the way a rule is: the same ticket can come back slightly differently.
-These are the controls, roughly in order of how much they matter.
+### What needs testing
 
-1. **A fixed answer format.** One of eight categories, one of four levels, yes or no, a number. It cannot
-   invent a ninth category or answer in prose.
-2. **Validate every answer, catch every failure.** Each answer is checked against the format before it is
-   used. A timeout, error, refusal or malformed answer is caught, and the keyword rules handle the ticket
-   instead, marked as such. It happened for real once in the 61-ticket model comparison, and fell back
-   cleanly.
-3. **Written rules for every field**, with the model told to quote the words that led to each answer.
-4. **One worked example** in the instructions: a complete ticket and answer, written fresh so it is not one
-   of the tickets being tested, aimed at the medium versus high line where answers wobbled.
-5. **The keyword fallback** for escalation cases the model misses.
-6. **Low reasoning effort.** Classifying against written rules does not need long thinking. I checked it
-   cost no accuracy before keeping it.
-7. **Testing built to find failures**, not to pass (see Testing).
+The keyword checks and the routing table are rules: the same text always gets the same answer, so there is
+nothing to test for consistency. The model is different: the same ticket can come back slightly
+differently. So the model is the part to control, and the part to measure.
 
-### Does it give the same answer twice?
+### How the model is kept consistent
 
-Each of the 10 Climb tickets, read 5 times, before and after adding the worked example: 100 reads.
+1. **Schema checking.** The model has to answer in an exact format: one of eight categories, one of four
+   urgency levels, yes or no, a number. It cannot invent a ninth category or answer in prose.
+2. **Every answer validated, every failure caught.** Each answer is checked against that format before it is
+   used. A timeout, error, refusal or malformed answer is caught, and the keyword check handles the ticket
+   instead, marked as such. It happened for real once in testing, and fell back cleanly.
+3. **One-shot learning.** The instructions include one worked example: a complete ticket and its full
+   answer. It is a new ticket, not one of the ones being tested, so the model cannot copy an answer it is
+   then graded on. It is aimed at the medium versus high urgency line, which is where answers wobbled.
+4. **Written rules for every decision**, with the model told to quote the words that led to each answer.
+5. **The keyword checks**, as a floor under the model.
+6. **Low reasoning effort.** Classifying against written rules does not need long thinking. It cost no
+   accuracy and roughly halved the cost.
 
-| | Before the worked example | After |
+**Why one example and not more.** More would be possible. The cost is not mainly money: the example added
+about 500 tokens to every call, but that part is cached, so the cost per ticket stayed about the same
+(0.94 to 0.92 cents). The cost is effort: each example has to be written, kept correct, and re-tested every
+time it changes. One fixed the wobble it was aimed at. Good enough is better than perfect.
+
+### The test: the same ticket, five times
+
+Each of the 10 Climb tickets, read 5 times, with and without the worked example: 100 reads.
+
+| | Without the example | With it |
 |---|---|---|
 | Category changed | 0 of 10 tickets | 0 of 10 |
 | Escalation changed | 0 of 10 | 0 of 10 |
@@ -253,16 +293,17 @@ Each of the 10 Climb tickets, read 5 times, before and after adding the worked e
 | Category confidence moves by | 0.10 on average | 0.10 on average |
 | Who-sent-it confidence moves by | 0.18 on average, 0.45 at most | 0.17 on average, 0.40 at most |
 
-- When urgency changed, it was by one level, one run in five.
+- When urgency changed, it was by one level, in one run out of five.
 - The confidence scores move; the answers do not. The biggest swing is the crypto spam ticket: nothing
   identifies the sender, so the score wanders, but the answer ("not stated") never changes.
-- I checked this by eye. 50 reads either side shows the pattern; it does not prove the worked example
-  helped. It fixed the two tickets it was aimed at, one other ticket wobbled once, and the main scorecard
-  improved urgency from 82% to 88% exact with escalation unchanged.
+- **What the before and after shows.** There is no pass mark here; I read the results. With the example, the
+  two tickets that wobbled stopped wobbling, and a different ticket wobbled once. Five runs per ticket is a
+  small test, so that is a good sign, not proof. On the main scorecard, urgency went from 82% to 88% exactly
+  right, with escalation unchanged.
 
 ### In production
 
-- Re-run a sample of real tickets on a schedule; track, per field, how often an answer flips and how far
+- Re-run a sample of real tickets on a schedule; track, for each decision, how often it flips and how far the
   confidence moves. Alert if either climbs.
 - Re-run the full test before any change to the instructions or the model ships.
 - Have a subject-matter expert review the tickets that flip. They are the most worth labelling, and they
@@ -272,8 +313,7 @@ Each of the 10 Climb tickets, read 5 times, before and after adding the worked e
 
 *About $10 per 1,000 tickets, and why not something cheaper.*
 
-Every decision records its own cost from the tokens actually used. All 61 labelled test tickets, four
-setups:
+Every decision records its own cost from the tokens actually used. All 61 labelled test tickets, four setups:
 
 | Model | Escalations caught | False escalations | Urgency too low | Per 1,000 tickets |
 |---|---|---|---|---|
@@ -283,39 +323,38 @@ setups:
 | gpt-5-nano | **19 of 21** | 1 | **9, including 4 clearly critical** | $0.37 |
 
 - **gpt-5 is what I run.** Every escalation caught, fewest mistakes.
-- **Nano is out, however cheap.** It missed 2 escalations and read 4 clearly critical tickets as less
-  urgent, including the checkout charging customers twice.
+- **Nano is out, however cheap.** It missed 2 escalations and read 4 clearly critical tickets as less urgent,
+  including the checkout charging customers twice.
 - **Less thinking made mini worse, not just cheaper.** Minimal effort took its false escalations from 3 to 8.
-- Picking the team is not in the table because every model got it right, so it cannot help choose.
 
 ### A small model first, a bigger one when it matters
 
-Default to the cheap model, and send a ticket to the bigger one only when it looks risky. I built two
-versions and measured both on the 33 main test tickets:
+Default to the cheap model; send a ticket to the bigger one only when it looks risky. Two versions, measured
+on the 33 main test tickets:
 
 | Version | Result |
 |---|---|
-| The free keyword check decides which model reads each ticket: risky words go to gpt-5, the rest to mini. Each ticket is read once. | **38% cheaper.** One extra false escalation and one urgency call too low. |
+| The keyword check decides which model reads each ticket: risky words go to gpt-5, the rest to mini. Each ticket is read once. | **38% cheaper.** One extra false escalation and one urgency call too low. |
 | Mini reads every ticket, and gpt-5 re-reads the ones mini flags or is unsure about. | **29% more expensive.** |
 
-The second costs more because every risky ticket is paid for twice, and the risky ones are the
-expensive ones: a re-read ticket cost about 1.73 cents against a 0.91 cent average.
+The second costs more because every risky ticket is paid for twice, and the risky ones are the expensive
+ones: a re-read ticket cost about 1.73 cents against a 0.91 cent average.
 
-**Why I have not switched.** 38% of about $9 is about $3.50 a month at 1,000 tickets, and about $170 a
-month at 50,000. That is roughly where I would start to consider it. The 38% is measured; the 50,000 is
-my judgement. At scale the first lever would be batching non-urgent tickets, before changing the model.
+**Why I have not switched.** 38% of about $9 is about $3.50 a month at 1,000 tickets, and about $170 a month
+at 50,000. That is roughly where I would consider it. The 38% is measured; the 50,000 is my judgement. At
+scale the first lever is batching non-urgent tickets, before changing the model.
 
-The model comparison, the small-then-big versions, the trick tickets, the no-keyword test and the
-extraction test were run before the worked example was added to the instructions.
+The model comparison and the small-then-big versions were run before the worked example was added.
 
 ## When something fails
 
 *Nothing is dropped.*
 
-- **The model times out, errors or is down.** The keyword rules read the ticket and it is marked as such.
-  Escalation words still flag it to a person. If the keyword rules are not sure of the team, it goes to
-  human review.
-- **The model returns something that does not fit the format.** Caught, handled the same way.
+- **The model times out, errors or is down.** The keyword check reads the ticket and it is marked as such.
+  Escalation words still flag it to a person. If the keyword check is not sure of the team, it goes to human
+  review.
+- **The model returns something that does not fit the format.** Caught by the schema check, handled the
+  same way.
 - **The model is unsure of the category.** Under 50% sure, a person decides.
 - **The connection drops.** Retried a few times first, because those fail fast and usually recover.
 
@@ -329,18 +368,20 @@ extraction test were run before the worked example was added to the instructions
 | 12 trick tickets | written to break it | no missed escalations; 4 over-escalations |
 | 6 no-keyword tickets | escalations with none of the keyword words | the model caught all 5 that needed it |
 | 10 extraction tickets | names, contacts, account numbers, two traps | 10 of 10 names, 5 of 5 numbers |
-| 10 Climb tickets, 5 runs each | does it repeat itself | see Keeping it consistent |
+| 10 Climb tickets, 5 runs each | does the model repeat itself | see Keeping it consistent |
+
+The trick, no-keyword and extraction sets were run before the worked example was added.
 
 **Who wrote the answers.** I did, for 23 of the 33 main tickets. That is a weakness: I also wrote the
-instructions, so agreement proves less than it looks. The 10 Climb tickets are the fair test, and it got
-all 10 right.
+instructions, so agreement proves less than it looks. The 10 Climb tickets are the fair test, and it got all
+10 right.
 
 ## With more time
 
 *What I would do next.*
 
-- Real tickets labelled by two people who did not write the instructions, and a held-back set never used
-  for tuning.
+- Real tickets labelled by two people who did not write the instructions, and a held-back set never used for
+  tuning.
 - Named entity recognition for company names.
 - A scheduled consistency check in production, with an expert reviewing the tickets that flip.
 - Tickets from the same customer grouped together once there is a login.
