@@ -1,6 +1,6 @@
 # Eval scorecard: mode=rules
 
-Generated 2026-09-24 17:04 on 33 gold tickets (10 Climb samples + 23 edge cases).
+Generated 2026-09-24 20:07 on 33 gold tickets (10 Climb samples + 23 edge cases).
 
 | Metric | Value |
 |---|---|
@@ -8,7 +8,7 @@ Generated 2026-09-24 17:04 on 33 gold tickets (10 Climb samples + 23 edge cases)
 | Missed escalations | none |
 | False escalations (not tolerated by gold) | none |
 | Escalation reason accuracy | 100% |
-| Category accuracy (ambiguity-aware) | 100% |
+| Category accuracy: strict / ambiguity-aware | 82% / 100% |
 | Urgency exact / within tolerance | 76% / 97% |
 | Urgency **under**-called (said calmer than gold) | 0% — none |
 | Urgency over-called (said more urgent than gold) | 24% — ['edge-11 said medium, gold low', 'edge-12 said medium, gold low', 'edge-17 said medium, gold low', 'edge-22 said medium, gold low', 'edge-23 said high, gold low', 'edge-25 said medium, gold low', 'edge-30 said high, gold medium', 'edge-33 said critical, gold high'] |
@@ -20,7 +20,7 @@ Generated 2026-09-24 17:04 on 33 gold tickets (10 Climb samples + 23 edge cases)
 | Sender-inference confidence within expected band | 100% |
 | Confidence misses | none |
 | Every guess carries its basis | yes |
-| Latency p50 / p95 per ticket | 0 ms / 3 ms |
+| Latency p50 / p95 per ticket | 0 ms / 12 ms |
 | Wall time (concurrency 4) | 0.0 s |
 | Tokens in / out | 0 / 0 |
 

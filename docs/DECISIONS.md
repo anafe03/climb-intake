@@ -1315,6 +1315,62 @@ Adding a `model` parameter to `llm.classify` broke three mocks that took only `t
 was updating the doubles, not passing the argument some other way: a stub whose signature has
 drifted from the real function is a test that passes while the thing it tests is broken.
 
+### D87. On the gold set, the two escalation halves agree exactly — which proves nothing
+Austin asked whether escalation is really just keywords. Measured it: of 33 gold tickets, 11
+escalate, and **all 11 are caught by both halves. Zero by the model alone, zero by the keywords
+alone.**
+
+Read carelessly that says the model contributes nothing to escalation. Read honestly it says the
+gold set cannot tell, because every escalating row in it happens to contain keyword vocabulary —
+unsurprising, since I wrote the rows and the patterns. A test set that cannot separate two
+components is not evidence about either.
+
+### D88. The product was claiming the opposite of the truth about this
+The escalate pop-out said the model "catches ‘our VP of Engineering is asking’ with no keyword in
+sight." **`VP\b` is literally in the executive_mention pattern.** The one example offered as proof of
+the model's contribution was a keyword match. Second time an FAQ claim has failed a check (D74);
+both times the fix was to measure rather than reword.
+
+### D89. A probe that isolates the model's contribution
+`data/keyword_free_escalations.jsonl` plus `scripts/keyword_free_probe.py`: six tickets that escalate
+in meaning and contain none of the words the patterns look for, with the keyword layer verified
+silent on each before the model sees it. Anything caught is caught by judgement alone.
+
+| ticket | what hides it from the patterns | model |
+|---|---|---|
+| kf-01 | a leaver who "finished up with us back in June" | escalated |
+| kf-02 | British English — the pattern knows lawyer and attorney, not **solicitor** | escalated |
+| kf-03 | "the woman who runs our company", a title with no title in it | escalated |
+| kf-04 | a cross-tenant leak described from the receiving end | escalated |
+| kf-05 | a statutory erasure demand with no acronym and no regulator named | escalated |
+| kf-06 | control: sounds urgent, is ordinary support work | correctly did not escalate |
+
+**5 of 5 caught, control left alone.** That is the two-layer design earning its keep, and it took a
+purpose-built probe to show it. `tests/test_rules.py` asserts the precondition, so if a pattern is
+later widened to cover one of these the test fails rather than the probe quietly crediting the model
+for a rules catch.
+
+`kf-02` is the one I would lead with: a customer writing British English instructing *solicitors* is
+invisible to a pattern list written in American English, and no amount of regex maintenance
+reliably closes that class of gap. That is the argument for the model half in one ticket.
+
+### D90. 100% category accuracy was a saturated metric quoted two ways
+Austin: "isn't that suspect?" It was, for two separate reasons.
+
+**It flattered rules mode.** The single figure was ambiguity-aware. Strict, the model path is 100%
+(it matched gold's primary label on all 33, including all 8 ambiguous rows, so the tolerance does
+nothing for it) while rules-only is **82%** and only reaches 100% once the tolerance applies. The
+scorecards now print strict / ambiguity-aware as two numbers.
+
+**It cannot decide anything.** All four bake-off legs score 100% — gpt-5, mini at two efforts, and
+nano, the model disqualified for under-calling three critical tickets. A metric that cannot separate
+a frontier model from the cheapest one is measuring the task, not the model. The columns that
+discriminate are missed escalations, false escalations and urgency under-calls.
+
+**And I wrote 23 of the 33 answers.** Stated in the product now: the edge cases and the prompt came
+from the same head, so agreement between them is weaker evidence than it looks. The ten provided
+Climb tickets are the independent subset; the model is 10/10 strict there.
+
 ## Open questions to raise with the panel (or answer if asked)
 
 - Should ticket 10 (checkout double-charge, many customers) escalate to a human? We say no by the

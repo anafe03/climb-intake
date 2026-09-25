@@ -1,6 +1,6 @@
 # Eval scorecard: mode=llm, model=gpt-5-2025-08-07
 
-Generated 2026-09-24 17:04 on 33 gold tickets (10 Climb samples + 23 edge cases). Scoring re-run over the saved decisions; the model was not called again.
+Generated 2026-09-24 20:07 on 33 gold tickets (10 Climb samples + 23 edge cases). Scoring re-run over the saved decisions; the model was not called again.
 
 | Metric | Value |
 |---|---|
@@ -8,7 +8,7 @@ Generated 2026-09-24 17:04 on 33 gold tickets (10 Climb samples + 23 edge cases)
 | Missed escalations | none |
 | False escalations (not tolerated by gold) | none |
 | Escalation reason accuracy | 100% |
-| Category accuracy (ambiguity-aware) | 100% |
+| Category accuracy: strict / ambiguity-aware | 100% / 100% |
 | Urgency exact / within tolerance | 82% / 100% |
 | Urgency **under**-called (said calmer than gold) | 0% — none |
 | Urgency over-called (said more urgent than gold) | 18% — ['climb-07 said critical, gold high', 'edge-16 said high, gold medium', 'edge-21 said high, gold medium', 'edge-25 said medium, gold low', 'edge-30 said high, gold medium', 'edge-33 said critical, gold high'] |

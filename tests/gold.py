@@ -70,6 +70,9 @@ def summarize(results: list[dict]) -> dict:
         "false_escalations": [r["id"] for r in results if r["false_escalation"]],
         "reasons_accuracy": sum(r["reasons_ok"] for r in must) / len(must) if must else 1.0,
         "category_accuracy": sum(r["category_ok"] for r in results) / n,
+        # Strict as well as tolerant. On the model path they are the same number, which is worth
+        # knowing; on the rules path they are not, and reporting only the tolerant one flattered it.
+        "category_strict": sum(r["got"]["category"] == r["expected"]["category"] for r in results) / n,
         "urgency_exact": sum(r["urgency_exact"] for r in results) / n,
         "urgency_accuracy": sum(r["urgency_ok"] for r in results) / n,
         "customer_accuracy": sum(bool(r["customer_ok"]) for r in results) / n,

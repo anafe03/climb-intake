@@ -184,3 +184,27 @@ def test_rules_triage_picks_the_reader_before_spending_anything():
     # A contract question with no dispute is the false-positive trap; it must stay cheap.
     trap, _ = cascade.triage_by_rules("When does our contract renew, and can you price 50 seats?")
     assert not trap
+
+
+def test_the_keyword_free_probe_stays_keyword_free():
+    """The probe only measures the model if the keyword layer is silent on it.
+
+    If a pattern is later widened to cover one of these tickets, the probe quietly starts crediting
+    the model for a rules catch. This test fails first instead.
+    """
+    import json
+    from pathlib import Path
+
+    from app import rules
+
+    probe = Path(__file__).resolve().parent.parent / "data" / "keyword_free_escalations.jsonl"
+    rows = [json.loads(l) for l in probe.read_text().splitlines() if l.strip()]
+    assert len(rows) >= 6
+
+    for r in rows:
+        base = rules.rules_only_extraction(r["text"])
+        _, hits, _ = rules.apply_escalation_rules(r["text"], base)
+        assert not hits, (
+            f"{r['id']} now matches {[h.rule for h in hits]}; it no longer tests the model. "
+            "Either rewrite the ticket or move it into the gold set."
+        )

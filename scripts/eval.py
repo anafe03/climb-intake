@@ -66,7 +66,7 @@ def main() -> int:
         f"| Missed escalations | {s['missed_escalations'] or 'none'} |",
         f"| False escalations (not tolerated by gold) | {s['false_escalations'] or 'none'} |",
         f"| Escalation reason accuracy | {s['reasons_accuracy']:.0%} |",
-        f"| Category accuracy (ambiguity-aware) | {s['category_accuracy']:.0%} |",
+        f"| Category accuracy: strict / ambiguity-aware | {s['category_strict']:.0%} / {s['category_accuracy']:.0%} |",
         f"| Urgency exact / within tolerance | {s['urgency_exact']:.0%} / {s['urgency_accuracy']:.0%} |",
         f"| Urgency **under**-called (said calmer than gold) | {s['urgency_under_rate']:.0%} \u2014 {s['urgency_under'] or 'none'} |",
         f"| Urgency over-called (said more urgent than gold) | {s['urgency_over_rate']:.0%} \u2014 {s['urgency_over'] or 'none'} |",

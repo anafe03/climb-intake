@@ -556,9 +556,22 @@ const FAQ={
      'Because it is a real answer. If spam were "could not classify", every genuine miss would hide in the '
      +'same bucket as the junk, and the review queue would be useless.'],
     ['How often is the category right?',
-     '<b>100%</b> on the 33-ticket gold set, in both modes — scored ambiguity-aware, meaning a ticket the '
-     +'gold set marks as legitimately two categories counts as correct for either. Eight of the 33 are marked '
-     +'ambiguous on category, so the headline is not 33 easy calls.'],
+     'On the 33-row gold set the model path is <b>100% strict</b> — it matched gold’s primary label on '
+     +'every row, including all eight the gold set marks as legitimately two categories, so the ambiguity '
+     +'tolerance is not doing any work for it. Rules-only is <b>82% strict</b> and only reaches 100% once that '
+     +'tolerance is applied. Quoting one number for both modes hid that difference; the scorecard carries '
+     +'them separately now.'],
+    ['Is 100% not suspicious?',
+     'Yes, and the right response to a saturated metric is to stop using it to decide anything. Every model '
+     +'in the bake-off scores 100% on category — gpt-5, mini at two effort levels, and nano. A number that '
+     +'cannot tell a frontier model from the cheapest one is not measuring the model; it is measuring that '
+     +'eight broad buckets are an easy call on 33 tickets. The columns that do discriminate are missed '
+     +'escalations, false escalations and urgency under-calls, which is why those are the ones in bold.'],
+    ['Who wrote the answers you are scoring against?',
+     'I did, for 23 of the 33 rows. That is a real circularity risk: the edge cases and the prompt came from '
+     +'the same head, so the model agreeing with them is weaker evidence than it looks. The ten provided Climb '
+     +'tickets are the independent subset, and the model is 10/10 strict on those. A larger set labelled by two '
+     +'people who did not write the prompt is the first thing I would buy with more time.'],
     ['Who chose 0.50?',
      'I did. It is the only number in the system that changes behaviour, and it lives in '
      +'<code>app/routing.yaml</code> as one line a support lead can move without an engineer.'],
@@ -585,7 +598,9 @@ const FAQ={
      +'call is a <b>screening test</b>, and a screening test is not judged on accuracy. Calling a well patient '
      +'sick costs a second look. Calling a sick patient well costs the thing you built the test for.'],
     ['So which way does it get them wrong?',
-     'Always the safe way, on this gold set. <b>Under-called (said calmer than gold): 0%.</b> Over-called: 18% '
+     'Always the safe way, on this gold set. Two directions, and only one of them hurts. <b>Under-called — '
+     +'we said calmer than the gold answer, so the ticket waits longer than it should: 0%.</b> Over-called — '
+     +'we said more urgent, so it arrives early and a person downgrades it: 18% '
      +'on the model path, 24% rules-only. No ticket the gold set calls critical was ever read as anything '
      +'less. Every one of those misses is a ticket that reached a queue faster than it strictly needed to, '
      +'where a person downgrades it in seconds — not one that sat. <code>docs/EVAL-llm.md</code> reports '
@@ -627,6 +642,26 @@ const FAQ={
      +'escalation flag and category label were unanimous 4/4, with confidence standard deviation averaging '
      +'0.046. Nothing is pinned — no seed, no temperature control — so that is the natural spread. '
      +'The <b>Read it again</b> button lower down runs the same check live on this ticket.'],
+    ['Is escalation really just keywords?',
+     'Both halves run, and either one alone can raise the flag \u2014 but you should push on this, because '
+     +'on the 33-row gold set they agree <i>exactly</i>: 11 tickets escalated, all 11 caught by both, '
+     +'none by either alone. That is not evidence the model is redundant. It is evidence the gold set '
+     +'cannot tell, because every escalating row in it happens to contain keyword vocabulary \u2014 '
+     +'unsurprising, since the rows and the patterns were written by the same hand.'],
+    ['So what does the model actually add?',
+     'It was worth measuring rather than asserting. <code>scripts/keyword_free_probe.py</code> runs six '
+     +'tickets that escalate in meaning and contain none of the words the patterns look for \u2014 a '
+     +'leaver who "finished up with us in June", a British customer instructing <i>solicitors</i> rather '
+     +'than lawyers, "the woman who runs our company", a cross-tenant leak described from the other '
+     +'direction, and an erasure demand with no acronym. The keyword layer is verified silent on all '
+     +'six first. <b>The model caught all five that should escalate, and left the urgent-sounding '
+     +'control alone.</b> That is what the second layer buys.'],
+    ['Then why keep the keywords at all?',
+     'Because they cannot drift. A prompt edit, a model version, a provider outage \u2014 any of those can '
+     +'move the model\u2019s behaviour, and none of them touches a regex. The keywords are a floor that '
+     +'is version-controlled and testable, and they still work when the model is unreachable: '
+     +'rules-only mode holds 100% escalation recall. The model is the ceiling; the keywords are the '
+     +'floor. Neither is the system.'],
     ['Why escalate a security ticket that already goes to security?',
      'Countability. A ticket sitting in the security queue looks identical whether it is a breach or a '
      +'question about the SOC 2 report. Without the flag, "did we miss one" has no answer.'],
@@ -739,9 +774,11 @@ function explainer(key,d){
     + `<h5>The five escalation topics</h5><ul class="crit">${ESC_DEFS.map(([k,v,t])=>
         liTrig(cap(k),v,t,x.escalation_reasons.includes(k))).join('')}</ul>
        <p style="font-size:11.5px;color:var(--faint);margin:9px 0 0">Both halves read the same five
-       topics. The model reads them from meaning, so it catches “our VP of Engineering is asking”
-       with no keyword in sight. The keywords run separately, over the raw ticket, and catch what the
-       model played down. Either half alone is enough to raise the flag; neither can lower it.</p>`
+       topics, and either half alone is enough to raise the flag. The keywords match words. The model
+       reads meaning, which is what catches “the woman who runs our company wants an explanation”
+       or a leaver who “finished up with us in June” — no pattern in <code>app/rules.py</code> sees
+       either. Measured: on six tickets written to be invisible to the keywords, the model caught all
+       five that should escalate and left the control alone.</p>`
     + `<h5>Who ends up involved — four things that get confused for each other</h5><ul class="crit">
         ${li('Its own team','always. Every ticket is routed to a queue a person works.',true)}
         ${li('On-call, paged now','when urgency is critical. This ticket: '+esc(x.urgency)+'.',x.urgency==='critical')}
