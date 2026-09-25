@@ -65,17 +65,14 @@ invoker binding.
 
 ```bash
 gcloud auth login && gcloud config set project $PROJECT
-gcloud auth configure-docker us-central1-docker.pkg.dev
-
-IMAGE=us-central1-docker.pkg.dev/$PROJECT/climb-intake/intake:v1
-docker build -t $IMAGE . && docker push $IMAGE
-
-cd infra/terraform
-tofu init
-tofu apply -var project_id=$PROJECT -var image=$IMAGE \
-           -var openai_api_key=$OPENAI_API_KEY -var llm_provider=openai
-tofu output url
+PROJECT=$PROJECT ./scripts/deploy.sh      # OPENAI_API_KEY from the env or .env
 ```
+
+[scripts/deploy.sh](../scripts/deploy.sh) does it in the order that works from a clean project:
+`tofu apply` for the APIs and the registry alone, then `docker buildx build --platform linux/amd64
+--push` (Cloud Run is amd64-only, and an image built plainly on an Apple Silicon Mac is arm64), then
+the full `tofu apply`, then a `/health` check against the URL. The key reaches Terraform as
+`TF_VAR_openai_api_key`, so it never appears on a command line.
 
 Either provider works: pass `openai_api_key`, `anthropic_api_key`, or both and let
 `llm_provider` choose. Only the keys you pass get a secret created.
