@@ -26,7 +26,7 @@ ticket can come back a little different, so that's what we control and measure.
 |---|---|---|
 | Escalation | Yes, only to add a flag | Flagging too much is the safe mistake. |
 | Urgency | Yes, only upward | Too urgent is the safe mistake. |
-| Category | No, fallback only | No safe answer; one ticket can't go to two teams. |
+| Category | No, fallback only | No safe answer. |
 | Who sent it | No, fallback only | A wrong company isn't safer than a right one. |
 | Where it goes | Not needed | A fixed table. |
 
