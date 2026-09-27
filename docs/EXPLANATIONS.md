@@ -71,24 +71,19 @@ tickets that need more thinking cost more to read.
 
 ### A small model first, a bigger one when it matters
 
-Default to the cheap model; send a ticket to the bigger one only when it looks risky. Two versions, measured
-on the 33 main test tickets:
+Cheap model by default, the bigger one only for risky tickets. Two ways, tested on the 33 main tickets:
 
 | Version | Result |
 |---|---|
-| The keyword check decides which model reads each ticket: risky words go to gpt-5, the rest to mini. Each ticket is read once. | **38% cheaper.** One extra false escalation and one urgency call too low. |
-| Mini reads every ticket, and gpt-5 re-reads the ones mini flags or is unsure about. | **29% more expensive.** |
+| Keywords pick the model | **38% cheaper.** Risky words go to gpt-5, the rest to mini. One extra false escalation, one urgency call too low. |
+| Mini first, gpt-5 re-checks | **29% more expensive.** Risky tickets get paid for twice. |
 
-The second costs more because every risky ticket is paid for twice, and the risky ones are the expensive
-ones: a re-read ticket cost about 1.73 cents against a 0.91 cent average.
+**Why I haven't switched.** 38% saves about $3.50 a month at 1,000 tickets, about $170 at 50,000. That's
+when it's worth it. Batching non-urgent tickets comes first.
 
-**Why I have not switched.** 38% of about $9 is about $3.50 a month at 1,000 tickets, and about $170 a month
-at 50,000. That is roughly where I would consider it. The 38% is measured; the 50,000 is my judgement. At
-scale the first lever is batching non-urgent tickets, before changing the model.
+These were measured before the one-shot example was added.
 
-The model comparison and the small-then-big versions were run before the worked example was added.
-
-## Robustness (fallbacks)
+## Robustness
 
 *Nothing is dropped.*
 
