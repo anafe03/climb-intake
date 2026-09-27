@@ -13,7 +13,8 @@ ticket can come back a little different, so that's what we control and measure.
 
 - **Prompt schema.** Fixed answers only: one of 8 categories, one of 4 urgency levels, yes/no, a score. No
   hallucinated answers.
-- **Every answer validated.** If it fails (timeout, error, bad format), the keyword check takes over.
+- **Every answer checked against the schema** before it's used. If the call fails or the answer doesn't
+  fit (timeout, error, refusal, bad format), the keyword check reads the ticket instead.
 - **One worked example** in the prompt, aimed at medium vs high urgency, where answers wobbled.
 - **Written rules** for every decision, and the model quotes the words it used.
 - **Low reasoning effort.** Same accuracy, about half the cost.
