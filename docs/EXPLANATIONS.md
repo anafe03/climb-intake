@@ -30,7 +30,7 @@ ticket can come back a little different, so that's what we control and measure.
 | Who sent it | No, fallback only | A wrong company isn't safer than a right one. |
 | Where it goes | Not needed | A fixed table. |
 
-### The test: the same ticket, five times
+### Variation testing: the same ticket through the LLM five times
 
 The 10 Climb tickets, 5 reads each, with and without the example.
 
