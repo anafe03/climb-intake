@@ -105,13 +105,11 @@ test (it got all 10 right), and why the next step is real tickets labelled by ot
 
 *What I would do next.*
 
-- Real tickets labelled by two people who did not write the instructions, and a held-back set never used for
-  tuning.
-- Keep the keyword check as the fallback and safety net. Replace its company-name patterns with a named
-  entity recognition model, so names are found anywhere in a sentence when the LLM is down.
-- A scheduled consistency check in production, with an expert reviewing the tickets that flip.
-- Tickets from the same customer grouped together once there is a login.
-- Batch the non-urgent tickets to cut cost before touching the model choice.
+- Real tickets, labelled by people who didn't write the prompt, with a held-back set for testing.
+- Keep the keyword check as the fallback. Swap its company-name patterns for a named entity recognition model.
+- A scheduled consistency check in production, with an expert reviewing tickets that flip.
+- Group tickets by customer once there's a login.
+- Batch non-urgent tickets to cut cost before changing the model.
 
 ## Who sent it
 
