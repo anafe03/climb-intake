@@ -123,17 +123,15 @@ The LLM decides. The keyword check is only a fallback: it runs when the LLM is d
 
 ### The LLM
 
-- Fills in a company name **only** if the ticket states it, wherever it appears.
-- Otherwise it guesses, marks it as a guess, scores it, and lists the words it used. A guess never goes in
-  the name field.
+The name is filled in only when the ticket states it. Anything less is a scored guess:
 
-| Score | What it means |
+| Score | What the ticket gave it |
 |---|---|
-| 0.95 to 1.00 | The company is named in the ticket. A fact, not a guess. |
-| 0.75 to 0.94 | A work email or an account number pins the company without naming it. |
-| 0.40 to 0.74 | Scale, plan, product or a stated role: the shape of the customer. |
-| 0.10 to 0.39 | Only that they are a customer of some kind. |
-| 0.00 | Nothing identifies them, and it says so rather than invent one. |
+| 0.95 to 1.00 | The company is named outright. Fact, not guess. |
+| 0.75 to 0.94 | Not named, but a work email domain or account number points to one company. |
+| 0.40 to 0.74 | Clues to the kind of customer: team size, plan, product, job title. No company. |
+| 0.10 to 0.39 | Only that they're a customer at all, from an invoice or account reference. |
+| 0.00 | Nothing to go on. It says "not stated" rather than invent one. |
 
 ### The keyword check
 
