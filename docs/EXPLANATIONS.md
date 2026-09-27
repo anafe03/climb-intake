@@ -50,7 +50,7 @@ The 10 Climb tickets, 5 reads each, with and without the example.
 
 *About $10 per 1,000 tickets, and why not something cheaper.*
 
-Every decision records its own cost from the tokens actually used. All 61 labelled test tickets, four setups:
+Measured on all 61 test tickets. The dashboard shows the tickets on screen instead, so its number differs a little.
 
 | Model | Escalations caught | False escalations | Urgency too low | Per 1,000 tickets |
 |---|---|---|---|---|

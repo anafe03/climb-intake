@@ -777,7 +777,7 @@ function renderOverview(){
       ${bar(count('c',d=>d.extraction.category),CAT_COLOR,'category')}</div>
     ${spend!=null?`<div class="ov"><div class="k">What it cost</div>
       <div class="big">$${(spend/Math.max(priced,1)*1000).toFixed(2)}<small>per 1,000 tickets</small></div>
-      <div class="s" style="margin-top:9px">What these ${priced} tickets actually cost to read.</div></div>`:''}
+      <div class="s" style="margin-top:9px">Average for the ${priced} tickets on screen. The Cost card averages all 61 test tickets.</div></div>`:''}
     <div class="ov"><div class="k">Time to read one</div>
       <div class="big">${(p50/1000).toFixed(1)}<small>seconds, median</small></div>
       <div class="legend" style="margin-top:8px"><span>${(lat[lat.length-1]/1000).toFixed(1)}s slowest</span></div></div>`;
