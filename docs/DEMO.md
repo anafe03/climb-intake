@@ -1,7 +1,7 @@
 # Three-minute demo script
 
-> **Older short script, kept for reference. The current walkthrough is <http://localhost:8080/notes>**
-> (intro, the app, why you can trust it, how it's built, cost and next steps, plus panel prep).
+> Short script, kept for reference. The full timed walkthrough is the presenter notes PDF, kept outside
+> the repo.
 
 For a live walkthrough. Have the service running with a model key present so the badge reads
 "reading with <model>". Load the 32-ticket demo set beforehand — it takes about 90 seconds.

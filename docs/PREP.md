@@ -62,7 +62,7 @@ Do this before rehearsing. You are checking that it makes sense to *you*.
 
 ## 4 · Rehearse (30 min)
 
-- [ ] Open **<http://localhost:8080/notes>** in a second window and set it to **15 minutes**.
+- [ ] Open the presenter notes PDF (kept outside the repo) on your own screen.
 - [ ] Run it out loud, timed, once. Expect to overrun.
 - [ ] Run it again, cutting. The 15-minute cut has a "trim to" note on each beat saying what to drop.
 - [ ] Practise saying the weak parts out loud. They land better volunteered:
@@ -76,7 +76,7 @@ Do this before rehearsing. You are checking that it makes sense to *you*.
 
 - [ ] `./scripts/preflight.sh` again. Networks change overnight.
 - [ ] Clear and reload the samples so timestamps read "just now".
-- [ ] Three tabs: the app, `/explanations`, `/notes`. Notes on your screen, not the shared one.
+- [ ] Two tabs: the app and `/explanations`. Notes PDF on your screen, not the shared one.
 - [ ] A terminal ready in the repo directory for the API beat.
 - [ ] Know these five numbers cold:
 

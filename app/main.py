@@ -169,12 +169,6 @@ def deliverables_pdf():
     return FileResponse(DELIVERABLES, media_type="application/pdf")
 
 
-@app.get("/notes", include_in_schema=False)
-def presenter_notes():
-    """Demo walkthrough. Served from the app so it can deep-link into the live ticket list."""
-    return FileResponse(STATIC / "presenter.html")
-
-
 @app.get("/health", tags=["operate"], summary="Is it up, and is the model answering?")
 def health():
     """`ok` is false when a model is configured but its last call failed.
