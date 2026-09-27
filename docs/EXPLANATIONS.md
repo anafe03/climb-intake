@@ -12,7 +12,7 @@ ticket can come back a little different, so that's what we control and measure.
 ### How the model is kept consistent
 
 1. **Schema checking.** The model has to answer in an exact format: one of eight categories, one of four
-   urgency levels, yes or no, a number. It cannot invent a ninth category or answer in prose.
+   urgency levels, yes or no, a number. No hallucinated answers: it can only pick from those options.
 2. **Every answer validated, every failure caught.** Each answer is checked against that format before it is
    used. A timeout, error, refusal or malformed answer is caught, and the keyword check handles the ticket
    instead, marked as such. It happened for real once in testing, and fell back cleanly.
