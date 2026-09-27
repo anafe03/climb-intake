@@ -1,4 +1,4 @@
-# Strategy, design and FAQs
+# Strategy and design
 
 ## Consistency
 
@@ -138,9 +138,9 @@ Runs only if the LLM does not answer. It finds a company in two places:
 - **Right after "from", "at" or "on behalf of"**, starting with a capital: "this is Dana *from Acme Logistics*".
 - **A sign-off line** starting with a dash: "— Priya Raghavan, *Meridian Health*".
 
-Otherwise it makes a labelled guess from clues:
+Otherwise it makes a labelled guess. Examples:
 
-| Clue in the ticket | Its guess | Score |
+| Example | Its guess | Score |
 |---|---|---|
 | a work email, like `dana@acme.com` | someone at acme.com | 0.8 |
 | a team size, like "50 users" | a customer with a sizeable team | 0.5 |
@@ -149,24 +149,6 @@ Otherwise it makes a labelled guess from clues:
 | a personal email (gmail, outlook) | an individual user | 0.3 |
 | only an invoice or account number | an existing customer | 0.3 |
 | nothing | not stated | 0.0 |
-
-### Questions
-
-- **Why can't the keyword check overrule the LLM here?** There is no safe direction for a company name: a
-  wrong company is not more cautious than a right one. So it is a fallback only.
-- **Why can't the keyword check find a company name anywhere in a sentence?** Word patterns in those two
-  places were the best choice for a fallback. Patterns cannot recognise every name: there is no list of every
-  company to check against. A named entity recognition model could, and that is the next step. From a
-  business side it is not the riskiest part: a missed name slows a reply, a missed escalation costs real money.
-- **How do you know it is not making up a customer?** A name is only filled in when the ticket says it.
-  Everything else is a labelled guess with its evidence.
-- **Why guess at all?** "Unknown" tells the person picking up the ticket nothing. "A paying customer using the
-  export feature" helps, and it is marked as a guess.
-- **How often is it right?** Every time on the 33 main test tickets. On 10 tickets written for names and
-  account numbers, with two traps: 10 of 10 names and 5 of 5 numbers. The keyword check alone: 6 of 10 and 2 of 5.
-- **Is the score a probability?** No. It is the LLM's rating against the scale above, not checked against
-  real outcomes.
-- **Would it know two tickets came from the same company?** Not yet. That comes once tickets carry a login.
 
 ## What kind of request
 
@@ -213,18 +195,6 @@ Runs only if the LLM does not answer. It checks in a fixed order and takes the f
 
 Its scores are deliberately low, so anything it is unsure of goes to a person.
 
-### Questions
-
-- **Why can't the keyword check overrule the LLM here?** There are eight answers and none of them is the
-  safe one. If the keywords say bug and the LLM says billing, you cannot send one ticket to two teams. And
-  the keyword check counts words; the LLM reads the ticket.
-- **What if a ticket fits two teams?** The LLM names the second-best and why it lost. Under 50% sure, a
-  person decides.
-- **Why is spam its own category?** Otherwise real problems get lost in the same pile as junk.
-- **How often is it right?** 32 of the 33 main test tickets. The other, a SOC 2 report request, could fairly
-  go to either of two teams. The keyword check alone: 27 of 33.
-- **Who chose 0.50?** I did. It sits in a settings file a support lead can change without an engineer.
-
 ## How urgent
 
 *Four levels, worked out from facts, not tone.*
@@ -252,19 +222,6 @@ happening, and whether harm is still happening. How angry someone sounds is deli
   Legal threat: high. Compliance request: high. Someone senior: no change.
 - **When the LLM is down:** outage words ("is down", "all our users") or many customers double-charged:
   critical. A deadline (today, by Friday, ASAP): high. "No rush": low. Otherwise medium.
-
-### Questions
-
-- **Why can the keyword check overrule the LLM here, but not for category?** Urgency has a safe direction:
-  up. Too urgent costs someone a moment; too calm means the ticket waits.
-- **Which way is it wrong?** The safe way. On the 33 main tickets, when urgency was wrong it was too high (12%
-  of tickets), never too low. Across all 61 test tickets, one exception, and it was borderline.
-- **Does high urgency mean it escalates?** No. Urgency is how fast; escalation is whether someone senior
-  needs to know. Double-charged checkout pages an engineer but nobody senior.
-- **Could an angry customer make a ticket look more urgent?** No. "Third month in a row the invoice doesn't
-  match!!!" is medium because it keeps happening, not because of the shouting.
-- **How often is it exactly right?** 88% on the 33 main tickets, 76% with the keyword check alone. Our
-  weakest number, but never wrong in the dangerous direction.
 
 ## Escalation
 
@@ -301,20 +258,6 @@ so a word the LLM glossed over still gets seen.
 | Compliance request | GDPR, CCPA, HIPAA, DSAR, data subject, right to erasure, regulator |
 | Someone senior | CEO, CFO, CTO, CISO, founder, VP, chief officer, the board, general counsel |
 
-### Questions
-
-- **Is escalation just keyword matching?** No. 8 of the 21 escalations in testing had no keyword at all; only
-  the LLM caught them.
-- **Why keep the keywords, then?** They never change, and they still work when the LLM is down: alone they
-  catch every escalation in the 33 main test tickets.
-- **Where does it break?** It over-escalates when incident words appear without an incident: "we have NOT had
-  a data breach". The LLM got that right; the keywords ignored the "not". I am not fixing it: a rule that
-  ignores "breach" can ignore a real one. A wrong flag costs someone a minute.
-- **How often does it flag something it should not?** Never on the 33 main tickets. 4 times on the 12 trick
-  tickets.
-- **Why flag a security ticket that already goes to security?** So it can be counted. The flag answers "did
-  we miss any?"
-
 ## Where it goes
 
 *A lookup, not a judgement.*
@@ -350,11 +293,3 @@ Not used here. No model sits in this step, so routing never changes from one run
 
 Not used here either. Its only effect is through the answers it may already have changed: a raised urgency or an
 added escalation flag.
-
-### Questions
-
-- **Is this a real queue?** A stand-in, as the brief asks. Connecting Zendesk, Jira or PagerDuty is one
-  connector; the sorting would not change.
-- **Why copy a flagged ticket instead of moving it?** If it moved, the owning team would never see it.
-  Hand-offs are where things get dropped.
-- **Who changes where tickets go?** A support lead, in a settings file, without an engineer.

@@ -214,10 +214,11 @@ def test_explanations_tab_serves_the_one_doc():
     src = client.get("/explanations.md")
     assert page.status_code == 200 and src.status_code == 200
     assert "## Consistency" in src.text
-    # every decision gets its own card, each with its own questions
+    # every decision gets its own card, each laid out the same way
     for field in ("Who sent it", "What kind of request", "How urgent", "Escalation", "Where it goes"):
         section = src.text.split("## " + field, 1)[1].split("\n## ", 1)[0]
-        assert "### Questions" in section, field
+        for h in ("### How we decide", "### The LLM", "### The keyword check"):
+            assert h in section, (field, h)
 
 
 def test_deliverables_tab_serves_the_pdf():
