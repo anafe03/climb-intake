@@ -46,7 +46,6 @@ The 10 Climb tickets, 5 reads each, with and without the example.
 
 ### In production
 
-- Re-run a sample of real tickets on a schedule and alert if answers start flipping.
 - Re-run the full test before any prompt or model change ships.
 - Have an expert label the tickets that flip. They become the next examples.
 
@@ -66,10 +65,9 @@ Every decision records its own cost from the tokens actually used. All 61 labell
 The dashboard shows what the tickets on screen cost, so its number differs a little from this average:
 tickets that need more thinking cost more to read.
 
-- **gpt-5 is what I run.** Every escalation caught, fewest mistakes.
-- **Nano is out, however cheap.** It missed 2 escalations and read 4 clearly critical tickets as less urgent,
-  including the checkout charging customers twice.
-- **Less thinking made mini worse, not just cheaper.** Minimal effort took its false escalations from 3 to 8.
+- **gpt-5:** every escalation caught, fewest mistakes. This is what runs.
+- **Nano:** cheapest, but missed 2 escalations and under-called 4 critical tickets. Out.
+- **Mini, minimal effort:** cheaper, but false escalations went from 3 to 8.
 
 ### A small model first, a bigger one when it matters
 
