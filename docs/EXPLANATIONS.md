@@ -38,11 +38,8 @@ The 10 Climb tickets, 5 reads each, with and without the example.
 |---|---|---|
 | Category, escalation, queue or company changed | 0 of 10 | 0 of 10 |
 | Urgency changed | 2 of 10 | 1 of 10 |
-
-- Urgency only ever moved one level, in one run of five.
-- The free-text parts (the reasons, the guess at who sent it) are reworded each run. That's why only the
-  fixed answers decide where a ticket goes.
-- With the example, urgency on the main test set went from 82% to 88% exactly right.
+| Category confidence moves by | 0.10 on average | 0.10 on average |
+| Who-sent-it confidence moves by | 0.18 on average, 0.45 at most | 0.17 on average, 0.40 at most |
 
 ### In production
 
@@ -62,14 +59,7 @@ Every decision records its own cost from the tokens actually used. All 61 labell
 | gpt-5-mini, minimal effort | 21 of 21 | 8 | 2 (all borderline) | $1.30 |
 | gpt-5-nano | **19 of 21** | 1 | **9, including 4 clearly critical** | $0.37 |
 
-The dashboard shows what the tickets on screen cost, so its number differs a little from this average:
-tickets that need more thinking cost more to read.
-
-- **gpt-5:** every escalation caught, fewest mistakes. This is what runs.
-- **Nano:** cheapest, but missed 2 escalations and under-called 4 critical tickets. Out.
-- **Mini, minimal effort:** cheaper, but false escalations went from 3 to 8.
-
-### A small model first, a bigger one when it matters
+### Cheap model first, better model second
 
 Cheap model by default, the bigger one only for risky tickets. Two ways, tested on the 33 main tickets:
 
@@ -78,10 +68,7 @@ Cheap model by default, the bigger one only for risky tickets. Two ways, tested 
 | Keywords pick the model | **38% cheaper.** Risky words go to gpt-5, the rest to mini. One extra false escalation, one urgency call too low. |
 | Mini first, gpt-5 re-checks | **29% more expensive.** Risky tickets get paid for twice. |
 
-**Why I haven't switched.** 38% saves about $3.50 a month at 1,000 tickets, about $170 at 50,000. That's
-when it's worth it. Batching non-urgent tickets comes first.
-
-These were measured before the one-shot example was added.
+**Why I haven't switched.** 38% saves about $3.50 a month at 1,000 tickets.
 
 ## Robustness
 
