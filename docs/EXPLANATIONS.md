@@ -88,18 +88,15 @@ Cheap model by default, the bigger one only for risky tickets. Two ways, tested 
 
 | Set | What it is for | Result |
 |---|---|---|
-| 33 main test tickets | the 10 Climb provided plus 23 edge cases I wrote | every escalation caught, no false ones; urgency 88% exact, never too calm |
+| 33 main tickets | the 10 from Climb plus 23 edge cases I wrote | every escalation caught, none false; urgency 88% exact, never too low |
 | 12 trick tickets | written to break it | no missed escalations; 4 over-escalations |
 | 6 no-keyword tickets | escalations with none of the keyword words | the model caught all 5 that needed it |
 | 10 extraction tickets | names, contacts, account numbers, two traps | 10 of 10 names, 5 of 5 numbers |
 | 10 Climb tickets, 5 runs each | does the model repeat itself | see Consistency |
 
-The trick, no-keyword and extraction sets were run before the worked example was added.
-
-**Who wrote the tests.** I wrote 23 of the 33 main test tickets, and that has a limit: if I already knew a
-way it breaks, I would have fixed it. So the hardest failures to test for are the ones I have not thought
-of. That is why the trick tickets were written to break it on purpose, why the 10 Climb tickets are the fairest
-test (it got all 10 right), and why the next step is real tickets labelled by other people.
+**Who wrote the tests.** I wrote 23 of the 33 main tickets, so the failures I can't test for are the ones I
+haven't thought of. That's why the trick tickets exist, why the 10 Climb tickets are the fairest test (all 10
+right), and why the next step is real tickets labelled by other people.
 
 ## Going forward
 
