@@ -152,7 +152,7 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 <body>
 <header><div class="wrap">
   <h1>Strategy, design and FAQs</h1>
-  <p>Each decision, then the system as a whole</p>
+  <p>The system as a whole, then each decision</p>
 </div></header>
 <nav><div class="wrap">
   <a href="/intro">Intro</a>
@@ -163,8 +163,8 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
   <a href="/deliverables">Deliverables</a>
 </div></nav>
 <main class="wrap">
-  <p class="grouplabel">Each decision</p><div class="cards" id="fields"></div>
   <p class="grouplabel">Across the whole system</p><div class="cards" id="system"></div>
+  <p class="grouplabel">Each decision</p><div class="cards" id="fields"></div>
 </main>
 <div class="pop-bg" id="popbg"><div class="pop"><div class="pop-h"><span id="poptitle"></span><button aria-label="Close" id="popx">×</button></div><div class="pop-b" id="popbody"></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
@@ -209,7 +209,7 @@ fetch('/explanations.md').then(r=>r.text()).then(md=>{
       ul.replaceWith(wrap);
     });
     // The cost card's table is live and clickable: every number opens the tickets behind it.
-    if(s.title==='Cost and model choice'){
+    if(s.title==='Cost'){
       const t=body.querySelector('table');
       if(t){ t.id='models'; const ev=document.createElement('div'); ev.id='evidence'; ev.className='ev'; ev.hidden=true;
              t.after(ev); const hint=document.createElement('p'); hint.className='hint';
