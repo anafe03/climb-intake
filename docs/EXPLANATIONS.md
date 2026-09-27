@@ -15,7 +15,8 @@ ticket can come back a little different, so that's what we control and measure.
   hallucinated answers.
 - **Every answer checked against the schema** before it's used. If the call fails or the answer doesn't
   fit (timeout, error, refusal, bad format), the keyword check reads the ticket instead.
-- **One worked example** in the prompt, aimed at medium vs high urgency, where answers wobbled.
+- **One-shot prompting.** The prompt includes one worked example, a full ticket and its answer, aimed at
+  medium vs high urgency, where answers wobbled.
 - **Written rules** for every decision, and the model quotes the words it used.
 - **Low reasoning effort.** Same accuracy, about half the cost.
 
