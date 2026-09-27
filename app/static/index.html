@@ -561,8 +561,8 @@ function explainer(key,d){
   const head=()=>`<div class="ticketref">${esc(d.ticket.text)}</div>`;
   const q=t=>`“${esc(String(t).replace(/^["“'\s]+|["”'\s]+$/g,''))}”`;
   const call=(label,t)=>`<div class="found lead"><b>${esc(label)}</b>${t}</div>`;
-  const why=(txt)=>txt?`<h5>The evidence behind it</h5><p class="reason">${esc(txt)}</p>`:'';
-  const landed=(items)=>`<h5>Where it landed</h5><ul class="crit">${items.map(([a,b])=>li(a,b,true)).join('')}</ul>`;
+  const why=(txt)=>txt?`<h5>Evidence</h5><p class="reason">${esc(txt)}</p>`:'';
+  const landed=(title,items)=>`<h5>${title}</h5><ul class="crit">${items.map(([a,b])=>li(a,b,true)).join('')}</ul>`;
 
   if(key==='who'){
     const conf=c.confidence;
@@ -581,7 +581,7 @@ function explainer(key,d){
           ? `No name given. Best guess <b>${esc(c.best_guess)}</b> at <b>${conf.toFixed(2)}</b>, from ${c.basis.map(q).join(', ')}.`
           : `Nothing in the text identifies the sender.`))
     + why(x.customer_reason)
-    + landed([RUNGS[r]]);
+    + landed('Confidence',[RUNGS[r]]);
   }
 
   if(key==='what'){
@@ -599,7 +599,7 @@ function explainer(key,d){
             ${x.category_alternatives.map(a=>li(cap(a.category), `${a.confidence.toFixed(2)}: ${a.why_not}`, false)).join('')}
            </ul>`
         : '')
-    + landed([BANDS[rung]]);
+    + landed('Confidence',[BANDS[rung]]);
   }
 
   if(key==='urgency'){
@@ -609,7 +609,7 @@ function explainer(key,d){
         ? `<b>${esc(cap(x.urgency))}</b>, read from ${x.urgency_signals.map(q).join(', ')}.`
         : `<b>${esc(cap(x.urgency))}</b>, with no explicit cue in the text.`)
     + why(x.urgency_reason)
-    + landed([[cap(x.urgency),def]]);
+    + landed('Classification',[[cap(x.urgency),def]]);
   }
 
   if(key==='human'){
