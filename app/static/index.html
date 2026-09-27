@@ -1119,7 +1119,7 @@ async function refreshHealth(){
   m.className = 'mode' + (live && !failing ? '' : ' off');
   m.textContent = !live ? 'no API key: keyword rules only'
     : failing ? 'AI unreachable: keyword rules only'
-    : 'AI reading';
+    : 'AI reading · keyword rules as fallback';
   const was = lastHealth && lastHealth.last_model_call;
   if (failing && h.last_model_error && was !== 'failing')
     status(`Model calls are failing, so tickets are being read by keyword rules. ${h.last_model_error.slice(0,140)}`, {err:true});

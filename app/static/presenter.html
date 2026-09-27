@@ -500,6 +500,12 @@ docker exec $(docker compose ps -q) id -un</pre></div>
     <div class="q"><h4>Why guess the customer at all?</h4>
       <p>Nine of ten tickets name nobody, and "unknown" helps no one. It guesses, scores it, and shows the
       evidence, but never writes a guess into the name field. In production this comes from the login.</p></div>
+    <div class="q"><h4>Why can't the fallback find a company name anywhere in a sentence?</h4>
+      <p>The keyword fallback uses word patterns, and those were the best choice here. Patterns cannot
+      recognise every name: there is no list of every company to check against, so "Meridian Health" in the
+      middle of a sentence looks like any other words. A named entity recognition model could spot it, and
+      that is the next step. From a business side it is not the riskiest part: a missed name slows a reply,
+      a missed escalation costs real money. The AI reads names anywhere; this only matters when it is down.</p></div>
     <div class="q"><h4>Why doesn't a full outage escalate?</h4>
       <p>Escalation is about topic, not how bad it is. An outage is critical and goes to on-call. A CEO
       thank-you note escalates at low urgency. Mixing them would flood the escalation desk.</p></div>
@@ -514,7 +520,7 @@ docker exec $(docker compose ps -q) id -un</pre></div>
   <div class="box"><h3>Numbers</h3><table id="numbers"><tr><td>loading…</td><td></td></tr></table></div>
   <div class="box warn"><h3>Before you start</h3><ul>
     <li><code>colima restart</code>, then <code>./scripts/preflight.sh</code>: everything should pass.</li>
-    <li>Badge top-right should read "AI reading", not "keyword rules only".</li>
+    <li>Badge top-right should read "AI reading · keyword rules as fallback", not "keyword rules only".</li>
     <li>Start from Data, then "Start fresh". To show every queue filled, Data, then "All 48". Both load instantly.</li>
     <li>Have this page in a second tab, not on the shared screen.</li>
   </ul></div>

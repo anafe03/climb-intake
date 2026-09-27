@@ -30,13 +30,16 @@ If neither is there, it does not name anyone. It makes a labelled guess from wha
 | only an invoice or account number | an existing customer | 0.3 |
 | nothing | not stated | 0.0 |
 
-**Why it cannot find company names anywhere else.** Word patterns need to know what to look for. There is
-no list of every company in the world to check against, so it cannot tell that "Meridian Health" in the
-middle of a sentence is a company. It can only find one in those two predictable places. Spotting names
-anywhere in a sentence is what named entity recognition does, and that would be the next step.
+**Why it cannot find company names anywhere else.** Word patterns in these two places were the best
+choice for the fallback. Patterns cannot recognise every name: there is no list of every company in the
+world to check against, so they cannot tell that "Meridian Health" in the middle of a sentence is a
+company. A named entity recognition model could, and that would be the next step. From a business side
+it is not the riskiest part: a missed company name slows a reply down, while a missed escalation is the
+failure that costs real money, so that is where the effort went.
 
-**Why the keyword check never overrules the AI here.** There is no safe direction for who sent it: a wrong
-company is not more cautious than a right one. So it only takes over when the AI is down.
+**Why the keyword check never overrules the AI here.** The keyword check is a fallback for who sent it.
+There is no safe direction to push a company name: a wrong company is not more cautious than a right one.
+So the AI decides, and the keyword check only takes over when the AI is down.
 
 ### The full scale
 
