@@ -6,8 +6,8 @@
 
 ### What needs testing
 
-The keyword checks and routing are plain rules: same text in, same answer out. The model isn't. The same
-ticket can come back a little different, so that's what we control and measure.
+The keyword checks and routing are rules. They always give the same answer. The model can vary. That is
+what we control and measure.
 
 ### How the model is kept consistent
 
@@ -94,9 +94,8 @@ Cheap model by default, the bigger one only for risky tickets. Two ways, tested 
 | 10 extraction tickets | names, contacts, account numbers, two traps | 10 of 10 names, 5 of 5 numbers |
 | 10 Climb tickets, 5 runs each | does the model repeat itself | see Consistency |
 
-**Who wrote the tests.** I wrote 23 of the 33 main tickets, so the failures I can't test for are the ones I
-haven't thought of. That's why the trick tickets exist, why the 10 Climb tickets are the fairest test (all 10
-right), and why the next step is real tickets labelled by other people.
+**Who wrote the tests.** I wrote 23 of the 33 main tickets. The 10 Climb tickets are the fairest test: all 10
+right. Next step: real tickets labelled by other people.
 
 ## Going forward
 
@@ -106,7 +105,6 @@ right), and why the next step is real tickets labelled by other people.
 - Keep the keyword check as the fallback. Swap its company-name patterns for a named entity recognition model.
 - A scheduled consistency check in production, with an expert reviewing tickets that flip.
 - Group tickets by customer once there's a login.
-- Batch non-urgent tickets to cut cost before changing the model.
 
 ## Who sent it
 
