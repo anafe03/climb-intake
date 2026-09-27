@@ -1,14 +1,13 @@
 # Strategy, design and FAQs
 
-## Consistency (determinism)
+## Consistency
 
-*The keyword checks always repeat themselves. The model might not, so that is what was tested.*
+*Rules always give the same answer. The model might not, so we tested it.*
 
 ### What needs testing
 
-The keyword checks and the routing table are rules: the same text always gets the same answer, so there is
-nothing to test for consistency. The model is different: the same ticket can come back slightly
-differently. So the model is the part to control, and the part to measure.
+The keyword checks and routing are plain rules: same text in, same answer out. The model isn't. The same
+ticket can come back a little different, so that's what we control and measure.
 
 ### How the model is kept consistent
 

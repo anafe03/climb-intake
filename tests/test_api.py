@@ -213,7 +213,7 @@ def test_explanations_tab_serves_the_one_doc():
     page = client.get("/explanations")
     src = client.get("/explanations.md")
     assert page.status_code == 200 and src.status_code == 200
-    assert "## Consistency (determinism)" in src.text
+    assert "## Consistency" in src.text
     # every decision gets its own card, each with its own questions
     for field in ("Who sent it", "What kind of request", "How urgent", "Escalation", "Where it goes"):
         section = src.text.split("## " + field, 1)[1].split("\n## ", 1)[0]
