@@ -11,68 +11,42 @@ ticket can come back a little different, so that's what we control and measure.
 
 ### How the model is kept consistent
 
-1. **Schema checking.** The model has to answer in an exact format: one of eight categories, one of four
-   urgency levels, yes or no, a number. No hallucinated answers: it can only pick from those options.
-2. **Every answer validated, every failure caught.** Each answer is checked against that format before it is
-   used. A timeout, error, refusal or malformed answer is caught, and the keyword check handles the ticket
-   instead, marked as such. It happened for real once in testing, and fell back cleanly.
-3. **One-shot learning.** The instructions include one worked example: a complete ticket and its full
-   answer. It is a new ticket, not one of the ones being tested, so the model cannot copy an answer it is
-   then graded on. It is aimed at the medium versus high urgency line, which is where answers wobbled.
-4. **Written rules for every decision**, with the model told to quote the words that led to each answer.
-5. **The keyword checks**, as a floor under the model.
-6. **Low reasoning effort.** Classifying against written rules does not need long thinking. It cost no
-   accuracy and roughly halved the cost.
-
-**Why one example and not more.** More would be possible. The cost is not mainly money: the example added
-about 500 tokens to every call, but that part is cached, so the cost per ticket stayed about the same
-(0.94 to 0.92 cents). The cost is effort: each example has to be written, kept correct, and re-tested every
-time it changes. One fixed the wobble it was aimed at. Good enough is better than perfect.
+- **Prompt schema.** Fixed answers only: one of 8 categories, one of 4 urgency levels, yes/no, a score. No
+  hallucinated answers.
+- **Every answer validated.** If it fails (timeout, error, bad format), the keyword check takes over.
+- **One worked example** in the prompt, aimed at medium vs high urgency, where answers wobbled.
+- **Written rules** for every decision, and the model quotes the words it used.
+- **Low reasoning effort.** Same accuracy, about half the cost.
 
 ### Where the keyword check can change the AI's answer
 
-| Decision | Can the keyword check overrule the AI? | Why |
+| Decision | Can it overrule the AI? | Why |
 |---|---|---|
 | Escalation | Yes, only to add a flag | Flagging too much is the safe mistake. |
-| Urgency | Yes, only upward | Too urgent is the safe mistake; too calm means it waits. |
-| Category | No, fallback only | Eight answers and no safe one. You cannot send a ticket to two teams. |
-| Who sent it | No, fallback only | A wrong company is not safer than a right one, and the answer is open-ended. |
-| Where it goes | Not needed | A fixed table, no AI involved. |
+| Urgency | Yes, only upward | Too urgent is the safe mistake. |
+| Category | No, fallback only | No safe answer; one ticket can't go to two teams. |
+| Who sent it | No, fallback only | A wrong company isn't safer than a right one. |
+| Where it goes | Not needed | A fixed table. |
 
 ### The test: the same ticket, five times
 
-Each of the 10 Climb tickets, read 5 times, with and without the worked example: 100 reads.
+The 10 Climb tickets, 5 reads each, with and without the example.
 
 | | Without the example | With it |
 |---|---|---|
-| Category changed | 0 of 10 tickets | 0 of 10 |
-| Escalation changed | 0 of 10 | 0 of 10 |
-| Queue changed | 0 of 10 | 0 of 10 |
-| Company name changed | 0 of 10 | 0 of 10 |
+| Category, escalation, queue or company changed | 0 of 10 | 0 of 10 |
 | Urgency changed | 2 of 10 | 1 of 10 |
-| Category confidence moves by | 0.10 on average | 0.10 on average |
-| Who-sent-it confidence moves by | 0.18 on average, 0.45 at most | 0.17 on average, 0.40 at most |
 
-- When urgency changed, it was by one level, in one run out of five.
-- The fixed answers never changed: category, escalation, the queue, and the company name (which stays "not
-  stated" when the ticket gives none).
-- The open-ended parts do change. The written guess about who sent it, like "an existing customer using the
-  export feature", is worded afresh every run, and its score moves. The biggest swing is the crypto spam
-  ticket: nothing identifies the sender, so the score wandered between 0.25 and 0.70. The reasons are
-  reworded each run too. That is expected for anything written in free text, and it is why only the fixed
-  answers decide where a ticket goes.
-- **What the before and after shows.** There is no pass mark here; I read the results. With the example, the
-  two tickets that wobbled stopped wobbling, and a different ticket wobbled once. Five runs per ticket is a
-  small test, so that is a good sign, not proof. On the main scorecard, urgency went from 82% to 88% exactly
-  right, with escalation unchanged.
+- Urgency only ever moved one level, in one run of five.
+- The free-text parts (the reasons, the guess at who sent it) are reworded each run. That's why only the
+  fixed answers decide where a ticket goes.
+- With the example, urgency on the main test set went from 82% to 88% exactly right.
 
 ### In production
 
-- Re-run a sample of real tickets on a schedule; track, for each decision, how often it flips and how far the
-  confidence moves. Alert if either climbs.
-- Re-run the full test before any change to the instructions or the model ships.
-- Have a subject-matter expert review the tickets that flip. They are the most worth labelling, and they
-  become the next worked examples.
+- Re-run a sample of real tickets on a schedule and alert if answers start flipping.
+- Re-run the full test before any prompt or model change ships.
+- Have an expert label the tickets that flip. They become the next examples.
 
 ## Cost
 
