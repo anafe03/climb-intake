@@ -184,15 +184,21 @@ Picks exactly one category, names the runner-up and why it lost, and scores how 
 
 ### The keyword check
 
-Runs only if the LLM does not answer. It checks in a fixed order and takes the first match:
+Runs only if the LLM does not answer. Fixed order, first match wins:
 
-1. security or data-exposure words: security
-2. legal or compliance words: legal / contract
-3. two or more spam signals (crypto, discord, free credits, SEO, "click here"): spam
+1. two or more spam signals (crypto, discord, free credits, SEO, "click here") and no security word: spam
+2. security or data-exposure words: security
+3. legal or compliance words: legal / contract
 4. bug words (error, broken, crash, down) against billing words (invoice, charged, refund, plan, seats):
    whichever there are more of
 5. onboarding words (set up, go-live, migration), then feature words (can you add, roadmap)
 6. otherwise: other
+
+**Why this order.** By the cost of a wrong label. A security ticket in the wrong queue is the worst outcome,
+so security words beat everything, spam included. Spam is checked next because scams use alarming words
+("account suspended", "verify your billing") and would otherwise reach real teams. Legal follows. Bug and
+billing overlap most, so it counts the words. Onboarding and feature come last: a wrong label there costs a
+hand-off, not an incident.
 
 Its scores are deliberately low, so anything it is unsure of goes to a person.
 
