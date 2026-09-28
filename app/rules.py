@@ -275,10 +275,14 @@ def rules_only_extraction(text: str) -> Extraction:
 
     customer = Customer(name=company, contact_name=contact, identifiers=ids, best_guess=guess,
                         confidence=round(cust_conf, 2), basis=basis)
-    cust_reason = (f"The text names “{company}” directly." if company
-                   else (f"No company is named. Guessed from {basis[0]}." if basis
-                         else "Nothing in the text identifies the sender — no name, domain, "
-                              "account reference, or scale cue."))
+    # Say what was looked for and not found, then what hit. "Guessed from X" alone reads as if X
+    # were the only check.
+    if company:
+        cust_reason = f"The text names “{company}” directly."
+    else:
+        checked = "No company after 'from', 'at' or 'on behalf of', no sign-off line, no email address."
+        cust_reason = (f"{checked} Found: {'; '.join(basis)}. So: {guess}, at {round(cust_conf, 2)}." if basis
+                       else f"{checked} No plan, team size, product or account reference either, so not stated.")
     return Extraction(
         customer=customer,
         category=category,

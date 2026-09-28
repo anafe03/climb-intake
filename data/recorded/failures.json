@@ -1,11 +1,11 @@
 {
   "set": "failures",
-  "recorded_at": "2026-09-28T15:14:26Z",
+  "recorded_at": "2026-09-28T15:31:05Z",
   "model": null,
   "decisions": [
     {
-      "id": "8d05ef8ce0fc",
-      "created_at": "2026-09-28T15:14:25.670+00:00",
+      "id": "7404bfb56a4b",
+      "created_at": "2026-09-28T15:31:05.087+00:00",
       "ticket": {
         "text": "One of our former employees (terminated last week) just logged into the Climb admin console using old credentials that should've been revoked. We can see activity in the audit log from this morning.",
         "source": "failures",
@@ -22,7 +22,7 @@
           "confidence": 0.0,
           "basis": []
         },
-        "customer_reason": "Nothing in the text identifies the sender \u2014 no name, domain, account reference, or scale cue.",
+        "customer_reason": "No company after 'from', 'at' or 'on behalf of', no sign-off line, no email address. No plan, team size, product or account reference either, so not stated.",
         "category": "security",
         "category_confidence": 0.8,
         "category_reason": "Keyword match put this in 'security'. This is the fallback classifier, which counts cue words rather than reading the request, so it cannot weigh a near alternative and reports none.",
@@ -56,13 +56,13 @@
       ],
       "queue": "security-incident-response",
       "escalation_queue": "human-escalation-desk",
-      "latency_ms": 461,
+      "latency_ms": 507,
       "usage": {},
       "error": "APITimeoutError: Request timed out."
     },
     {
-      "id": "79c9e902a998",
-      "created_at": "2026-09-28T15:14:25.942+00:00",
+      "id": "57ef2dbf4a26",
+      "created_at": "2026-09-28T15:31:05.509+00:00",
       "ticket": {
         "text": "Hey, I noticed we got charged $4,200 on our last invoice but I thought we downgraded to the Team plan back in July? Can someone check this and adjust if it's an error?",
         "source": "failures",
@@ -81,7 +81,7 @@
             "plan referenced: \u201cTeam plan\u201d"
           ]
         },
-        "customer_reason": "No company is named. Guessed from plan referenced: \u201cTeam plan\u201d.",
+        "customer_reason": "No company after 'from', 'at' or 'on behalf of', no sign-off line, no email address. Found: plan referenced: \u201cTeam plan\u201d. So: a customer on the Team plan, at 0.45.",
         "category": "billing",
         "category_confidence": 0.6,
         "category_reason": "Keyword match put this in 'billing'. This is the fallback classifier, which counts cue words rather than reading the request, so it cannot weigh a near alternative and reports none.",
@@ -102,13 +102,13 @@
       "overrides": [],
       "queue": "billing-support",
       "escalation_queue": null,
-      "latency_ms": 271,
+      "latency_ms": 422,
       "usage": {},
       "error": "APITimeoutError: Request timed out."
     },
     {
-      "id": "04f9db72e8ef",
-      "created_at": "2026-09-28T15:14:26.200+00:00",
+      "id": "9cc916b49792",
+      "created_at": "2026-09-28T15:31:05.825+00:00",
       "ticket": {
         "text": "We've asked our solicitors to look over the agreement, because what you've delivered is not what was signed for. Expect to hear from them this week.",
         "source": "failures",
@@ -125,7 +125,7 @@
           "confidence": 0.0,
           "basis": []
         },
-        "customer_reason": "Nothing in the text identifies the sender \u2014 no name, domain, account reference, or scale cue.",
+        "customer_reason": "No company after 'from', 'at' or 'on behalf of', no sign-off line, no email address. No plan, team size, product or account reference either, so not stated.",
         "category": "other",
         "category_confidence": 0.3,
         "category_reason": "Keyword match put this in 'other'. This is the fallback classifier, which counts cue words rather than reading the request, so it cannot weigh a near alternative and reports none.",
@@ -144,7 +144,7 @@
       "overrides": [],
       "queue": "human-review",
       "escalation_queue": null,
-      "latency_ms": 258,
+      "latency_ms": 315,
       "usage": {},
       "error": "APITimeoutError: Request timed out."
     }
