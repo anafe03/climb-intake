@@ -386,7 +386,6 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
     </svg>
     <div><b>Climb Intake</b><small>Reads a messy customer request and decides which team gets it</small></div>
   </div>
-  <span class="mode" id="mode">…</span>
 </div></header>
 <nav><div class="wrap">
   <a href="/intro">Intro</a>
@@ -1127,11 +1126,7 @@ ta.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter')$('
 let lastHealth = null;
 async function refreshHealth(){
   let h; try { h = await api('/health'); } catch { return null; }
-  const m = $('#mode'), live = h.mode === 'llm', failing = h.last_model_call === 'failing';
-  m.className = 'mode' + (live && !failing ? '' : ' off');
-  m.textContent = !live ? 'no API key: keyword rules only'
-    : failing ? 'AI unreachable: keyword rules only'
-    : 'AI reading';
+  const live = h.mode === 'llm', failing = h.last_model_call === 'failing';
   const was = lastHealth && lastHealth.last_model_call;
   if (failing && h.last_model_error && was !== 'failing')
     status(`Model calls are failing, so tickets are being read by keyword rules. ${h.last_model_error.slice(0,140)}`, {err:true});
