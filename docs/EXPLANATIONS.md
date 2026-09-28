@@ -214,10 +214,13 @@ happening, and whether harm is still happening. How angry someone sounds is deli
 
 ### The keyword check
 
-- **On every ticket:** an escalation word sets a floor. Security incident: high. Data exposure: critical.
-  Legal threat: high. Compliance request: high. Someone senior: no change.
-- **When the LLM is down:** outage words ("is down", "all our users") or many customers double-charged:
-  critical. A deadline (today, by Friday, ASAP): high. "No rush": low. Otherwise medium.
+- **On every ticket, after the LLM.** An escalation word sets a floor. Urgency can go up to meet it, never
+  down. Security incident: high, or critical if it is happening now ("logged in", "right now", "still has
+  access"). Data exposure: critical. Legal threat: high. Compliance request: high. Someone senior: no change.
+- **When the LLM is down.** Checked in order, first match wins. Spam: low. Customers charged twice: critical.
+  Outage words on a bug ("is down", "all our users", "can't log in"): critical. "No rush", "low priority",
+  "minor": low. A deadline ("today", "by Friday", "ASAP", "urgent"): high. Otherwise medium. A dollar amount
+  is recorded as a signal but does not change the level.
 
 ## Escalation
 
