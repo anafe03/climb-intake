@@ -207,6 +207,13 @@ def queue_counts() -> dict[str, int]:
     return counts
 
 
+def delete(decision_id: str) -> bool:
+    """Remove one decision. Returns False if there was nothing to remove."""
+    with connect() as conn:
+        cur = conn.execute("DELETE FROM decisions WHERE id = ?", (decision_id,))
+        return cur.rowcount > 0
+
+
 def clear(keep_source: str | None = None) -> None:
     """Delete decisions. With keep_source, rows from that source survive (e.g. typed-in tickets)."""
     with connect() as conn:

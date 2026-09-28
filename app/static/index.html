@@ -211,6 +211,8 @@ table.mini tr.bad td.w{color:var(--danger);font-weight:600}
 .mnav{display:flex;gap:8px;align-items:center;padding:0 24px 18px}
 .mnav button{background:transparent;border-color:var(--line-2);color:var(--dim);padding:5px 11px;font-size:12px}
 .mnav button:hover:not(:disabled){border-color:var(--primary);color:var(--primary)}
+.mnav .rm{margin-left:auto}
+.mnav .rm[data-armed]{border-color:var(--danger);color:var(--danger)}
 .mnav .pos{font:11px var(--mono);color:var(--faint);margin-left:auto}
 
 .req{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--primary);
@@ -932,6 +934,7 @@ async function openModal(id){
     <div class="mnav">
       <button id="mprev" ${i<=0?'disabled':''}>← Previous</button>
       <button id="mnext" ${i>=v.length-1?'disabled':''}>Next →</button>
+      <button id="mrm" class="rm">Remove</button>
       <span class="pos">${i+1} of ${v.length}${d.ticket.external_id?' · '+esc(d.ticket.external_id):''}</span>
     </div>
     <div class="mbody">
@@ -991,6 +994,13 @@ async function openModal(id){
   if(wantX&&TITLES[wantX]) openField(wantX);
 
   $('#mx').onclick=closeModal;
+  // Two clicks to remove, so a stray click mid-demo cannot drop a ticket.
+  $('#mrm').onclick=async()=>{
+    const b=$('#mrm');
+    if(!b.dataset.armed){ b.dataset.armed='1'; b.textContent='Remove this ticket? Click again'; return; }
+    await api('/tickets/'+id,{method:'DELETE'}); closeModal(); await reload();
+    status('Ticket removed.',{hold:3000});
+  };
   $('#mprev').onclick=()=>i>0&&openModal(v[i-1].id);
   $('#mnext').onclick=()=>i<v.length-1&&openModal(v[i+1].id);
   $('#modal').scrollTop=0; $('#scrim').scrollTop=0;

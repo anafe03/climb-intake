@@ -528,3 +528,11 @@ def clear_all(keep_source: str | None = None):
     """Clears every decision. Intended for resetting a demo, not for production use."""
     audit.clear(keep_source)
     return {"ok": True}
+
+
+@app.delete("/tickets/{decision_id}", tags=["operate"], summary="Remove one ticket")
+def remove_one(decision_id: str):
+    """Drops a single decision from the store, for curating a demo set."""
+    if not audit.delete(decision_id):
+        raise HTTPException(404, "no such ticket")
+    return {"ok": True}

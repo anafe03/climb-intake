@@ -108,6 +108,16 @@ def test_recheck_compares_fields_and_persists_nothing():
     assert len(client.get("/tickets?limit=100").json()) == rows_before
 
 
+def test_remove_one_ticket():
+    client.delete("/tickets")
+    r = client.post("/tickets/load-recorded?fixture=samples").json()
+    gone = r["decisions"][0]["id"]
+    assert client.delete(f"/tickets/{gone}").status_code == 200
+    assert client.get(f"/tickets/{gone}").status_code == 404
+    assert client.get("/queues").json()["total"] == r["count"] - 1
+    assert client.delete(f"/tickets/{gone}").status_code == 404
+
+
 def test_recheck_unknown_id_is_404():
     assert client.post("/tickets/nope/recheck").status_code == 404
 
