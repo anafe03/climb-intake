@@ -561,7 +561,7 @@ function explainer(key,d){
   const head=()=>`<div class="ticketref">${esc(d.ticket.text)}</div>`;
   const q=t=>`“${esc(String(t).replace(/^["“'\s]+|["”'\s]+$/g,''))}”`;
   const call=(label,t)=>`<div class="found lead"><b>${esc(label)}</b>${t}</div>`;
-  const why=(txt)=>txt?`<h5>Evidence</h5><p class="reason">${esc(txt)}</p>`:'';
+  const why=(txt)=>txt?`<h5>Reasoning</h5><p class="reason">${esc(txt)}</p>`:'';
   const landed=(title,items)=>`<h5>${title}</h5><ul class="crit">${items.map(([a,b])=>li(a,b,true)).join('')}</ul>`;
 
   if(key==='who'){
