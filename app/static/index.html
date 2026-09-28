@@ -420,8 +420,8 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
       <button id="set-demo">The 38 other examples</button>
       <button id="set-all">All 48</button>
       <button id="set-fail">Add 3 keyword fallbacks (model timed out)</button>
+      <button id="set-typed">Only what I typed</button>
       <button id="up">Upload a file…</button>
-      <button id="fresh" class="danger">Start fresh: 10 samples, nothing typed</button>
     </div>
   </div>
   <input type="file" id="file" accept=".json,.jsonl,.csv,.txt">
@@ -874,7 +874,7 @@ function renderList(){
            <li>Or paste any customer message at the top and press <span class="kbd">Read it</span> to
                have the model read one live.</li></ol>
        <p style="margin-top:14px">Then click any ticket to open the full breakdown.</p></div>`;
-    const sn=$('#seed-now'); if(sn) sn.onclick=()=>showSet(['samples'],'the 10 Climb samples');
+    const sn=$('#seed-now'); if(sn) sn.onclick=()=>showSet(['samples'],'the 10 Climb samples',false);
     return;
   }
   if(dash){$('#list').innerHTML='';return}
@@ -1092,15 +1092,19 @@ async function showSet(sets,label,keepTyped=true){
     status(`Showing ${label}: ${n} tickets.`,{hold:3000});
   });
 }
-$('#set-samples').onclick=()=>showSet(['samples'],'the 10 Climb samples');
-$('#set-demo').onclick=()=>showSet(['demo'],'the 38 other examples');
-$('#set-all').onclick=()=>showSet(['samples','demo'],'all examples');
+// Picking a set replaces the board, typed tickets included. "Only what I typed" is the way to keep those.
+$('#set-samples').onclick=()=>showSet(['samples'],'the 10 Climb samples',false);
+$('#set-demo').onclick=()=>showSet(['demo'],'the 38 other examples',false);
+$('#set-all').onclick=()=>showSet(['samples','demo'],'all examples',false);
+$('#set-typed').onclick=()=>run(async()=>{
+  await api('/tickets?keep_source=ui',{method:'DELETE'}); closeModal(); pick=null; escOnly=false; await reload();
+  status(`Showing only what you typed: ${rows.length} tickets.`,{hold:3000});
+});
 // Adds to what is shown rather than replacing it: the point is to see a fallback next to a normal read.
 $('#set-fail').onclick=()=>run(async()=>{
   const r=await api('/tickets/load-recorded?fixture=failures',{method:'POST'});
   await reload(); status(`Added ${r.count} tickets the keyword check handled after the model timed out.`,{hold:4000});
 });
-$('#fresh').onclick=()=>showSet(['samples'],'a fresh start',false);
 $('#up').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;
   const fd=new FormData();fd.append('file',f);
@@ -1129,7 +1133,7 @@ async function refreshHealth(){
   m.className = 'mode' + (live && !failing ? '' : ' off');
   m.textContent = !live ? 'no API key: keyword rules only'
     : failing ? 'AI unreachable: keyword rules only'
-    : 'AI reading · keyword rules as fallback';
+    : 'AI reading';
   const was = lastHealth && lastHealth.last_model_call;
   if (failing && h.last_model_error && was !== 'failing')
     status(`Model calls are failing, so tickets are being read by keyword rules. ${h.last_model_error.slice(0,140)}`, {err:true});
