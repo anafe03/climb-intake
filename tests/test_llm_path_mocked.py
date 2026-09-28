@@ -107,6 +107,20 @@ def test_provider_selection(monkeypatch):
     assert llm.provider() is None
 
 
+def test_answer_that_fails_the_schema_degrades_to_rules(monkeypatch):
+    """A malformed answer raises pydantic's ValidationError, a ValueError, and takes the same fallback."""
+    monkeypatch.setenv("CLASSIFIER_MODE", "llm")
+    monkeypatch.setenv("OPENAI_API_KEY", "x")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    from app import llm_openai
+    from app.models import Extraction
+    def bad(text, model=None):
+        Extraction.model_validate({"category": "ninth-category", "urgency": "soon"})
+    monkeypatch.setattr(llm_openai, "classify", bad)
+    d = pipeline.process(TicketIn(text="Our CEO wants an update today."), persist=False)
+    assert d.mode == "llm_fallback_rules" and "ValidationError" in d.error and d.extraction.escalate
+
+
 def test_openai_error_degrades_to_rules(monkeypatch):
     monkeypatch.setenv("CLASSIFIER_MODE", "llm")
     monkeypatch.setenv("OPENAI_API_KEY", "x")

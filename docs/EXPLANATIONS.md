@@ -68,7 +68,8 @@ Cheap model by default, the bigger one only for risky tickets. Two ways, tested 
 | Keywords pick the model | **38% cheaper.** Risky words go to gpt-5, the rest to mini. One extra false escalation, one urgency call too low. |
 | Mini first, gpt-5 re-checks | **29% more expensive.** Risky tickets get paid for twice. |
 
-**Why I haven't switched.** 38% saves about $3.50 a month at 1,000 tickets.
+**Why I haven't switched.** Mini first costs more, so no. Keywords picking the model saves 38%, about $3.50
+a month at 1,000 tickets. Not worth the extra mistakes yet.
 
 ## Robustness
 
@@ -77,8 +78,11 @@ Cheap model by default, the bigger one only for risky tickets. Two ways, tested 
 - **The model times out, errors or is down.** The keyword check reads the ticket and it is marked as such.
   Escalation words still flag it to a person. If the keyword check is not sure of the team, it goes to human
   review.
-- **The model returns something that does not fit the format.** Caught by the schema check, handled the
-  same way.
+- **The model returns something that does not fit the format.** The call goes through the OpenAI SDK's
+  `responses.parse` with the answer schema (`app/models.py`) attached, so the API is told the exact shape
+  and the reply is parsed straight into it. Anything that does not fit raises a validation error.
+  `app/pipeline.py` catches that with the API errors, runs the keyword check instead, and records the error
+  on the ticket. Tested with a mocked bad answer.
 - **The model is unsure of the category.** Under 50% sure, a person decides.
 - **The connection drops.** Retried a few times first, because those fail fast and usually recover.
 
@@ -120,11 +124,11 @@ The name is filled in only when the ticket states it. Anything less is a scored 
 
 | Score | What the ticket gave it |
 |---|---|
-| 0.95 to 1.00 | The company is named outright. Fact, not guess. |
+| 0.95 to 1.00 | The company is named. A fact, not a guess. |
 | 0.75 to 0.94 | Not named, but a work email domain or account number points to one company. |
-| 0.40 to 0.74 | Clues to the kind of customer: team size, plan, product, job title. No company. |
-| 0.10 to 0.39 | Only that they're a customer at all, from an invoice or account reference. |
-| 0.00 | Nothing to go on. It says "not stated" rather than invent one. |
+| 0.40 to 0.74 | Only the kind of customer: team size, plan, product or job title. |
+| 0.10 to 0.39 | Only that they are a customer, from an invoice or account reference. |
+| 0.00 | Nothing to go on. It says “not stated”. |
 
 ### The keyword check
 

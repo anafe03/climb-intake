@@ -567,11 +567,11 @@ function explainer(key,d){
   if(key==='who'){
     const conf=c.confidence;
     const RUNGS=[
-      ['0.95 – 1.00','the company is named in the text, so this is a fact, not a guess'],
-      ['0.75 – 0.94','a work email domain or an account id pins the company without naming it'],
-      ['0.40 – 0.74','scale, plan, product or a stated role: the shape of the customer'],
-      ['0.10 – 0.39','only that they are a customer of some kind'],
-      ['0.00','nothing in the text identifies them, and it says so rather than invent one'],
+      ['0.95 – 1.00','The company is named. A fact, not a guess.'],
+      ['0.75 – 0.94','Not named, but a work email domain or account number points to one company.'],
+      ['0.40 – 0.74','Only the kind of customer: team size, plan, product or job title.'],
+      ['0.10 – 0.39','Only that they are a customer, from an invoice or account reference.'],
+      ['0.00','Nothing to go on. It says “not stated”.'],
     ];
     const r=conf>=0.95?0:conf>=0.75?1:conf>=0.4?2:conf>0?3:4;
     return head()
@@ -619,18 +619,13 @@ function explainer(key,d){
       ? `The AI said <b>${L.escalate?'yes':'no'}</b>. The keyword check said <b>${hits.length?'yes':'no'}</b>${hits.length?` (matched ${hits.map(h=>q(h.matched)).join(', ')})`:''}. Either one saying yes is enough.`
       : `The AI did not answer, so only the keyword check decided: <b>${hits.length?'yes':'no'}</b>.`;
     const topics=ESC_DEFS.filter(([k])=>x.escalation_reasons.includes(k)).map(([k,v])=>[cap(k),v]);
-    const involved=[['Its own team','every ticket goes to a queue a person works']];
-    if(x.urgency==='critical') involved.push(['On-call, paged now','because urgency is critical']);
-    if(x.escalate) involved.push(['The escalation desk','on top of its own team']);
-    if(d.queue==='human-review') involved.push(['Human review','a person decides the team']);
     return head()
     + call('Does it escalate', x.escalate
         ? `<b>Yes</b>: ${x.escalation_reasons.map(r=>`<b>${esc(cap(r))}</b>`).join(' and ')}.`
         : `<b>No</b>. None of the five topics applied.`)
     + why(x.escalation_reason_text)
     + `<h5>How it was decided</h5><p class="reason">${how}</p>`
-    + (topics.length?`<h5>Topics that applied</h5><ul class="crit">${topics.map(([a,b])=>li(a,b,true)).join('')}</ul>`:'')
-    + `<h5>Who ends up involved</h5><ul class="crit">${involved.map(([a,b])=>li(a,b,true)).join('')}</ul>`;
+    + (topics.length?`<h5>Topics that applied</h5><ul class="crit">${topics.map(([a,b])=>li(a,b,true)).join('')}</ul>`:'');
   }
 
   if(key==='route'){
