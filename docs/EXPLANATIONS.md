@@ -113,7 +113,8 @@ a month at 1,000 tickets. Not worth the extra mistakes yet.
 
 ### How we decide
 
-The LLM decides. The keyword check is only a fallback: it runs when the LLM is down and never overrules it.
+**Generative extraction.** The LLM pulls the name out of the text, or writes a guess. The keyword check is only a
+fallback: it runs when the LLM is down and never overrules it.
 
 ### The LLM
 
@@ -152,7 +153,8 @@ Otherwise it makes a labelled guess. Examples:
 
 ### How we decide
 
-The LLM decides. The keyword check is only a fallback: it runs when the LLM is down and never overrules it.
+**Classification.** The LLM picks one of eight. The keyword check is only a fallback: it runs when the LLM is
+down and never overrules it.
 Under 0.50 sure, a person decides instead of a team.
 
 ### The LLM
@@ -197,8 +199,8 @@ Its scores are deliberately low, so anything it is unsure of goes to a person.
 
 ### How we decide
 
-The LLM decides. The keyword check runs on every ticket and can only **raise** urgency, never lower it,
-because too urgent is the safe mistake. When the LLM is down, the keyword check decides alone.
+**Classification.** The LLM picks one of four. The keyword check runs on every ticket and can only **raise**
+urgency, never lower it, because too urgent is the safe mistake. When the LLM is down, the keyword check decides alone.
 
 ### The LLM
 
@@ -228,7 +230,7 @@ happening, and whether harm is still happening. How angry someone sounds is deli
 
 ### How we decide
 
-Both run on every ticket. If **either** says escalate, it escalates. The keyword check can add a flag and
+**Classification.** Yes or no. Both run on every ticket. If **either** says escalate, it escalates. The keyword check can add a flag and
 never remove one, because a missed escalation is the expensive mistake.
 
 | | Keywords say yes | Keywords say no |
@@ -263,7 +265,7 @@ so a word the LLM glossed over still gets seen.
 
 ### How we decide
 
-A fixed table, so the same answers always go to the same queue. It takes the category, urgency and
+**Lookup.** A fixed table, so the same answers always go to the same queue. It takes the category, urgency and
 escalation already decided, in this order:
 
 1. **The category decides the team.**
