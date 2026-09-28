@@ -128,9 +128,12 @@ def apply_escalation_rules(text: str, extraction: Extraction) -> tuple[Extractio
             effects.append(f"urgency {out.urgency.value} -> {lifted.value}")
             # The lift has to show up in the reasoning and the cue list too, or the ticket view says
             # "critical, no cue in the text" over a reason that still explains the lower level.
-            why = f"Raised from {out.urgency.value} to {lifted.value}: the {rule.name.replace('.', ' ').replace('_', ' ')} rule matched '{m.group(0)}'"
+            topic = rule.reason.value.replace('_', ' ')
+            why = f"Then the {topic} rule fired on '{m.group(0)}'"
             if active:
-                why += f", and it is happening now ('{active.group(0)}')"
+                why += f", and '{active.group(0)}' says it is happening now. An incident in progress is {lifted.value}"
+            else:
+                why += f". A {topic} is at least {lifted.value}"
             out.urgency_reason = f"{out.urgency_reason.rstrip()} {why}." if out.urgency_reason else f"{why}."
             for cue in (m.group(0), active.group(0) if active else None):
                 if cue and cue not in out.urgency_signals:
@@ -290,8 +293,8 @@ def rules_only_extraction(text: str) -> Extraction:
                         f"which counts cue words rather than reading the request, so it cannot weigh a near "
                         f"alternative and reports none.",
         category_alternatives=[],
-        urgency_reason=(f"Cue words set '{urgency.value}': {', '.join(signals)}." if signals
-                        else f"No urgency cue words matched, so this defaults to '{urgency.value}'."),
+        urgency_reason=(f"Urgency words set '{urgency.value}': {', '.join(signals)}." if signals
+                        else f"No deadline, outage or 'no rush' words, so '{urgency.value}' to start."),
         escalation_reason_text="Escalation is decided by the guardrail regexes that run after this step, "
                                "not by the keyword classifier.",
         rationale=f"Keyword-rules mode (no model available): category '{category.value}' by cue words, "
