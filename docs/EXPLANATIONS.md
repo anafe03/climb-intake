@@ -90,6 +90,9 @@ a month at 1,000 tickets. Not worth the extra mistakes yet.
 
 *Built to find failures, not to pass.*
 
+**Recall over precision.** A missed escalation costs more than an extra flag, so it is tuned to catch every
+one and accept a few false flags. Same for urgency: too high beats too low.
+
 | Set | What it is for | Result |
 |---|---|---|
 | 33 main tickets | the 10 from Climb plus 23 edge cases I wrote | every escalation caught, none false; urgency 88% exact, never too low |
