@@ -94,7 +94,7 @@ a month at 1,000 tickets. Not worth the extra mistakes yet.
 |---|---|---|
 | 33 main tickets | the 10 from Climb plus 23 edge cases I wrote | every escalation caught, none false; urgency 88% exact, never too low |
 | 12 trick tickets | written to break it | no missed escalations; 4 extra flags: 3 acceptable caution, 1 a real mistake |
-| 6 no-keyword tickets | escalations with none of the keyword words | the model caught all 5 that needed it |
+| 6 no-keyword tickets | 5 escalations with none of the keyword words, plus 1 control | 5 of 5 caught; the control not flagged |
 | 10 extraction tickets | names, contacts, account numbers, two traps | 10 of 10 names, 5 of 5 numbers |
 | 10 Climb tickets, 5 runs each | does the model repeat itself | see Consistency |
 
