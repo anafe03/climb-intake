@@ -349,7 +349,7 @@ def explain(decision_id: str):
         f"  Customer:   {who}",
         f"              ids={c.identifiers or '-'}" + (f"  basis={c.basis}" if c.basis else ""),
         f"              why: {x.customer_reason}",
-        f"  Category:   {x.category.value} (confidence {x.category_confidence:.2f})",
+        f"  Category:   {x.category.value.replace('_', ' ')} (confidence {x.category_confidence:.2f})",
         f"              why: {x.category_reason}",
         f"  Urgency:    {x.urgency.value}  signals={x.urgency_signals or '-'}",
         f"              why: {x.urgency_reason}",

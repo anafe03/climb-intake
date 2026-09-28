@@ -418,8 +418,9 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
     <div class="menu-pop" id="menupop">
       <button id="set-samples">The 10 Climb samples</button>
       <button id="set-demo">The 38 other examples</button>
-      <button id="set-all">All 48</button>
-      <button id="set-fail">Add 3 keyword fallbacks (model timed out)</button>
+      <button id="set-fail">The 3 keyword fallbacks</button>
+      <button id="set-all">All 48 examples</button>
+      <button id="set-every">All 51, fallbacks included</button>
       <button id="set-typed">Only what I typed</button>
       <button id="up">Upload a file…</button>
     </div>
@@ -619,8 +620,8 @@ function explainer(key,d){
     const hits=(d.rule_hits||[]).filter(h=>h.reason);
     const L=d.llm_extraction;
     const how = L
-      ? `The AI said <b>${L.escalate?'yes':'no'}</b>. The keyword check said <b>${hits.length?'yes':'no'}</b>${hits.length?` (matched ${hits.map(h=>q(h.matched)).join(', ')})`:''}. Either one saying yes is enough.`
-      : `The AI did not answer, so only the keyword check decided: <b>${hits.length?'yes':'no'}</b>.`;
+      ? `The LLM said <b>${L.escalate?'yes':'no'}</b>. The keyword check said <b>${hits.length?'yes':'no'}</b>${hits.length?` (matched ${hits.map(h=>q(h.matched)).join(', ')})`:''}. Either one saying yes is enough.`
+      : `The LLM did not answer, so only the keyword check decided: <b>${hits.length?'yes':'no'}</b>.`;
     const topics=ESC_DEFS.filter(([k])=>x.escalation_reasons.includes(k)).map(([k,v])=>[cap(k),v]);
     return head()
     + call('Does it escalate', x.escalate
@@ -640,7 +641,7 @@ function explainer(key,d){
     return head()
     + call('Where it goes', `<code>${esc(d.queue)}</code>${d.escalation_queue?` and <code>${esc(d.escalation_queue)}</code>`:''}.`)
     + `<h5>How it got there</h5><ul class="crit">
-        ${step('The category decides the team','<code>'+esc(x.category)+'</code> → <code>'+esc(dflt||'—')+'</code>')}
+        ${step('The category decides the team','<b>'+esc(cap(x.category))+'</b> → <code>'+esc(dflt||'—')+'</code>')}
         ${step('Urgency', rerouted ? 'critical → <code>'+esc(d.queue)+'</code> instead' : esc(x.urgency)+' → no change')}
         ${step('Sure enough to send to a team?', diverted ? cc.toFixed(2)+' is below 0.50 → <code>human-review</code>' : cc.toFixed(2)+' → yes')}
         ${step('Copy to the escalation desk?', x.escalate ? 'yes → <code>'+esc(d.escalation_queue)+'</code>' : 'no')}
@@ -910,7 +911,7 @@ async function openModal(id){
     if(L.urgency!==x.urgency) what.push(`raised urgency from ${esc(L.urgency)} to ${esc(x.urgency)}`);
     guard=`<div class="sec"><div class="note changed"><b>The keyword check changed this answer.</b>
       It found ${words.join(', ')||'an escalation word'} in the ticket and ${what.join(' and ')||'raised it'}.
-      The AI had said ${L.escalate?'escalate':'no escalation'}${L.urgency!==x.urgency?`, ${esc(L.urgency)} urgency`:''}.</div></div>`;
+      The LLM had said ${L.escalate?'escalate':'no escalation'}${L.urgency!==x.urgency?`, ${esc(L.urgency)} urgency`:''}.</div></div>`;
   }
 
   // A stated name is a fact. Anything else is an inference, shown with its score and never promoted.
@@ -1100,11 +1101,8 @@ $('#set-typed').onclick=()=>run(async()=>{
   await api('/tickets?keep_source=ui',{method:'DELETE'}); closeModal(); pick=null; escOnly=false; await reload();
   status(`Showing only what you typed: ${rows.length} tickets.`,{hold:3000});
 });
-// Adds to what is shown rather than replacing it: the point is to see a fallback next to a normal read.
-$('#set-fail').onclick=()=>run(async()=>{
-  const r=await api('/tickets/load-recorded?fixture=failures',{method:'POST'});
-  await reload(); status(`Added ${r.count} tickets the keyword check handled after the model timed out.`,{hold:4000});
-});
+$('#set-fail').onclick=()=>showSet(['failures'],'the 3 keyword fallbacks',false);
+$('#set-every').onclick=()=>showSet(['samples','demo','failures'],'everything recorded',false);
 $('#up').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;
   const fd=new FormData();fd.append('file',f);
@@ -1138,7 +1136,7 @@ async function refreshHealth(){
   if (failing && h.last_model_error && was !== 'failing')
     status(`Model calls are failing, so tickets are being read by keyword rules. ${h.last_model_error.slice(0,140)}`, {err:true});
   if (!failing && was === 'failing')
-    status('The AI is reachable again.', {hold:5000});
+    status('The LLM is reachable again.', {hold:5000});
   lastHealth = h;
   return h;
 }
