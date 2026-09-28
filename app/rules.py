@@ -109,8 +109,11 @@ def apply_escalation_rules(text: str, extraction: Extraction) -> tuple[Extractio
         if not m:
             continue
         floor = rule.urgency_floor
-        if rule.reason in (EscalationReason.security_incident, EscalationReason.data_exposure) and ACTIVE_INCIDENT.search(text):
-            floor = Urgency.critical
+        active = None
+        if rule.reason in (EscalationReason.security_incident, EscalationReason.data_exposure):
+            active = ACTIVE_INCIDENT.search(text)
+            if active:
+                floor = Urgency.critical
         effects = []
         if not out.escalate:
             out.escalate = True
@@ -123,6 +126,15 @@ def apply_escalation_rules(text: str, extraction: Extraction) -> tuple[Extractio
         if lifted != out.urgency:
             overrides.append(f"{rule.name} lifted urgency {out.urgency.value} -> {lifted.value}")
             effects.append(f"urgency {out.urgency.value} -> {lifted.value}")
+            # The lift has to show up in the reasoning and the cue list too, or the ticket view says
+            # "critical, no cue in the text" over a reason that still explains the lower level.
+            why = f"Raised from {out.urgency.value} to {lifted.value}: the {rule.name.replace('.', ' ').replace('_', ' ')} rule matched '{m.group(0)}'"
+            if active:
+                why += f", and it is happening now ('{active.group(0)}')"
+            out.urgency_reason = f"{out.urgency_reason.rstrip()} {why}." if out.urgency_reason else f"{why}."
+            for cue in (m.group(0), active.group(0) if active else None):
+                if cue and cue not in out.urgency_signals:
+                    out.urgency_signals.append(cue)
             out.urgency = lifted
         hits.append(RuleHit(rule=rule.name, reason=rule.reason, matched=m.group(0), effect="; ".join(effects) or "confirmed model decision"))
 
