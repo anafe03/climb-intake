@@ -419,6 +419,7 @@ pre{background:var(--climb-teal);color:#d7ecef;border-radius:8px;padding:13px;ov
       <button id="set-samples">The 10 Climb samples</button>
       <button id="set-demo">The 38 other examples</button>
       <button id="set-all">All 48</button>
+      <button id="set-fail">Add 3 keyword fallbacks (model timed out)</button>
       <button id="up">Upload a file…</button>
       <button id="fresh" class="danger">Start fresh: 10 samples, nothing typed</button>
     </div>
@@ -1094,6 +1095,11 @@ async function showSet(sets,label,keepTyped=true){
 $('#set-samples').onclick=()=>showSet(['samples'],'the 10 Climb samples');
 $('#set-demo').onclick=()=>showSet(['demo'],'the 38 other examples');
 $('#set-all').onclick=()=>showSet(['samples','demo'],'all examples');
+// Adds to what is shown rather than replacing it: the point is to see a fallback next to a normal read.
+$('#set-fail').onclick=()=>run(async()=>{
+  const r=await api('/tickets/load-recorded?fixture=failures',{method:'POST'});
+  await reload(); status(`Added ${r.count} tickets the keyword check handled after the model timed out.`,{hold:4000});
+});
 $('#fresh').onclick=()=>showSet(['samples'],'a fresh start',false);
 $('#up').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;
