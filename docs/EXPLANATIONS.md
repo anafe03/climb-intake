@@ -93,13 +93,10 @@ a month at 1,000 tickets. Not worth the extra mistakes yet.
 | Set | What it is for | Result |
 |---|---|---|
 | 33 main tickets | the 10 from Climb plus 23 edge cases I wrote | every escalation caught, none false; urgency 88% exact, never too low |
-| 12 trick tickets | written to break it | no missed escalations; 4 over-escalations |
+| 12 trick tickets | written to break it | no missed escalations; 4 flagged without need, 1 of which gold counts as wrong |
 | 6 no-keyword tickets | escalations with none of the keyword words | the model caught all 5 that needed it |
 | 10 extraction tickets | names, contacts, account numbers, two traps | 10 of 10 names, 5 of 5 numbers |
 | 10 Climb tickets, 5 runs each | does the model repeat itself | see Consistency |
-
-**Who wrote the tests.** I wrote 23 of the 33 main tickets. The 10 Climb tickets are the fairest test: all 10
-right. Next step: real tickets labelled by other people.
 
 ## Going forward
 
